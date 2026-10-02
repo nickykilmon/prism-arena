@@ -1,0 +1,15 @@
+{
+  "name": "prism-arena",
+  "version": "1.0.0",
+  "private": true,
+  "description": "First-person sky arena shooter with Squad Waves, Gun Game and Capture the Flag",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "node server.js --build"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
