@@ -676,6 +676,12 @@ const SUITS = {
   pastel: { name: 'Pastel', price: 350, pv: 'linear-gradient(135deg,#ffd6e8,#d6ecff 50%,#fff3c4)' },
   zebra: { name: 'Zebra', price: 400, pv: 'repeating-linear-gradient(100deg,#f4f4f4 0 7px,#151515 7px 12px)' },
   tiger: { name: 'Tiger', price: 450, pv: 'repeating-linear-gradient(100deg,#ff9a2e 0 9px,#1a1008 9px 13px)' },
+  bear: { name: 'Bear', price: 400, pv: 'radial-gradient(circle at 40% 35%,#8a5a34,#4a2c16)' },
+  cow: { name: 'Cow', price: 400, pv: 'radial-gradient(ellipse at 30% 35%,#151515 0 20%,transparent 21%),radial-gradient(ellipse at 72% 70%,#151515 0 16%,transparent 17%),#f6f6f6' },
+  bunny: { name: 'Bunny', price: 450, pv: 'linear-gradient(180deg,#ffffff,#f4e6ea)' },
+  panda: { name: 'Panda', price: 500, pv: 'radial-gradient(ellipse at 30% 40%,#151515 0 22%,transparent 23%),radial-gradient(ellipse at 75% 70%,#151515 0 18%,transparent 19%),#f6f6f6' },
+  fox: { name: 'Fox', price: 550, pv: 'linear-gradient(180deg,#e8732a 0 65%,#fbf3ea 65%)' },
+  leopard: { name: 'Leopard', price: 600, pv: 'radial-gradient(circle at 50% 50%,#c88a3a 0 18%,#2a1a0a 20% 30%,transparent 32%) 0 0/16px 16px,#e3b45c' },
   matrix: { name: 'Matrix', price: 1000, pv: 'repeating-linear-gradient(90deg,#03140a 0 6px,#2bff6a 6px 7px,#03140a 7px 12px)' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
@@ -721,6 +727,12 @@ const HATS = {
   crown: { name: 'Crown', price: 1200, pv: 'linear-gradient(180deg,#fff3c4,#e8a92e 60%,#9a6510)' },
   tigerears: { name: 'Tiger Ears', price: 0, bundle: 'tiger', pv: 'radial-gradient(circle at 30% 70%,#1a1008 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#1a1008 0 16%,transparent 17%),repeating-linear-gradient(100deg,#ff9a2e 0 9px,#1a1008 9px 13px)' },
   zebraears: { name: 'Zebra Ears', price: 0, bundle: 'zebra', pv: 'radial-gradient(circle at 30% 70%,#151515 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#151515 0 16%,transparent 17%),repeating-linear-gradient(100deg,#f4f4f4 0 7px,#151515 7px 12px)' },
+  bearears: { name: 'Bear Ears', price: 0, bundle: 'bear', pv: 'radial-gradient(circle at 30% 70%,#4a2c16 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#4a2c16 0 16%,transparent 17%),radial-gradient(circle at 40% 35%,#8a5a34,#4a2c16)' },
+  cowears: { name: 'Cow Ears', price: 0, bundle: 'cow', pv: 'radial-gradient(circle at 30% 70%,#151515 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#151515 0 16%,transparent 17%),radial-gradient(ellipse at 30% 35%,#151515 0 20%,transparent 21%),radial-gradient(ellipse at 72% 70%,#151515 0 16%,transparent 17%),#f6f6f6' },
+  bunnyears: { name: 'Bunny Ears', price: 0, bundle: 'bunny', pv: 'radial-gradient(circle at 30% 70%,#f2a6b8 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#f2a6b8 0 16%,transparent 17%),linear-gradient(180deg,#ffffff,#f4e6ea)' },
+  pandaears: { name: 'Panda Ears', price: 0, bundle: 'panda', pv: 'radial-gradient(circle at 30% 70%,#151515 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#151515 0 16%,transparent 17%),radial-gradient(ellipse at 30% 40%,#151515 0 22%,transparent 23%),radial-gradient(ellipse at 75% 70%,#151515 0 18%,transparent 19%),#f6f6f6' },
+  foxears: { name: 'Fox Ears', price: 0, bundle: 'fox', pv: 'radial-gradient(circle at 30% 70%,#1a1210 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#1a1210 0 16%,transparent 17%),linear-gradient(180deg,#e8732a 0 65%,#fbf3ea 65%)' },
+  leopardears: { name: 'Leopard Ears', price: 0, bundle: 'leopard', pv: 'radial-gradient(circle at 30% 70%,#2a1a0a 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#2a1a0a 0 16%,transparent 17%),radial-gradient(circle at 50% 50%,#c88a3a 0 18%,#2a1a0a 20% 30%,transparent 32%) 0 0/16px 16px,#e3b45c' },
 };
 // bundled items (like Tiger Ears) come free with the suit they belong to
 const owns = (kind, id) => { const d = (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
@@ -776,6 +788,35 @@ const stripeAnimal = (name, bg, ink) => canvasTex(name, x => {
   }
 }, 2);
 const tigerTex = () => stripeAnimal('tiger', '#ff9a2e', '#1a1008');
+const blobAnimal = (name, bg, ink, n, rMin, rMax) => canvasTex(name, x => {
+  x.fillStyle = bg; x.fillRect(0, 0, 256, 256); x.fillStyle = ink;
+  for (let i = 0; i < n; i++) {
+    const cx = Math.random() * 256, cy = Math.random() * 256, r = rand(rMin, rMax);
+    x.beginPath(); for (let k = 0; k <= 12; k++) { const a = k / 12 * Math.PI * 2, rr = r * rand(0.7, 1.15); x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.8); } x.fill();
+  }
+}, 1);
+const cowTex = () => blobAnimal('cow', '#f6f6f6', '#151515', 9, 22, 48);
+const pandaTex = () => blobAnimal('panda', '#f6f6f6', '#151515', 6, 30, 60);
+const furTex = (name, base, light, dark) => canvasTex(name, x => {
+  x.fillStyle = base; x.fillRect(0, 0, 256, 256); x.lineWidth = 1.5;
+  for (let i = 0; i < 1400; i++) { const px = Math.random() * 256, py = Math.random() * 256; x.strokeStyle = Math.random() < 0.5 ? light : dark; x.beginPath(); x.moveTo(px, py); x.lineTo(px + rand(-2, 2), py + rand(4, 9)); x.stroke(); }
+}, 2);
+const bearTex = () => furTex('bear', '#6b4426', 'rgba(150,100,60,.5)', 'rgba(40,22,10,.5)');
+const bunnyTex = () => furTex('bunny', '#f4f1ee', 'rgba(255,255,255,.7)', 'rgba(200,190,190,.35)');
+const foxTex = () => canvasTex('fox', x => {
+  const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#e8732a'); g.addColorStop(0.62, '#e8732a'); g.addColorStop(0.72, '#fbf3ea'); g.addColorStop(1, '#fbf3ea');
+  x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.lineWidth = 1.5; for (let i = 0; i < 900; i++) { const px = Math.random() * 256, py = Math.random() * 160; x.strokeStyle = Math.random() < 0.5 ? 'rgba(255,170,90,.5)' : 'rgba(150,60,10,.4)'; x.beginPath(); x.moveTo(px, py); x.lineTo(px + rand(-2, 2), py + rand(4, 8)); x.stroke(); }
+});
+const leopardTex = () => canvasTex('leopard', x => {
+  x.fillStyle = '#e3b45c'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 55; i++) {
+    const cx = Math.random() * 256, cy = Math.random() * 256, r = rand(6, 11);
+    x.fillStyle = '#c88a3a'; x.beginPath(); x.ellipse(cx, cy, r, r * 0.8, 0, 0, 7); x.fill();
+    x.strokeStyle = '#2a1a0a'; x.lineWidth = rand(3, 4.5);
+    for (let k = 0; k < 4; k++) { const a0 = k * 1.6 + rand(0, 0.5); x.beginPath(); x.ellipse(cx, cy, r + 2, (r + 2) * 0.8, 0, a0, a0 + rand(0.7, 1.1)); x.stroke(); }
+  }
+}, 2);
 const zebraTex = () => stripeAnimal('zebra', '#f4f4f4', '#151515');
 const pastelTex = () => canvasTex('pastel', x => { const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, '#ffd6e8'); g.addColorStop(0.5, '#d6ecff'); g.addColorStop(1, '#fff3c4'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); });
 const matrixTex = () => canvasTex('matrix', x => {
@@ -819,6 +860,12 @@ function suitMaterial(id, col, glowCol) {
     case 'ocean': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: oceanTex(), metalness: 0.15, roughness: 0.25 });
     case 'ruby': return new THREE.MeshPhysicalMaterial({ color: 0xa3102e, metalness: 0.3, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.03, iridescence: 0.25 });
     case 'circuit': return new THREE.MeshStandardMaterial({ color: 0x07130c, roughness: 0.4, metalness: 0.5, emissive: 0x3dff8a, emissiveMap: circuitTex(), emissiveIntensity: 2 });
+    case 'bear': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: bearTex(), roughness: 0.95 });
+    case 'cow': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: cowTex(), roughness: 0.75 });
+    case 'bunny': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: bunnyTex(), roughness: 0.95 });
+    case 'panda': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pandaTex(), roughness: 0.85 });
+    case 'fox': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: foxTex(), roughness: 0.85 });
+    case 'leopard': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: leopardTex(), roughness: 0.7 });
     case 'pastel': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pastelTex(), metalness: 0.05, roughness: 0.4 });
     case 'zebra': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: zebraTex(), metalness: 0.05, roughness: 0.55 });
     case 'tiger': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: tigerTex(), metalness: 0.05, roughness: 0.55 });
@@ -1725,6 +1772,46 @@ function capTextTexture(word, bg, ink) {
   x.fillText(word, 128, 52);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+// animal ears that come with their suits; each animal picks an ear shape
+const EARS = {
+  tigerears: { style: 'cat', tex: () => tigerTex(), inner: 0xf3e9dc, tip: 0x1a1008 },
+  zebraears: { style: 'cat', tex: () => zebraTex(), inner: 0xf2a6b8, tip: 0x151515 },
+  leopardears: { style: 'cat', tex: () => leopardTex(), inner: 0xf3e9dc, tip: 0x2a1a0a },
+  foxears: { style: 'tall', color: 0xe8732a, inner: 0xfbf3ea, tip: 0x1a1210 },
+  pandaears: { style: 'round', color: 0x151515, inner: 0x2c2c2c },
+  bearears: { style: 'round', tex: () => bearTex(), inner: 0xc49a6c },
+  bunnyears: { style: 'bunny', tex: () => bunnyTex(), inner: 0xf2a6b8 },
+  cowears: { style: 'cow', tex: () => cowTex(), inner: 0xf2a6b8, horn: 0xf1e6c8 },
+};
+function addEars(hat, cfg, R, M) {
+  const outer = cfg.tex ? M(0xffffff, { map: cfg.tex(), roughness: 0.85 }) : M(cfg.color, { roughness: 0.85 });
+  const inner = M(cfg.inner, { roughness: 0.9 });
+  const mesh = (geo, m, parent) => { const o = new THREE.Mesh(geo, m); o.castShadow = true; parent.add(o); return o; };
+  for (const sx of [-1, 1]) {
+    const ear = new THREE.Group(); hat.add(ear);
+    if (cfg.style === 'cat' || cfg.style === 'tall') {
+      const tall = cfg.style === 'tall', h = tall ? 0.85 : 0.6, r = tall ? 0.3 : 0.34;
+      ear.position.set(sx * R * 0.55, R * (tall ? 0.48 : 0.4), 0); ear.rotation.z = -sx * (tall ? 0.28 : 0.38);
+      mesh(new THREE.ConeGeometry(R * r, R * h, 16), outer, ear).scale.z = 0.45;
+      const i = mesh(new THREE.ConeGeometry(R * r * 0.6, R * h * 0.66, 16), inner, ear); i.scale.z = 0.3; i.position.set(0, -R * 0.04, -R * 0.09);
+      const t = mesh(new THREE.ConeGeometry(R * r * 0.4, R * h * 0.34, 12), M(cfg.tip, { roughness: 0.9 }), ear); t.scale.z = 0.5; t.position.y = R * h * 0.35;
+    } else if (cfg.style === 'round') {
+      ear.position.set(sx * R * 0.62, R * 0.32, 0);
+      mesh(new THREE.SphereGeometry(R * 0.26, 16, 12), outer, ear).scale.z = 0.45;
+      const i = mesh(new THREE.SphereGeometry(R * 0.15, 14, 10), inner, ear); i.scale.z = 0.3; i.position.z = -R * 0.07;
+    } else if (cfg.style === 'bunny') {
+      ear.position.set(sx * R * 0.24, R * 0.85, 0); ear.rotation.z = -sx * 0.14; ear.rotation.x = 0.12;
+      mesh(new THREE.CapsuleGeometry(R * 0.13, R * 0.8, 6, 12), outer, ear).scale.z = 0.5;
+      const i = mesh(new THREE.CapsuleGeometry(R * 0.07, R * 0.66, 6, 12), inner, ear); i.scale.z = 0.35; i.position.z = -R * 0.05;
+    } else if (cfg.style === 'cow') {
+      ear.position.set(sx * R * 0.86, R * 0.12, 0); ear.rotation.z = sx * 0.35;
+      mesh(new THREE.SphereGeometry(R * 0.22, 14, 10), outer, ear).scale.set(1.7, 0.7, 0.4);
+      const i = mesh(new THREE.SphereGeometry(R * 0.14, 12, 8), inner, ear); i.scale.set(1.6, 0.6, 0.3); i.position.z = -R * 0.04;
+      const horn = new THREE.Group(); horn.position.set(sx * R * 0.38, R * 0.58, 0); horn.rotation.z = -sx * 0.55; hat.add(horn);
+      mesh(new THREE.ConeGeometry(R * 0.08, R * 0.34, 10), M(cfg.horn, { roughness: 0.5 }), horn);
+    }
+  }
+}
 function addHat(parent, id, hotdog, mats, av) {
   if (!id || id === 'none' || !HATS[id]) return;
   // droid: wide dome head; hot dog: narrow sausage tip, so hats sit higher with narrower brims
@@ -1733,6 +1820,7 @@ function addHat(parent, id, hotdog, mats, av) {
   const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.05, ...o }); mats.push(m); return m; };
   const put = (geo, m, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; hat.add(o); return o; };
   const cyl = (rt, rb, h, open = false) => new THREE.CylinderGeometry(rt, rb, h, 28, 1, open);
+  if (EARS[id]) { addEars(hat, EARS[id], R, M); return; }
   const half = r => new THREE.SphereGeometry(r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2);
   switch (id) {
     case 'tophat': {
@@ -1815,18 +1903,6 @@ function addHat(parent, id, hotdog, mats, av) {
       put(cyl(R * 1.3 * bk, R * 1.3 * bk, 0.025), purple, 0, 0.01);
       const cone = put(new THREE.ConeGeometry(R * 0.78, R * 2.0, 24), purple, 0, R * 1.0); cone.rotation.z = 0.18; cone.position.x = -R * 0.12;
       put(cyl(R * 0.8, R * 0.8, R * 0.12, true), M(0xffd23a, { side: THREE.DoubleSide, metalness: 0.6, roughness: 0.3 }), 0, R * 0.08);
-      break;
-    }
-    case 'tigerears': case 'zebraears': {
-      const tiger = id === 'tigerears';
-      const outer = M(0xffffff, { map: tiger ? tigerTex() : zebraTex(), roughness: 0.8 }), inner = M(tiger ? 0xf3e9dc : 0xf2a6b8, { roughness: 0.9 });
-      const tip = M(tiger ? 0x1a1008 : 0x151515, { roughness: 0.9 });
-      for (const sx of [-1, 1]) {
-        const ear = new THREE.Group(); ear.position.set(sx * R * 0.55, R * 0.4, 0); ear.rotation.z = -sx * 0.38; hat.add(ear);
-        const o = new THREE.Mesh(new THREE.ConeGeometry(R * 0.34, R * 0.6, 16), outer); o.scale.z = 0.45; o.castShadow = true; ear.add(o);
-        const i = new THREE.Mesh(new THREE.ConeGeometry(R * 0.2, R * 0.4, 16), inner); i.scale.z = 0.3; i.position.set(0, -R * 0.04, -R * 0.09); ear.add(i);
-        const t = new THREE.Mesh(new THREE.ConeGeometry(R * 0.13, R * 0.2, 12), tip); t.scale.z = 0.5; t.position.y = R * 0.21; ear.add(t);
-      }
       break;
     }
     case 'viking': {
