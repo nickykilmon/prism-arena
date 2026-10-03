@@ -329,6 +329,8 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
       </div>
       <div class="sect" style="margin-bottom:8px">Suits</div>
       <div class="items" id="suitItems"></div>
+      <div class="sect" style="margin-bottom:8px">Hats</div>
+      <div class="items" id="hatItems"></div>
       <div class="sect" style="margin-bottom:8px">Gun finishes</div>
       <div class="items" id="finishItems"></div>
       <div class="sect" style="margin-bottom:8px">Color</div>
@@ -488,6 +490,7 @@ const settings = {
   cls: store.get('cls', 'fighter'),
   skin: store.get('skin', 'standard'),
   finish: store.get('finish', 'factory'),
+  hat: store.get('hat', 'none'),
 };
 if (!['waves', 'ffa', 'gungame', 'ctf'].includes(settings.mode)) settings.mode = 'waves';
 if (!LOADOUT.includes(settings.gun)) settings.gun = 'rifle';
@@ -670,6 +673,10 @@ const SUITS = {
   ocean: { name: 'Ocean', price: 450, pv: 'repeating-radial-gradient(circle at 30% 120%,#0b3d6e 0 6px,#1d6fb0 6px 10px,#4fb3e8 10px 12px)' },
   ruby: { name: 'Ruby', price: 650, pv: 'radial-gradient(circle at 35% 30%,#ff8fa3,#c4123a 40%,#5a0616)' },
   circuit: { name: 'Circuit', price: 900, pv: 'linear-gradient(90deg,transparent 46%,#3dff8a 46% 54%,transparent 54%) 0 0/18px 18px,linear-gradient(0deg,transparent 46%,#3dff8a 46% 54%,transparent 54%) 9px 0/18px 36px,#07130c' },
+  pastel: { name: 'Pastel', price: 350, pv: 'linear-gradient(135deg,#ffd6e8,#d6ecff 50%,#fff3c4)' },
+  zebra: { name: 'Zebra', price: 400, pv: 'repeating-linear-gradient(100deg,#f4f4f4 0 7px,#151515 7px 12px)' },
+  tiger: { name: 'Tiger', price: 450, pv: 'repeating-linear-gradient(100deg,#ff9a2e 0 9px,#1a1008 9px 13px)' },
+  matrix: { name: 'Matrix', price: 1000, pv: 'repeating-linear-gradient(90deg,#03140a 0 6px,#2bff6a 6px 7px,#03140a 7px 12px)' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -688,6 +695,9 @@ const FINISHES = {
   sunset: { name: 'Sunset', price: 300, pv: 'linear-gradient(180deg,#ffcf6b,#ff6b8b 50%,#7a4bd6)' },
   ruby: { name: 'Ruby', price: 400, pv: 'radial-gradient(circle at 35% 30%,#ff8fa3,#c4123a 40%,#5a0616)' },
   circuit: { name: 'Circuit', price: 500, pv: 'linear-gradient(90deg,transparent 44%,#3dff8a 44% 56%,transparent 56%) 0 0/14px 14px,#07130c' },
+  zebra: { name: 'Zebra', price: 200, pv: 'repeating-linear-gradient(100deg,#f4f4f4 0 6px,#151515 6px 10px)' },
+  tiger: { name: 'Tiger', price: 250, pv: 'repeating-linear-gradient(100deg,#ff9a2e 0 8px,#1a1008 8px 11px)' },
+  matrix: { name: 'Matrix', price: 600, pv: 'repeating-linear-gradient(90deg,#03140a 0 5px,#2bff6a 5px 6px,#03140a 6px 10px)' },
   blackice: { name: 'Black Ice', price: 750, pv: 'conic-gradient(from 20deg at 30% 40%,#0b1830,#3f8fd6,#e6f7ff,#1e4f8a,#8fd3ff,#0b1830)' },
 };
 if (!SUITS[settings.skin]) settings.skin = 'standard';
@@ -695,9 +705,25 @@ if (!FINISHES[settings.finish]) settings.finish = 'factory';
 let wallet = store.get('wallet', null);
 if (!wallet || typeof wallet.coins !== 'number' || !Array.isArray(wallet.owned)) wallet = { coins: 0, owned: [] };
 const ADDONS = { beckcam: { name: 'Becket Cam', price: 1500, pv: 'radial-gradient(circle at 58% 50%,#3f7fe0 0 14%,#0a1430 15% 22%,#c8ccd6 23% 27%,#18181c 28% 60%,#2a2a30 61%)' } };
-const owns = (kind, id) => (kind === 'suit' ? SUITS : FINISHES)[id]?.price === 0 || wallet.owned.includes(kind + ':' + id);
+const HATS = {
+  none: { name: 'No Hat', price: 0, pv: 'repeating-linear-gradient(45deg,#1b1730 0 6px,#231e3d 6px 12px)' },
+  beanie: { name: 'Beanie', price: 150, pv: 'repeating-linear-gradient(0deg,#e04f6a 0 6px,#f3e9dc 6px 9px)' },
+  bucket: { name: 'Bucket Hat', price: 200, pv: 'linear-gradient(180deg,#7d8a5a,#4f5a36)' },
+  party: { name: 'Party Hat', price: 200, pv: 'repeating-linear-gradient(60deg,#5ff2ff 0 7px,#ff4fa3 7px 14px,#ffd23a 14px 21px)' },
+  maga: { name: 'MAGA Hat', price: 300, pv: 'linear-gradient(180deg,#d61f2c 0 70%,#a3151f 70%)' },
+  fedora: { name: 'Fedora', price: 350, pv: 'linear-gradient(180deg,#6b4a2e 0 55%,#2a1a10 55% 65%,#6b4a2e 65%)' },
+  cowboy: { name: 'Cowboy Hat', price: 400, pv: 'linear-gradient(180deg,#c8955a,#8a5a2e)' },
+  propeller: { name: 'Propeller Cap', price: 450, pv: 'conic-gradient(#ff4f6e 0 25%,#ffd23a 0 50%,#5ff2ff 0 75%,#74ffb5 0)' },
+  tophat: { name: 'Top Hat', price: 500, pv: 'linear-gradient(180deg,#141418 0 60%,#a3102e 60% 72%,#141418 72%)' },
+  wizard: { name: 'Wizard Hat', price: 600, pv: 'radial-gradient(#fff 1px,transparent 1.5px) 0 0/10px 10px,linear-gradient(180deg,#5a2fb0,#2a1260)' },
+  viking: { name: 'Viking Helmet', price: 700, pv: 'linear-gradient(180deg,#b8bdcc,#5a6070)' },
+  halo: { name: 'Halo', price: 900, pv: 'radial-gradient(circle,transparent 36%,#ffe27a 38% 52%,transparent 54%),#141027' },
+  crown: { name: 'Crown', price: 1200, pv: 'linear-gradient(180deg,#fff3c4,#e8a92e 60%,#9a6510)' },
+};
+const owns = (kind, id) => (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : FINISHES)[id]?.price === 0 || wallet.owned.includes(kind + ':' + id);
 if (!owns('suit', settings.skin)) settings.skin = 'standard';
 if (!owns('finish', settings.finish)) settings.finish = 'factory';
+if (!HATS[settings.hat] || !owns('hat', settings.hat)) settings.hat = 'none';
 settings.lmgCam = !!store.get('lmgcam', false) && owns('addon', 'beckcam');
 const TEX = {};
 function canvasTex(name, draw, rep = 1) {
@@ -737,6 +763,23 @@ const circuitTex = () => canvasTex('circuit', x => {
 }, 2);
 const dotsTex = () => canvasTex('dots', x => { x.fillStyle = '#ff8fc8'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#ffffff'; for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { x.beginPath(); x.arc(i * 32 + (j % 2) * 16 + 8, j * 32 + 16, 6, 0, 7); x.fill(); } }, 2);
 // Black Ice: fractured crystal shards in navy, ice blue and frost white with dark seams
+const stripeAnimal = (name, bg, ink) => canvasTex(name, x => {
+  x.fillStyle = bg; x.fillRect(0, 0, 256, 256); x.fillStyle = ink;
+  for (let i = 0; i < 14; i++) {
+    const y0 = i * 19 + rand(-4, 4); x.beginPath(); x.moveTo(0, y0);
+    for (let px = 0; px <= 256; px += 16) x.lineTo(px, y0 + Math.sin(px / 30 + i) * 6 + rand(-2, 2));
+    for (let px = 256; px >= 0; px -= 16) x.lineTo(px, y0 + rand(4, 9) + Math.sin(px / 25 + i * 2) * 4);
+    x.closePath(); x.fill();
+  }
+}, 2);
+const tigerTex = () => stripeAnimal('tiger', '#ff9a2e', '#1a1008');
+const zebraTex = () => stripeAnimal('zebra', '#f4f4f4', '#151515');
+const pastelTex = () => canvasTex('pastel', x => { const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, '#ffd6e8'); g.addColorStop(0.5, '#d6ecff'); g.addColorStop(1, '#fff3c4'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); });
+const matrixTex = () => canvasTex('matrix', x => {
+  x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); x.font = 'bold 14px monospace';
+  const glyphs = '01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ';
+  for (let c = 0; c < 18; c++) { const len = Math.floor(rand(5, 16)), y0 = rand(0, 256); for (let k = 0; k < len; k++) { x.fillStyle = `rgba(255,255,255,${(k / len).toFixed(2)})`; x.fillText(glyphs[Math.floor(Math.random() * glyphs.length)], c * 14 + 2, (y0 + k * 15) % 256); } }
+}, 2);
 const blackIceTex = () => canvasTex('blackice', x => {
   const pal = ['#0b1830', '#12305a', '#1e4f8a', '#3f8fd6', '#8fd3ff', '#cfeeff', '#f2fbff'];
   x.fillStyle = '#0b1830'; x.fillRect(0, 0, 256, 256);
@@ -773,6 +816,10 @@ function suitMaterial(id, col, glowCol) {
     case 'ocean': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: oceanTex(), metalness: 0.15, roughness: 0.25 });
     case 'ruby': return new THREE.MeshPhysicalMaterial({ color: 0xa3102e, metalness: 0.3, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.03, iridescence: 0.25 });
     case 'circuit': return new THREE.MeshStandardMaterial({ color: 0x07130c, roughness: 0.4, metalness: 0.5, emissive: 0x3dff8a, emissiveMap: circuitTex(), emissiveIntensity: 2 });
+    case 'pastel': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pastelTex(), metalness: 0.05, roughness: 0.4 });
+    case 'zebra': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: zebraTex(), metalness: 0.05, roughness: 0.55 });
+    case 'tiger': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: tigerTex(), metalness: 0.05, roughness: 0.55 });
+    case 'matrix': return new THREE.MeshStandardMaterial({ color: 0x020a05, roughness: 0.35, metalness: 0.4, emissive: 0x2bff6a, emissiveMap: matrixTex(), emissiveIntensity: 2.2 });
     case 'austen': return new THREE.MeshPhysicalMaterial({ color: 0xb84a2c, roughness: 0.35, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.3 });
     case 'diamond': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0, clearcoat: 1, clearcoatRoughness: 0, iridescence: 1, iridescenceIOR: 2.4, iridescenceThicknessRange: [100, 900], flatShading: true, emissive: 0x30304a, emissiveIntensity: 0.4 });
     default: return new THREE.MeshStandardMaterial({ color: col, metalness: 0.45, roughness: 0.35 });
@@ -795,6 +842,9 @@ function applyFinish(m1, m2, id) {
     case 'sunset': set(m1, 0xffffff, 0.3, 0.3); m1.map = sunsetTex(); set(m2, 0x2a1840, 0.5, 0.3); break;
     case 'ruby': set(m1, 0xa3102e, 0.6, 0.08); set(m2, 0xffd0da, 0.8, 0.1); break;
     case 'circuit': set(m1, 0x07130c, 0.5, 0.4); m1.emissive.set(0x3dff8a); m1.emissiveMap = circuitTex(); m1.emissiveIntensity = 1.5; set(m2, 0x1a2a20, 0.6, 0.3); break;
+    case 'zebra': set(m1, 0xffffff, 0.2, 0.45); m1.map = zebraTex(); set(m2, 0x151515, 0.6, 0.3); break;
+    case 'tiger': set(m1, 0xffffff, 0.2, 0.45); m1.map = tigerTex(); set(m2, 0x1a1008, 0.6, 0.3); break;
+    case 'matrix': set(m1, 0x020a05, 0.5, 0.35); m1.emissive.set(0x2bff6a); m1.emissiveMap = matrixTex(); m1.emissiveIntensity = 1.6; set(m2, 0x0c2014, 0.6, 0.3); break;
     case 'blackice': set(m1, 0xffffff, 0.45, 0.16); m1.map = blackIceTex(); set(m2, 0x0b1830, 0.7, 0.2); break;
     case 'void': set(m1, 0x050308, 0.6, 0.2); m1.emissive.set(0xb04bff); m1.emissiveMap = hexTex(); m1.emissiveIntensity = 1.6; set(m2, 0x1a1024, 0.6, 0.3); break;
     default: set(m1, 0x2b2840, 0.85, 0.3); set(m2, 0xd9d4ee, 0.6, 0.35);
@@ -1666,7 +1716,115 @@ const PG = {
   mustard: new THREE.TubeGeometry(new THREE.CatmullRomCurve3(Array.from({ length: 11 }, (_, i) => new THREE.Vector3((i % 2 ? 0.1 : -0.1), 0.55 + i * 0.13, -0.26))), 80, 0.026, 8, false),
 };
 const hitMat = new THREE.MeshBasicMaterial({ visible: false });
-function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '') {
+function capTextTexture(word, bg, ink) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 96; const x = c.getContext('2d');
+  x.fillStyle = bg; x.fillRect(0, 0, 256, 96); x.fillStyle = ink; x.font = '900 64px Oxanium, Arial Black, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(word, 128, 52);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function addHat(parent, id, hotdog, mats, av) {
+  if (!id || id === 'none' || !HATS[id]) return;
+  // droid: wide dome head; hot dog: narrow sausage tip, so hats sit higher with narrower brims
+  const R = hotdog ? 0.24 : 0.44, bk = hotdog ? 0.85 : 1;
+  const hat = new THREE.Group(); hat.position.y = hotdog ? 0.2 : 0.26; parent.add(hat);
+  const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.05, ...o }); mats.push(m); return m; };
+  const put = (geo, m, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; hat.add(o); return o; };
+  const cyl = (rt, rb, h, open = false) => new THREE.CylinderGeometry(rt, rb, h, 28, 1, open);
+  const half = r => new THREE.SphereGeometry(r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+  switch (id) {
+    case 'tophat': {
+      const k = M(0x141418, { roughness: 0.35 });
+      put(cyl(R * 1.25 * bk, R * 1.25 * bk, 0.03), k, 0, 0.015); put(cyl(R * 0.74, R * 0.78, R * 1.15), k, 0, R * 0.58);
+      put(cyl(R * 0.795, R * 0.795, R * 0.2, true), M(0xa3102e, { side: THREE.DoubleSide }), 0, R * 0.14);
+      break;
+    }
+    case 'fedora': {
+      const f = M(0x6b4a2e);
+      const brim = put(cyl(R * 1.3 * bk, R * 1.32 * bk, 0.025), f, 0, 0.01); brim.scale.z = 0.9;
+      put(cyl(R * 0.64, R * 0.82, R * 0.55), f, 0, R * 0.29);
+      put(cyl(R * 0.83, R * 0.83, R * 0.13, true), M(0x1e140c, { side: THREE.DoubleSide }), 0, R * 0.1);
+      put(new THREE.BoxGeometry(R * 0.07, R * 0.1, R * 0.85), M(0x553a22), 0, R * 0.56);
+      break;
+    }
+    case 'cowboy': {
+      const c = M(0xb8864a, { side: THREE.DoubleSide });
+      const pts = []; for (let i = 0; i <= 10; i++) { const t = i / 10; pts.push(new THREE.Vector2(R * (0.78 + 0.9 * t) * bk, Math.pow(t, 2.4) * R * 0.35)); }
+      const brim = put(new THREE.LatheGeometry(pts, 32), c); brim.scale.z = 0.78;
+      put(cyl(R * 0.6, R * 0.8, R * 0.62), c, 0, R * 0.32);
+      put(cyl(R * 0.81, R * 0.81, R * 0.1, true), M(0x3a2414, { side: THREE.DoubleSide }), 0, R * 0.08);
+      put(new THREE.BoxGeometry(R * 0.06, R * 0.12, R * 0.6), M(0x9a6c3a), 0, R * 0.62);
+      break;
+    }
+    case 'bucket': {
+      const b = M(0x6f7c4e, { roughness: 0.95, side: THREE.DoubleSide });
+      put(cyl(R * 0.8, R * 0.88, R * 0.5), b, 0, R * 0.25);
+      put(cyl(R * 0.88, R * 1.28 * bk, R * 0.24, true), b, 0, -R * 0.06);
+      break;
+    }
+    case 'beanie': {
+      const knit = canvasTex('knit', x => { for (let i = 0; i < 16; i++) { x.fillStyle = i % 4 === 3 ? '#f3e9dc' : '#e04f6a'; x.fillRect(0, i * 16, 256, 16); } x.strokeStyle = 'rgba(0,0,0,.15)'; for (let i = 0; i < 256; i += 8) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 256); x.stroke(); } });
+      const d = put(half(R * 1.02), M(0xffffff, { map: knit, roughness: 1 }), 0, -R * 0.14); d.scale.y = 0.9;
+      put(new THREE.TorusGeometry(R * 0.99, R * 0.1, 8, 28), M(0xe04f6a, { roughness: 1 }), 0, -R * 0.08, 0, Math.PI / 2);
+      put(new THREE.SphereGeometry(R * 0.2, 12, 10), M(0xf3e9dc, { roughness: 1 }), 0, R * 0.8);
+      break;
+    }
+    case 'maga': {
+      const red = M(0xd61f2c, { roughness: 0.8 });
+      const crown = put(half(R * 1.0), red, 0, -R * 0.1); crown.scale.y = 0.72;
+      const bill = put(new THREE.CylinderGeometry(R * 0.78 * bk, R * 0.78 * bk, 0.022, 24, 1, false, Math.PI / 2, Math.PI), red, 0, -R * 0.07, -R * 0.52);
+      bill.scale.z = 0.9; bill.rotation.x = 0.1;
+      put(new THREE.SphereGeometry(R * 0.07, 8, 6), red, 0, R * 0.62);
+      const textMat = new THREE.MeshStandardMaterial({ map: capTextTexture('MAGA', '#d61f2c', '#ffffff'), roughness: 0.8 }); mats.push(textMat);
+      put(new THREE.PlaneGeometry(R * 0.82, R * 0.3), textMat, 0, R * 0.26, -R * 0.9, -0.42);
+      break;
+    }
+    case 'crown': {
+      const gold = M(0xffc54a, { metalness: 1, roughness: 0.2 });
+      put(cyl(R * 0.82, R * 0.84, R * 0.32, true), M(0xffc54a, { metalness: 1, roughness: 0.2, side: THREE.DoubleSide }), 0, R * 0.12);
+      for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; put(new THREE.ConeGeometry(R * 0.11, R * 0.32, 6), gold, Math.sin(a) * R * 0.8, R * 0.42, Math.cos(a) * R * 0.8); }
+      const gemR = new THREE.MeshStandardMaterial({ color: 0xc4123a, emissive: 0x5a0616, roughness: 0.1 }), gemB = new THREE.MeshStandardMaterial({ color: 0x2a5ad6, emissive: 0x0a1a50, roughness: 0.1 }); mats.push(gemR, gemB);
+      for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2; put(new THREE.OctahedronGeometry(R * 0.07), i % 2 ? gemB : gemR, Math.sin(a) * R * 0.85, R * 0.12, Math.cos(a) * R * 0.85); }
+      break;
+    }
+    case 'halo': {
+      const h = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.8, 2.2, 0.9) }); mats.push(h);
+      put(new THREE.TorusGeometry(R * 0.7, R * 0.07, 10, 40), h, 0, R * 0.9, 0, Math.PI / 2);
+      break;
+    }
+    case 'party': {
+      const stripes = canvasTex('party', x => { const cols = ['#5ff2ff', '#ff4fa3', '#ffd23a']; for (let i = -10; i < 30; i++) { x.fillStyle = cols[(i + 30) % 3]; x.beginPath(); x.moveTo(i * 20, 0); x.lineTo(i * 20 + 20, 0); x.lineTo(i * 20 - 80, 256); x.lineTo(i * 20 - 100, 256); x.fill(); } });
+      put(new THREE.ConeGeometry(R * 0.5, R * 1.3, 24), M(0xffffff, { map: stripes }), 0, R * 0.62);
+      put(new THREE.SphereGeometry(R * 0.13, 10, 8), M(0xfff3c4, { roughness: 1 }), 0, R * 1.3);
+      break;
+    }
+    case 'propeller': {
+      const segs = canvasTex('propcap', x => { const cols = ['#ff4f6e', '#ffd23a', '#5ff2ff', '#74ffb5']; for (let i = 0; i < 4; i++) { x.fillStyle = cols[i]; x.fillRect(i * 64, 0, 64, 256); } });
+      const cap = put(half(R * 1.0), M(0xffffff, { map: segs }), 0, -R * 0.1); cap.scale.y = 0.72;
+      put(new THREE.CylinderGeometry(R * 0.04, R * 0.04, R * 0.25, 8), M(0x888888, { metalness: 0.8 }), 0, R * 0.7);
+      const prop = new THREE.Group(); prop.position.y = R * 0.83; hat.add(prop);
+      const blade = M(0xff4f6e);
+      for (const sx of [-1, 1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(R * 0.6, R * 0.02, R * 0.14), blade); b.position.x = sx * R * 0.3; b.rotation.x = sx * 0.3; prop.add(b); }
+      av.userData.prop = prop;
+      break;
+    }
+    case 'wizard': {
+      const purple = M(0xffffff, { map: starTex(), color: 0x7a4bd6, roughness: 0.8 });
+      put(cyl(R * 1.3 * bk, R * 1.3 * bk, 0.025), purple, 0, 0.01);
+      const cone = put(new THREE.ConeGeometry(R * 0.78, R * 2.0, 24), purple, 0, R * 1.0); cone.rotation.z = 0.18; cone.position.x = -R * 0.12;
+      put(cyl(R * 0.8, R * 0.8, R * 0.12, true), M(0xffd23a, { side: THREE.DoubleSide, metalness: 0.6, roughness: 0.3 }), 0, R * 0.08);
+      break;
+    }
+    case 'viking': {
+      const steel = M(0xb8bdcc, { metalness: 0.9, roughness: 0.35 });
+      const helm = put(half(R * 1.05), steel, 0, -R * 0.12); helm.scale.y = 0.85;
+      put(cyl(R * 1.06, R * 1.06, R * 0.14, true), M(0x8a6a3a, { metalness: 0.6, roughness: 0.4, side: THREE.DoubleSide }), 0, -R * 0.05);
+      const ivory = M(0xf1e6c8, { roughness: 0.6 });
+      for (const sx of [-1, 1]) { const h = put(new THREE.ConeGeometry(R * 0.13, R * 0.65, 12), ivory, sx * R * 0.95, R * 0.42, 0); h.rotation.z = -sx * 0.75; }
+      break;
+    }
+  }
+}
+function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none') {
   const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
   const vis = new THREE.MeshBasicMaterial({ color: look.gl });
@@ -1690,6 +1848,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     add(PG.dome, mat, 0, 0, 0, head).castShadow = true; add(PG.domeBase, mat, 0, 0, 0, head);
     for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.13, 0.19, -0.375, head); e.scale.set(1, 1.5, 0.55); }
   }
+  addHat(head, hat, hotdog, extraMats, av);
   av.userData.extraMats = extraMats;
   const arms = [-1, 1].map(sx => {
     const g = new THREE.Group(); g.position.set(sx * 0.68, 1.12, -0.04); rig.add(g);
@@ -1717,6 +1876,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis };
 }
 function avatarFX(a) {
+  if (a.av.userData.prop) a.av.userData.prop.rotation.y += 0.3;
   if (a.rig) {
     const t = time * 2.2 + a.phase * 6;
     a.rig.position.y = a.down ? -0.75 : Math.sin(t) * 0.07;
@@ -1732,12 +1892,12 @@ function disposeAvatar(a) { scene.remove(a.av); for (const m of a.av.userData.ex
 // ================= locker: showcase avatar + shop =================
 const SHOW = new V3(21.2, 3, 21.2), UP = new V3(0, 1, 0), camHelper = new THREE.PerspectiveCamera();
 let showcase = null, showYaw = -0.6, menuTab = 'play';
-const preview = { suit: null, finish: null, addon: null };
+const preview = { suit: null, finish: null, addon: null, hat: null };
 function buildShowcase() {
   if (showcase) disposeAvatar(showcase);
   const h = settings.hue;
   const look = { col: new THREE.Color().setHSL(h / 360, 0.65, 0.55), gl: new THREE.Color().setHSL(h / 360, 1, 0.6).multiplyScalar(2.6), css: `hsl(${h},100%,72%)` };
-  showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, settings.mode === 'waves' ? settings.cls : '');
+  showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, settings.mode === 'waves' ? settings.cls : '', preview.hat || settings.hat);
   showcase.av.position.copy(SHOW); showcase.label.visible = false; showcase.gun.visible = false;
   const sgun = settings.mode === 'waves' ? CLASSES[settings.cls].guns[0] : settings.gun;
   const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.scale.setScalar(1.35); g.position.set(0, -0.16, -0.32); showcase.arms[1].add(g);
@@ -1751,7 +1911,7 @@ function equip(kind, id) {
     if (curW === 'lmg') setWeapon('lmg', true);
     preview.addon = null; buildShowcase(); renderShop(); return;
   }
-  if (kind === 'suit') { settings.skin = id; store.set('skin', id); } else { settings.finish = id; store.set('finish', id); }
+  if (kind === 'suit') { settings.skin = id; store.set('skin', id); } else if (kind === 'hat') { settings.hat = id; store.set('hat', id); } else { settings.finish = id; store.set('finish', id); }
   preview[kind] = null; refreshPreview(); renderShop();
 }
 function shopClick(kind, id, def) {
@@ -1763,7 +1923,7 @@ function shopClick(kind, id, def) {
 }
 function renderShop() {
   $('coinBig').textContent = wallet.coins.toLocaleString();
-  for (const [kind, defs, box, cur] of [['suit', SUITS, 'suitItems', settings.skin], ['finish', FINISHES, 'finishItems', settings.finish]]) {
+  for (const [kind, defs, box, cur] of [['suit', SUITS, 'suitItems', settings.skin], ['hat', HATS, 'hatItems', settings.hat], ['finish', FINISHES, 'finishItems', settings.finish]]) {
     const el = $(box); el.textContent = '';
     for (const [id, def] of Object.entries(defs)) {
       const own = owns(kind, id), eq = cur === id;
@@ -3075,11 +3235,11 @@ function updatePeers(dt, list) {
     const hue = typeof d.h === 'number' ? ((d.h % 360) + 360) % 360 : 180;
     const team = mode === 'ctf' ? (+d.tm === 1 ? 1 : 0) : -1;
     const nm = String(d.n || 'Pilot').replace(/[\u0000-\u001f]/g, '').slice(0, 14) || 'Pilot';
-    const sk = SUITS[d.sk] ? d.sk : 'standard', fn = FINISHES[d.fn] ? d.fn : 'factory', cl = CLASSES[d.cl] ? d.cl : '';
-    if (o && (o.team !== team || o.name !== nm || o.sk !== sk || o.fn !== fn || o.cl !== cl || o.hue !== hue)) { disposeAvatar(o); peers.delete(p.id); o = null; }
+    const sk = SUITS[d.sk] ? d.sk : 'standard', fn = FINISHES[d.fn] ? d.fn : 'factory', cl = CLASSES[d.cl] ? d.cl : '', ht = HATS[d.ht] ? d.ht : 'none';
+    if (o && (o.team !== team || o.name !== nm || o.sk !== sk || o.fn !== fn || o.cl !== cl || o.ht !== ht || o.hue !== hue)) { disposeAvatar(o); peers.delete(p.id); o = null; }
     if (!o) {
-      const a = makeAvatar(avatarLook(team, hue), nm, mode === 'ctf' && team === myTeam, sk, fn, cl);
-      o = Object.assign(a, { id: p.id, name: nm, team, sk, fn, cl, hue, abSeen: Array.isArray(d.ab) && d.ab.length ? Math.max(...d.ab.map(x => +x[0] || 0)) : 0, pos: new V3(d.x, d.y, d.z), vel: new V3(), yaw: +d.yw || 0, dmgSeen: null, shSeen: Array.isArray(d.sh) ? d.sh[0] : 0, rkSeen: Array.isArray(d.rk) ? d.rk[0] : 0, gnSeen: Array.isArray(d.gn) ? d.gn[0] : 0, ctSeen: Array.isArray(d.ct) ? d.ct[0] : 0, kbSeen: Array.isArray(d.kb) ? d.kb[0] : 0 });
+      const a = makeAvatar(avatarLook(team, hue), nm, mode === 'ctf' && team === myTeam, sk, fn, cl, ht);
+      o = Object.assign(a, { id: p.id, name: nm, team, sk, fn, cl, ht, hue, abSeen: Array.isArray(d.ab) && d.ab.length ? Math.max(...d.ab.map(x => +x[0] || 0)) : 0, pos: new V3(d.x, d.y, d.z), vel: new V3(), yaw: +d.yw || 0, dmgSeen: null, shSeen: Array.isArray(d.sh) ? d.sh[0] : 0, rkSeen: Array.isArray(d.rk) ? d.rk[0] : 0, gnSeen: Array.isArray(d.gn) ? d.gn[0] : 0, ctSeen: Array.isArray(d.ct) ? d.ct[0] : 0, kbSeen: Array.isArray(d.kb) ? d.kb[0] : 0 });
       o.body.userData.peer = p.id; peers.set(p.id, o); updateNetLabel();
     }
     o.d = d;
@@ -3130,7 +3290,7 @@ let presT = 0;
 function buildPresence() {
   const p = player.pos;
   const o = {
-    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, cl: mode === 'waves' ? settings.cls : '', jt: jetting ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
+    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, cl: mode === 'waves' ? settings.cls : '', jt: jetting ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
     st: state === 'menu' ? 'm' : state === 'dead' ? 'x' : 'p', al: player.alive ? 1 : 0,
     x: r2(p.x), y: r2(p.y), z: r2(p.z), yw: r2(player.yaw), wp: WIDS.indexOf(curW), lv: ggLv, f: frags, d: deaths, s: score,
     dn: player.downed ? 1 : 0, rp: reviveTarget && reviveT > 0 ? [reviveTarget, r2(reviveT)] : null,
