@@ -1138,6 +1138,14 @@ const EMOTES = {
   dab: { name: 'Dab', icon: '😎', say: '', price: 450 },
   taunt: { name: 'Taunt', icon: '🤡', say: 'Ez', price: 450 },
   hotdog: { name: 'Hot Dog Spin', icon: '🌭', say: '', price: 600 },
+  trickortreat: { name: 'Trick or Treat', icon: '🎃', say: 'Trick or treat!', price: 450, season: 'halloween', dur: 4.5 },
+  feast: { name: 'Feast', icon: '🍗', say: 'Dinner time', price: 450, season: 'thanksgiving', dur: 4.5 },
+  unwrap: { name: 'Unwrap', icon: '🎁', say: 'For me?!', price: 450, season: 'christmas', dur: 4.5 },
+  heartthrow: { name: 'Love Toss', icon: '💕', say: '', price: 400, season: 'valentine', dur: 4.5 },
+  solidarity: { name: 'Solidarity', icon: '✊🏿', say: '', price: 400, season: 'blackhistory', dur: 4 },
+  egghunt: { name: 'Egg Hunt', icon: '🧺', say: 'Found one!', price: 450, season: 'easter', dur: 4.5 },
+  prideflag: { name: 'Pride Wave', icon: '🏳️‍🌈', say: 'Happy Pride!', price: 400, season: 'pride', dur: 4.5 },
+  icecream: { name: 'Ice Cream', icon: '🍦', say: 'Brain freeze', price: 400, season: 'summer', dur: 4.5 },
 };
 const PETS = {
   none: { name: 'No Pet', price: 0, icon: '✖️' },
@@ -3057,6 +3065,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   });
   const gm = new THREE.MeshStandardMaterial(); applyFinish(gm, null, finish);
   const gun = walla ? add(avGunGeo, gm, 0, -0.72, -0.3, arms[1].userData.hold) : add(avGunGeo, gm, 0, -0.16, -0.38, arms[1]);
+  gun.userData.isGun = true;
   const foot = add(footGeo, vis, 0, 0.06, 0, av); foot.rotation.x = Math.PI / 2; foot.scale.setScalar(0.62);
   const body = add(PG.hit, hitMat, 0, 1.25, 0, av);
   const lab = nameSprite(blight ? '☣ ' + label : label, look.css, through); lab.position.y = 2.5; av.add(lab);
@@ -3090,15 +3099,82 @@ function bubbleSprite(text) {
   sp.scale.set(2.4, 0.72, 1); sp.position.y = 3.15; return sp;
 }
 function dropBubble(a) { if (!a.bubble) return; a.av.remove(a.bubble); a.bubble.material.map.dispose(); a.bubble.material.dispose(); a.bubble = null; }
+// seasonal emotes bring a prop with them (a candy basket, a present, a flag...)
+const tmpEm = new V3();
+function emoteProp(id, a) {
+  const mats = [], geos = [], g = new THREE.Group();
+  const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, ...o }); mats.push(m); return m; };
+  const mesh = (geo, m, x, y, z, par = g) => { geos.push(geo); const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; par.add(o); return o; };
+  const hold = a.arms[1].userData.hold, hand = hold || a.arms[1], hy = hold ? -0.72 : -0.24;
+  let parent = a.rig, tick = () => {};
+  const worldAt = o => o.getWorldPosition(tmpEm);
+  if (id === 'trickortreat' || id === 'egghunt') {
+    g.position.set(0, 0.92, -0.62);
+    if (id === 'trickortreat') mesh(new THREE.SphereGeometry(0.24, 18, 12, 0, Math.PI * 2, Math.PI * 0.32, Math.PI * 0.68), M(0xffffff, { map: pumpkinTex(), emissive: 0xffa21f, emissiveMap: pumpkinFace(), emissiveIntensity: 2, side: THREE.DoubleSide }), 0, 0, 0);
+    else { mesh(new THREE.CylinderGeometry(0.25, 0.19, 0.2, 18, 1, true), M(0xb8864a, { roughness: 0.95, side: THREE.DoubleSide }), 0, 0, 0); mesh(new THREE.CircleGeometry(0.19, 18).rotateX(-Math.PI / 2), M(0x8a5a2a), 0, -0.1, 0); mesh(new THREE.TorusGeometry(0.22, 0.012, 6, 20, Math.PI * 0.8), M(0x8a5a2a), 0, 0.04, 0).rotation.z = Math.PI * 0.1; }
+    mesh(new THREE.TorusGeometry(0.2, 0.015, 6, 18, Math.PI), M(0x2a2a2a), 0, 0.08, 0);
+    const cols = id === 'trickortreat' ? [0xff3b3b, 0xffd23a, 0xb48cff, 0x3dff8a, 0xff8fc4, 0xffffff] : [0xffd6ec, 0xd6f0ff, 0xfff3b0, 0xd9ffd6, 0xe6d6ff];
+    const bits = cols.map((c, i) => { const geo = id === 'trickortreat' ? (i % 2 ? new THREE.BoxGeometry(0.06, 0.04, 0.04) : new THREE.SphereGeometry(0.035, 8, 6)) : new THREE.SphereGeometry(0.06, 12, 10); const o = mesh(geo, M(c, { roughness: 0.3 }), 0, 1, 0); if (id === 'egghunt') o.scale.y = 1.35; return o; });
+    tick = et => bits.forEach((o, i) => {
+      if (id === 'trickortreat') { const t = (et * 0.9 + i / bits.length) % 1; o.position.set(Math.sin(i * 2.3) * 0.12 * (1 - t), 0.05 + 1.5 * (1 - t), Math.cos(i * 1.7) * 0.1 * (1 - t)); o.rotation.set(et * 7 + i, et * 5, 0); o.visible = t < 0.97; }
+      else { const t0 = i * 0.7, t = clamp((et - t0) / 0.35, 0, 1); o.visible = et > t0; o.position.set((i % 3 - 1) * 0.09, 0.05 + (1 - t) * 0.5, (i % 2 - 0.5) * 0.08); o.scale.setScalar(0.3 + 0.7 * t); o.scale.y *= 1.35; }
+    });
+  } else if (id === 'feast') {
+    g.position.set(0, 1.0, -0.62);
+    mesh(new THREE.CylinderGeometry(0.34, 0.3, 0.03, 24), M(0xf4f4f4, { roughness: 0.3, metalness: 0.2 }), 0, 0, 0);
+    const bird = mesh(new THREE.SphereGeometry(0.16, 16, 12), M(0xb8682a, { roughness: 0.4 }), 0, 0.12, 0); bird.scale.set(1.3, 0.8, 1);
+    for (const sx of [-1, 1]) { const leg = mesh(new THREE.CapsuleGeometry(0.04, 0.12, 4, 8), M(0xa85a20), sx * 0.13, 0.12, -0.12); leg.rotation.set(0.9, 0, sx * 0.4); mesh(new THREE.SphereGeometry(0.03, 8, 6), M(0xffffff), sx * 0.17, 0.18, -0.2); }
+    for (const [x, c] of [[-0.24, 0x3a9a3a], [0.25, 0xff6a1a]]) mesh(new THREE.SphereGeometry(0.05, 8, 6), M(c), x, 0.04, 0.12);
+    const steam = [0, 1, 2, 3].map(i => mesh(new THREE.SphereGeometry(0.04, 8, 6), M(0xffffff, { transparent: true, opacity: 0.5, roughness: 1 }), 0, 0.3, 0));
+    tick = et => steam.forEach((o, i) => { const t = (et * 0.6 + i / 4) % 1; o.position.set(Math.sin(t * 6 + i) * 0.06 + (i - 1.5) * 0.06, 0.25 + t * 0.6, 0); o.scale.setScalar(0.6 + t * 1.6); o.material.opacity = 0.5 * (1 - t); });
+  } else if (id === 'unwrap') {
+    g.position.set(0, 1.0, -0.62);
+    mesh(new THREE.BoxGeometry(0.34, 0.3, 0.34), M(0xe2313f), 0, 0, 0);
+    mesh(new THREE.BoxGeometry(0.35, 0.31, 0.07), M(0xffd23a, { metalness: 0.6, roughness: 0.3 }), 0, 0, 0); mesh(new THREE.BoxGeometry(0.07, 0.31, 0.35), M(0xffd23a, { metalness: 0.6, roughness: 0.3 }), 0, 0, 0);
+    const lid = mesh(new THREE.BoxGeometry(0.38, 0.07, 0.38), M(0x1f9a3a), 0, 0.18, 0); mesh(new THREE.TorusGeometry(0.06, 0.02, 6, 14), M(0xffd23a, { metalness: 0.6 }), 0, 0.07, 0, lid);
+    let popped = false;
+    tick = et => {
+      if (et > 1.4) { const t = et - 1.4; lid.position.set(t * 0.5, 0.18 + t * 2.2 - t * t * 2.2, -t * 0.2); lid.rotation.set(t * 5, t * 3, 0); }
+      if (et > 1.4 && !popped) { popped = true; const w = worldAt(g).clone().setY(tmpEm.y + 0.25); burst(w, 40, new THREE.Color(3, 2.4, 0.6), 6, 0.9, 0.08, 3); burst(w, 30, new THREE.Color(2.4, 0.4, 0.6), 5, 0.9, 0.08, 3); shockRing(w, new THREE.Color(3, 2.4, 0.6), 2.5, 0.5); }
+    };
+  } else if (id === 'heartthrow') {
+    const hm = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 0.3, 0.8), transparent: true }); mats.push(hm);
+    const hearts = [0, 1, 2, 3, 4].map(() => { const h = heartMesh(0.12, hm); geos.push(h.geometry); g.add(h); return h; });
+    tick = et => hearts.forEach((h, i) => { const t = (et * 0.7 + i / 5) % 1; h.position.set(Math.sin(t * 7 + i * 2) * 0.35, 1.3 + t * 1.8, -0.45 + Math.cos(t * 5 + i) * 0.15); h.scale.setScalar(0.12 * (0.6 + Math.sin(t * Math.PI))); h.rotation.y = t * 4; });
+  } else if (id === 'solidarity') {
+    tick = et => { if (Math.random() < 0.25) { const w = hand.localToWorld(tmpEm.set(0, hy - 0.05, 0)); burst(w, 2, new THREE.Color(3, 2.3, 0.5), 1.5, 0.7, 0.07, -1.5); } };
+  } else if (id === 'prideflag') {
+    parent = hand;
+    mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.3, 8), M(0xf0f0f0, { metalness: 0.6 }), 0, hy - 0.55, -0.02);
+    const fg = new THREE.PlaneGeometry(0.62, 0.4, 10, 1).translate(0.31, 0, 0); geos.push(fg);
+    const flag = new THREE.Mesh(fg, M(0xffffff, { map: prideTex(), side: THREE.DoubleSide, roughness: 0.7 })); flag.position.set(0, hy - 1.0, -0.02); flag.rotation.z = Math.PI; g.add(flag);
+    const base = fg.attributes.position.array.slice();
+    tick = et => { const pp = fg.attributes.position; for (let i = 0; i < pp.count; i++) { const u = base[i * 3]; pp.setZ(i, Math.sin(u * 9 - et * 9) * u * 0.18); } pp.needsUpdate = true; };
+  } else if (id === 'icecream') {
+    parent = hand;
+    mesh(new THREE.ConeGeometry(0.07, 0.24, 14), M(0xd9a05a, { roughness: 0.9 }), 0, hy - 0.16, -0.03);
+    const scoops = [[0xff8fc4, 0.32], [0xfff3dc, 0.42], [0x7a4a2a, 0.51]].map(([c, d]) => mesh(new THREE.SphereGeometry(0.075, 14, 10), M(c, { roughness: 0.4 }), 0, hy - d, -0.03));
+    mesh(new THREE.SphereGeometry(0.025, 8, 6), M(0xe2131f, { roughness: 0.2 }), 0, hy - 0.6, -0.03);
+    tick = et => { if (Math.random() < 0.08) { const w = scoops[0].getWorldPosition(tmpEm); burst(w, 1, new THREE.Color(2.4, 0.9, 1.4), 0.3, 0.8, 0.05, 6); } };
+  }
+  parent.add(g);
+  // props held in the gun hand hide the gun while the emote plays
+  const hidden = [];
+  if (parent === hand) a.av.traverse(o => { if (o.userData.isGun && o.visible) { o.visible = false; hidden.push(o); } });
+  return { g, parent, mats, geos, tick, hidden };
+}
+function dropEmoteProp(a) { const p = a.emProp; if (!p) return; p.parent.remove(p.g); for (const o of p.hidden) o.visible = true; for (const m of p.mats) m.dispose(); for (const geo of p.geos) geo.dispose(); a.emProp = null; }
 function startEmote(a, id) {
   const E = EMOTES[id]; if (!E || !a) return;
-  a.emote = { id, start: time, until: time + 3.2 };
+  a.emote = { id, start: time, until: time + (E.dur || 3.2) };
+  dropEmoteProp(a); if (E.season) a.emProp = emoteProp(id, a);
   dropBubble(a); a.bubble = bubbleSprite(`${E.icon} ${E.say}`.trim()); a.av.add(a.bubble);
 }
 const wrapA = v => Math.atan2(Math.sin(v), Math.cos(v));
 function emotePose(a) {
   const em = a.emote && time < a.emote.until ? a.emote : null, et = em ? time - em.start : 0, P = { l: [0, 0], r: [0, 0], spin: null, hop: 0, tilt: 0, nod: 0 };
-  if (!em) { if (a.bubble && (!a.emote || time > a.emote.until)) dropBubble(a); return P; }
+  if (!em) { if (a.bubble && (!a.emote || time > a.emote.until)) dropBubble(a); if (a.emProp) dropEmoteProp(a); return P; }
+  if (a.emProp) a.emProp.tick(et);
   const s = Math.sin;
   switch (em.id) {
     case 'wave': P.r = [0.2, 2.5 + s(et * 12) * 0.45]; break;
@@ -3111,6 +3187,11 @@ function emotePose(a) {
     case 'flex': P.l = [0.3 + s(et * 6) * 0.15, -2.1]; P.r = [0.3 + s(et * 6) * 0.15, 2.1]; P.hop = Math.abs(s(et * 3)) * 0.08; break;
     case 'dab': P.r = [0.6, 2.3]; P.l = [1.3, 0.9]; P.nod = 0.35; P.tilt = 0.2; break;
     case 'taunt': P.l = [1.4 + s(et * 14) * 0.3, 0]; P.r = [1.4 + s(et * 14 + 1) * 0.3, 0]; P.hop = Math.abs(s(et * 7)) * 0.25; break;
+    case 'trickortreat': case 'egghunt': case 'feast': case 'unwrap': P.l = [1.15, -0.32]; P.r = [1.15, 0.32]; P.hop = Math.abs(s(et * 4)) * 0.05; break;
+    case 'heartthrow': P.l = [2.3 + s(et * 6) * 0.4, -0.3]; P.r = [2.3 + s(et * 6 + 2) * 0.4, 0.3]; P.hop = Math.abs(s(et * 3)) * 0.08; break;
+    case 'solidarity': P.r = [0.15, 2.95]; P.nod = -0.08; break;
+    case 'prideflag': P.r = [0.5, 2.3 + s(et * 5) * 0.35]; P.hop = Math.abs(s(et * 5)) * 0.08; break;
+    case 'icecream': P.r = [2.1, 0.25]; P.nod = 0.15; break;
     case 'hotdog': P.spin = et * 12; P.hop = Math.abs(s(et * 6)) * 0.4; P.l = [0, -1.5]; P.r = [0, 1.5]; break;
   }
   return P;
@@ -3143,7 +3224,7 @@ function avatarFX(a) {
   if (a.gunCycle) a.gunMat.emissive.setHSL((time * 0.35 + a.phase + 0.5) % 1, 1, 0.5);
   a.mat.emissive.copy(a.baseEm); if (a.flash > 0) a.mat.emissive.lerp(FLASHC, a.flash * 0.8);
 }
-function disposeAvatar(a) { dropBubble(a); if (a.downBeam) { a.downBeam.geometry.dispose(); a.downBeam.material.dispose(); } scene.remove(a.av); for (const m of a.av.userData.extraMats || []) m.dispose(); a.av.userData.gearMat?.dispose(); a.eyeMat?.dispose(); a.vis?.dispose(); a.mat.dispose(); a.gunMat.dispose(); a.label.material.map.dispose(); a.label.material.dispose(); }
+function disposeAvatar(a) { dropBubble(a); dropEmoteProp(a); if (a.downBeam) { a.downBeam.geometry.dispose(); a.downBeam.material.dispose(); } scene.remove(a.av); for (const m of a.av.userData.extraMats || []) m.dispose(); a.av.userData.gearMat?.dispose(); a.eyeMat?.dispose(); a.vis?.dispose(); a.mat.dispose(); a.gunMat.dispose(); a.label.material.map.dispose(); a.label.material.dispose(); }
 
 // ================= locker: showcase avatar + shop =================
 const SHOW = new V3(21.2, 3, 21.2), UP = new V3(0, 1, 0), camHelper = new THREE.PerspectiveCamera();
@@ -3159,7 +3240,7 @@ function buildShowcase() {
   else showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, isCoopMode(settings.mode) ? settings.cls : '', preview.hat || settings.hat, preview.pet || settings.pet);
   showcase.av.position.copy(SHOW); showcase.label.visible = false; showcase.gun.visible = false;
   const sgun = pv ? (CLASSES[pv.cl] ? CLASSES[pv.cl].guns[0] : 'rifle') : isCoopMode(settings.mode) ? CLASSES[settings.cls].guns[0] : settings.gun;
-  const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.scale.setScalar(1.35); const hold = showcase.arms[1].userData.hold; g.position.set(0, hold ? -0.74 : -0.16, hold ? -0.28 : -0.32); (hold || showcase.arms[1]).add(g);
+  const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.userData.isGun = true; g.scale.setScalar(1.35); const hold = showcase.arms[1].userData.hold; g.position.set(0, hold ? -0.74 : -0.16, hold ? -0.28 : -0.32); (hold || showcase.arms[1]).add(g);
   showcase.av.rotation.y = showYaw;
 }
 function refreshPreview() { applyFinish(vmMat, vmMat2, preview.finish || settings.finish); buildShowcase(); }
@@ -3238,7 +3319,7 @@ function renderShopInner() {
     const S = SEASONS[k], left = seasonDaysLeft(k), box = document.createElement('div'); box.className = 'seasonbox'; box.style.setProperty('--sc', S.css);
     box.innerHTML = `<div class="seasonhead"><b>${S.icon} ${S.name.toUpperCase()} SHOP</b><span>Leaves in ${left} day${left === 1 ? '' : 's'} · yours forever once bought</span></div>`;
     const el = document.createElement('div'); el.className = 'items hrow'; box.appendChild(el); boxes.appendChild(box);
-    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet]])
+    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet], ['emote', EMOTES, '']])
       for (const [id, def] of Object.entries(defs)) if (def.season === k) shopItem(kind, id, def, cur, el);
   }
   // Shop rows only list what you can still buy; Customize lists everything you own
