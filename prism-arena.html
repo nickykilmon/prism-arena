@@ -217,6 +217,9 @@ table.lb .you{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6
 .gun .st i{display:block;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
 .gun .st i u{display:block;height:100%;background:var(--gc)}
 .gun.sel{border-color:var(--gc);box-shadow:inset 0 0 0 1px var(--gc);background:rgba(255,255,255,.09)}
+.clsgrid{grid-template-columns:repeat(5,1fr);gap:6px}
+.clsgrid .gun{padding:7px 8px;gap:2px}
+.clsgrid .gun b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ladder{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--display);font-size:12px}
 .ladder span{padding:4px 8px;border:1px solid var(--line);border-radius:3px;color:var(--lc)}
 .ladder i{color:var(--dim);font-style:normal}
@@ -239,7 +242,7 @@ table.lb .you{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6
 kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:2px 6px;color:var(--fg);white-space:nowrap;justify-self:start}
 .mp{font-size:13px;line-height:1.5;color:var(--dim);border-left:2px solid var(--rose);padding-left:12px}
 .mp b{color:var(--fg)}
-@media (max-width:560px){.fields{grid-template-columns:1fr}.keys{grid-template-columns:auto 1fr}.modes,.guns,.items{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.guns.clsgrid{grid-template-columns:repeat(3,1fr)}.fields{grid-template-columns:1fr}.keys{grid-template-columns:auto 1fr}.modes,.guns,.items{grid-template-columns:1fr 1fr}}
 
 #dead{background:radial-gradient(ellipse at center,rgba(40,4,20,.55),rgba(8,6,18,.85));justify-content:center;align-items:center;text-align:center}
 #dead .slab{margin:0 auto;align-items:center}
@@ -369,7 +372,8 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     </div>
     <div id="classBox" hidden>
       <div class="sect" style="margin-bottom:8px">Class <span style="letter-spacing:.08em;text-transform:none">· Q uses your ability · G throws your gadget · 1–2 switch guns</span></div>
-      <div class="guns" id="classes" style="grid-template-columns:repeat(2,1fr)"></div>
+      <div class="guns clsgrid" id="classes"></div>
+      <div class="gun sel" id="classInfo" style="margin-top:8px;cursor:default"></div>
     </div>
     <div id="loadoutBox">
       <div class="sect" style="margin-bottom:8px">Starting weapon <span style="letter-spacing:.08em;text-transform:none">· switch in game with 1–7</span></div>
@@ -681,7 +685,7 @@ $('quality').addEventListener('change', () => { settings.quality = $('quality').
   });
   for (const [id, c] of Object.entries(CLASSES)) {
     const b = document.createElement('button'); b.className = 'gun cls'; b.dataset.c = id; b.style.setProperty('--gc', c.css);
-    b.innerHTML = `<b>${c.name}</b><small>${c.blurb}</small><div class="kit"><i>HEALTH</i><span>${c.hp}</span><i>GUNS</i><span>${c.guns.map(g => WEAPONS[g].name).join(' + ')}</span><i>Q</i><span>${c.qText}</span><i>G</i><span>${c.gText}</span></div>`;
+    b.innerHTML = `<b>${c.name}</b><small>${c.hp} HP</small>`;
     b.addEventListener('click', () => { settings.cls = id; store.set('cls', id); renderMenu(); buildShowcase(); });
     $('classes').appendChild(b);
   }
@@ -700,6 +704,8 @@ function renderMenu() {
   $('loadoutBox').hidden = settings.mode === 'gungame' || isCoopMode(settings.mode);
   $('classBox').hidden = !isCoopMode(settings.mode);
   document.querySelectorAll('.cls').forEach(b => b.classList.toggle('sel', b.dataset.c === settings.cls));
+  { const c = CLASSES[settings.cls], el = $('classInfo'); el.style.setProperty('--gc', c.css);
+    el.innerHTML = `<b>${c.name}</b><small>${c.blurb}</small><div class="kit"><i>HEALTH</i><span>${c.hp}</span><i>GUNS</i><span>${c.guns.map(g => WEAPONS[g].name).join(' + ')}</span><i>Q</i><span>${c.qText}</span><i>G</i><span>${c.gText}</span></div>`; }
   $('ladderBox').hidden = settings.mode !== 'gungame';
   $('teamBox').hidden = settings.mode !== 'ctf';
   $('bestWave').textContent = best.wave; $('bestScore').textContent = best.score.toLocaleString();
