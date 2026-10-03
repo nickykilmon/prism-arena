@@ -145,6 +145,14 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 #chatlog div.old{opacity:0}
 #chat.open #chatlog div{opacity:1}
 #chatlog b{font-weight:600}
+.binds{display:grid;grid-template-columns:1fr minmax(0,auto) minmax(0,auto);gap:6px 8px;align-items:center;font-size:14px}
+.binds span{min-width:0}
+.bind{min-width:104px;font-family:var(--display);font-size:12px;letter-spacing:.06em;background:rgba(255,255,255,.06);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:6px 10px;cursor:pointer;color:var(--fg);white-space:nowrap}
+.bind:hover{border-color:rgba(95,242,255,.5)}
+.bind.empty{color:var(--dim)}
+.bind.listen{border-color:var(--amber);color:var(--amber)}
+.ghost{align-self:flex-start;background:none;border:1px solid var(--line);border-radius:4px;padding:8px 14px;cursor:pointer;color:var(--dim);font-family:var(--display);letter-spacing:.12em;font-size:12px}
+.ghost:hover{color:var(--fg);border-color:rgba(95,242,255,.5)}
 #chatin{pointer-events:auto;background:rgba(10,8,22,.85);border:1px solid var(--cyan);border-radius:4px;padding:8px 10px;font-size:15px;color:var(--fg);outline:none}
 .coinpop{position:absolute;left:50%;top:44%;font-family:var(--display);font-weight:800;font-size:15px;color:var(--amber);text-shadow:0 0 10px rgba(255,191,107,.7);animation:pop .9s ease-out forwards;pointer-events:none}
 @keyframes pop{from{transform:translate(20px,0);opacity:1}to{transform:translate(34px,-38px);opacity:0}}
@@ -273,16 +281,7 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
     <button id="play" disabled>Loading…</button>
     <div class="meta"><span id="bestLine">Best wave <b id="bestWave">0</b> · score <b id="bestScore">0</b></span><span id="menuNet">Multiplayer: checking…</span></div>
     <div class="mp"><b>Multiplayer:</b> friends who pick the same mode and room code join your match. Bots fill the empty slots, so every mode works solo too.</div>
-    <div class="keys">
-      <kbd>WASD</kbd><span>Move</span><kbd>SPACE ×2</kbd><span>Double jump</span>
-      <kbd>SHIFT</kbd><span>Dash</span><kbd>CLICK</kbd><span>Fire</span>
-      <kbd>RIGHT CLICK / ALT</kbd><span>Zoom (hold)</span><kbd>Z</kbd><span>Zoom (toggle)</span>
-      <kbd>Q</kbd><span>Pulse wave</span><kbd>G</kbd><span>Cybernade</span>
-      <kbd>T</kbd><span>Chat</span>
-      <kbd>R</kbd><span>Reload</span><kbd>1–6</kbd><span>Switch gun</span>
-      <kbd>TAB</kbd><span>Scoreboard</span><kbd>M</kbd><span>Music</span>
-      <kbd>`</kbd><span>Panic screen</span><kbd>ESC</kbd><span>Pause</span>
-    </div>
+    <div class="keys" id="keyhelp"></div>
     </div>
     <div class="pane" id="shopPane" hidden>
       <div class="shophead"><span class="coin" id="coinBig">0</span><p>Earn coins by destroying drones in Squad Waves. Clearing a wave pays a bonus.</p></div>
@@ -317,6 +316,10 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
         <div class="field"><label for="vsfx">Sound effects<span class="v" id="vsfxV"></span></label><input type="range" id="vsfx" min="0" max="1" step="0.05"></div>
         <div class="field check"><label><input type="checkbox" id="chaton">Show chat</label></div>
       </div>
+      <div class="sect" style="margin-bottom:-4px">Keybinds</div>
+      <p class="note">Click a slot, then press a key or mouse button. Backspace clears the slot, Esc cancels. Avoid Alt and Ctrl: the browser uses them for its own shortcuts, such as Alt+D and Ctrl+W.</p>
+      <div class="binds" id="binds"></div>
+      <button class="ghost" id="resetBinds">RESET KEYBINDS</button>
     </div>
   </div>
 </div>
@@ -947,7 +950,100 @@ let state = 'menu', time = 0, locked = false, fallbackLook = false, lastUnlock =
 const PR = 0.45, PH = 1.8, EYE = 1.62;
 const player = { pos: new V3(), vel: new V3(), yaw: 0, pitch: 0, onGround: false, lastGround: 0, jumps: 0, hp: 100, alive: false,
   dashCd: 0, dashT: 0, pulseCd: 0, invuln: 0, lastHitBy: '', lastHitT: -99, lastDmgT: -99 };
-const keys = {};
+// ---------- keybinds: every action has two slots; codes are KeyboardEvent.code or Mouse0–Mouse4 ----------
+const ACTIONS = [
+  ['fire', 'Fire', ['Mouse0', null]], ['zoom', 'Zoom (hold)', ['Mouse2', 'KeyF']], ['zoomToggle', 'Zoom (toggle)', ['KeyZ', null]],
+  ['forward', 'Move forward', ['KeyW', 'ArrowUp']], ['back', 'Move back', ['KeyS', 'ArrowDown']],
+  ['left', 'Move left', ['KeyA', 'ArrowLeft']], ['right', 'Move right', ['KeyD', 'ArrowRight']],
+  ['jump', 'Jump / double jump', ['Space', null]], ['dash', 'Dash', ['ShiftLeft', 'ShiftRight']],
+  ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Pulse wave', ['KeyQ', null]], ['nade', 'Cybernade', ['KeyG', null]],
+  ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]],
+  ['panic', 'Panic screen', ['Backquote', null]],
+  ...[1, 2, 3, 4, 5, 6].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
+];
+const DEFAULT_BINDS = Object.fromEntries(ACTIONS.map(([id, , b]) => [id, [...b]]));
+let binds = (() => {
+  const saved = store.get('binds', null), b = JSON.parse(JSON.stringify(DEFAULT_BINDS));
+  if (saved && typeof saved === 'object') for (const id in b) if (Array.isArray(saved[id])) b[id] = [0, 1].map(i => typeof saved[id][i] === 'string' && saved[id][i].length < 24 ? saved[id][i] : null);
+  return b;
+})();
+let codeMap = new Map();
+const held = {};
+const KEY_NAMES = { Mouse0: 'Left click', Mouse1: 'Middle click', Mouse2: 'Right click', Mouse3: 'Mouse 4', Mouse4: 'Mouse 5', Space: 'Space', Backquote: '`', Tab: 'Tab',
+  ShiftLeft: 'L Shift', ShiftRight: 'R Shift', ControlLeft: 'L Ctrl', ControlRight: 'R Ctrl', AltLeft: 'L Alt', AltRight: 'R Alt', CapsLock: 'Caps Lock', Enter: 'Enter',
+  ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']', Semicolon: ';', Quote: "'",
+  Comma: ',', Period: '.', Slash: '/', Backslash: '\\', MetaLeft: 'Win', MetaRight: 'Win', Backspace: 'Backspace' };
+function keyName(c) {
+  if (!c) return '—';
+  if (KEY_NAMES[c]) return KEY_NAMES[c];
+  if (/^Key[A-Z]$/.test(c)) return c.slice(3);
+  if (/^Digit\d$/.test(c)) return c.slice(5);
+  if (/^Numpad/.test(c)) return 'Num ' + c.slice(6);
+  return c;
+}
+const bindLabel = id => keyName(binds[id][0] || binds[id][1]);
+function rebuildBinds() {
+  codeMap = new Map();
+  for (const [id, codes] of Object.entries(binds)) for (const c of codes) if (c) { if (!codeMap.has(c)) codeMap.set(c, []); codeMap.get(c).push(id); }
+  renderKeyLabels();
+}
+function renderKeyLabels() {
+  $('abDash').querySelector('.k b').textContent = bindLabel('dash').toUpperCase();
+  $('abPulse').querySelector('.k b').textContent = bindLabel('pulse').toUpperCase();
+  $('abNade').querySelector('.k b').textContent = bindLabel('nade').toUpperCase();
+  const rows = [
+    ['Move', ['forward', 'left', 'back', 'right'].map(bindLabel).join(' ')], ['Double jump', bindLabel('jump')],
+    ['Dash', bindLabel('dash')], ['Fire', bindLabel('fire')],
+    ['Zoom (hold)', binds.zoom.filter(Boolean).map(keyName).join(' / ') || '—'], ['Zoom (toggle)', bindLabel('zoomToggle')],
+    ['Pulse wave', bindLabel('pulse')], ['Cybernade', bindLabel('nade')],
+    ['Reload', bindLabel('reload')], ['Switch gun', [1, 2, 3, 4, 5, 6].map(n => bindLabel('w' + n)).join(' ')],
+    ['Chat', bindLabel('chat')], ['Scoreboard', bindLabel('board')],
+    ['Music', bindLabel('music')], ['Panic screen', bindLabel('panic')], ['Pause', 'Esc'],
+  ];
+  const el = $('keyhelp'); el.textContent = '';
+  for (const [label, key] of rows) { const k = document.createElement('kbd'), t = document.createElement('span'); k.textContent = key.toUpperCase(); t.textContent = label; el.append(k, t); }
+}
+let bindCapture = null, swallowClick = false;
+function renderBinds() {
+  const el = $('binds'); el.textContent = '';
+  for (const [id, label] of ACTIONS) {
+    const l = document.createElement('span'); l.textContent = label; el.appendChild(l);
+    for (const slot of [0, 1]) {
+      const b = document.createElement('button'), c = binds[id][slot];
+      b.className = 'bind' + (c ? '' : ' empty'); b.textContent = keyName(c);
+      b.setAttribute('aria-label', `${label}, slot ${slot + 1}: ${c ? keyName(c) : 'empty'}`);
+      b.addEventListener('click', () => startCapture(id, slot, b));
+      el.appendChild(b);
+    }
+  }
+}
+function startCapture(id, slot, btn) {
+  if (bindCapture) renderBinds();
+  bindCapture = { id, slot, t: performance.now() };
+  const live = $('binds').querySelectorAll('.bind')[ACTIONS.findIndex(a => a[0] === id) * 2 + slot] || btn;
+  live.classList.add('listen'); live.textContent = 'Press a key…';
+}
+function finishCapture(code) {
+  const { id, slot } = bindCapture; bindCapture = null;
+  if (code) for (const k in binds) binds[k] = binds[k].map(c => c === code ? null : c);
+  binds[id][slot] = code;
+  store.set('binds', binds); rebuildBinds(); renderBinds();
+  if (code && /^(Alt|Control|Meta)/.test(code)) toast('Heads up: the browser uses Alt and Ctrl for shortcuts, so some combos may not reach the game.');
+}
+addEventListener('keydown', e => {
+  if (!bindCapture) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if (e.code === 'Escape') { bindCapture = null; renderBinds(); return; }
+  finishCapture(e.code === 'Backspace' || e.code === 'Delete' ? null : e.code);
+}, true);
+addEventListener('mousedown', e => {
+  if (!bindCapture || performance.now() - bindCapture.t < 200) return;
+  e.preventDefault(); e.stopImmediatePropagation(); swallowClick = true;
+  finishCapture('Mouse' + e.button);
+}, true);
+addEventListener('click', e => { if (swallowClick) { swallowClick = false; e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+addEventListener('contextmenu', e => { if (bindCapture || swallowClick || state === 'playing') e.preventDefault(); }, true);
+$('resetBinds').addEventListener('click', () => { binds = JSON.parse(JSON.stringify(DEFAULT_BINDS)); store.set('binds', binds); rebuildBinds(); renderBinds(); toast('Keybinds reset'); });
 let adsMouse = false, adsKey = false, adsToggle = false;
 const clearAds = () => { adsMouse = adsKey = adsToggle = false; ads = false; };
 let firing = false, ads = false, ammo = 30, reloadT = 0, fireCd = 0, swapT = 0, swingT = 0, curW = 'rifle';
@@ -1044,7 +1140,7 @@ function spawnPlayer() {
   else setWeapon(curW && LOADOUT.includes(curW) ? curW : settings.gun, true);
 }
 function wishDir(o) {
-  const f = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0), r = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+  const f = (held.forward ? 1 : 0) - (held.back ? 1 : 0), r = (held.right ? 1 : 0) - (held.left ? 1 : 0);
   const sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
   o.set(-sy * f + cy * r, 0, -cy * f - sy * r);
   if (o.lengthSq() > 0) o.normalize();
@@ -1345,7 +1441,8 @@ function setMenuTab(t) {
   menuTab = t;
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('sel', b.dataset.tab === t));
   $('playPane').hidden = t !== 'play'; $('shopPane').hidden = t !== 'shop'; $('setPane').hidden = t !== 'set';
-  if (t === 'set') syncSettingsUI();
+  if (t === 'set') { syncSettingsUI(); renderBinds(); }
+  else if (bindCapture) { bindCapture = null; }
   if (t === 'shop') { renderShop(); buildShowcase(); }
 }
 document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => setMenuTab(b.dataset.tab)));
@@ -2579,7 +2676,7 @@ document.addEventListener('pointerlockerror', onLockError);
 document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === canvas;
   if (!locked) {
-    lastUnlock = performance.now() / 1000; firing = false; clearAds(); for (const k in keys) keys[k] = false;
+    lastUnlock = performance.now() / 1000; firing = false; clearAds(); for (const k in held) held[k] = false;
     if (state === 'playing' && !fallbackLook) { if (chatOpen) { closeChat(); toast('Click to aim again'); } else pauseGame(); }
   }
 });
@@ -2637,14 +2734,14 @@ addEventListener('mousemove', e => {
   const s = 0.0022 * settings.sens * (ads ? (WEAPONS[curW].zoom < 40 ? 0.35 : 0.6) * opts.zsens : 1);
   player.yaw -= e.movementX * s; player.pitch = clamp(player.pitch - e.movementY * s * (opts.invY ? -1 : 1), -1.55, 1.55);
 });
-canvas.addEventListener('mousedown', e => { if (chatOpen) closeChat(); if (state !== 'playing') return; if (e.button === 0) firing = true; if (e.button === 2) adsMouse = true; });
-addEventListener('mouseup', e => { if (e.button === 0) firing = false; if (e.button === 2) adsMouse = false; });
+canvas.addEventListener('mousedown', e => { if (chatOpen) closeChat(); if (state !== 'playing') return; pressCode('Mouse' + e.button, false); });
+addEventListener('mouseup', e => { if (releaseCode('Mouse' + e.button) && e.button > 2 && state === 'playing') e.preventDefault(); });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 let studyOn = false;
 let chatOpen = false, chatSeq = 0, lastChat = null, chatT = -9;
 function openChat() {
   if (!opts.chat) { toast('Chat is off. Turn it on in Settings.'); return; }
-  chatOpen = true; for (const k in keys) keys[k] = false; firing = false; clearAds();
+  chatOpen = true; for (const k in held) held[k] = false; firing = false; clearAds();
   $('chat').classList.add('open'); $('chatin').hidden = false; $('chatin').value = ''; $('chatin').focus();
 }
 function closeChat() { if (!chatOpen) return; chatOpen = false; $('chatin').hidden = true; $('chatin').blur(); $('chat').classList.remove('open'); }
@@ -2675,30 +2772,55 @@ function toggleStudy() {
   if (studyOn) { closeChat(); if (state === 'playing') pauseGame(); if (document.pointerLockElement) document.exitPointerLock(); }
   applyAudio();
 }
+function actionDown(a) {
+  switch (a) {
+    case 'fire': firing = true; break;
+    case 'zoom': adsKey = true; break;
+    case 'zoomToggle': adsToggle = !adsToggle; break;
+    case 'jump': tryJump(); break;
+    case 'dash': tryDash(); break;
+    case 'reload': startReload(); break;
+    case 'pulse': pulse(); break;
+    case 'nade': throwNade(); break;
+    case 'music': setMusic(!A.musicOn); break;
+    case 'board': renderBoard(); $('board').hidden = false; break;
+    default: {
+      const m = /^w([1-6])$/.exec(a);
+      if (m && mode !== 'gungame') { const id = LOADOUT[+m[1] - 1]; if (id !== curW) setWeapon(id); }
+    }
+  }
+}
+function actionUp(a) {
+  if (a === 'fire') firing = false;
+  if (a === 'zoom') adsKey = false;
+  if (a === 'board') $('board').hidden = true;
+}
+// returns true when the code is bound, so the browser default can be suppressed
+function pressCode(code, repeat) {
+  const acts = codeMap.get(code); if (!acts) return false;
+  if (acts.includes('panic')) { if (!repeat) toggleStudy(); return true; }
+  if (studyOn || chatOpen) return false;
+  if (acts.includes('chat') && (state === 'playing' || state === 'dead') && !$('hud').hidden) { openChat(); return true; }
+  if (state !== 'playing') return false;
+  if (repeat) return true;
+  for (const a of acts) { held[a] = true; actionDown(a); }
+  return true;
+}
+function releaseCode(code) {
+  const acts = codeMap.get(code); if (!acts) return false;
+  for (const a of acts) { held[a] = false; actionUp(a); }
+  return true;
+}
 addEventListener('keydown', e => {
-  if (e.code === 'Backquote') { e.preventDefault(); toggleStudy(); return; }
-  if (studyOn || chatOpen) return;
-  if (e.code === 'KeyT' && (state === 'playing' || state === 'dead') && !$('hud').hidden) { e.preventDefault(); openChat(); return; }
-  if (state === 'dead' && (e.code === 'Space' || e.code === 'Enter')) { e.preventDefault(); redeploy(); return; }
-  if (state !== 'playing') return;
-  if (e.code === 'AltLeft' || e.code === 'AltRight') { e.preventDefault(); adsKey = true; return; }
-  if (['Space', 'Tab', 'KeyQ', 'KeyR'].includes(e.code)) e.preventDefault();
-  if (e.repeat) return;
-  if (e.code === 'KeyZ') adsToggle = !adsToggle;
-  keys[e.code] = true;
-  if (e.code === 'Space') tryJump();
-  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') tryDash();
-  if (e.code === 'KeyR') startReload();
-  if (e.code === 'KeyQ') pulse();
-  if (e.code === 'KeyG') throwNade();
-  if (e.code === 'KeyM') setMusic(!A.musicOn);
-  if (e.code === 'Tab') { renderBoard(); $('board').hidden = false; }
-  if (e.code === 'Escape' && fallbackLook) pauseGame();
-  const n = /^Digit([1-6])$/.exec(e.code);
-  if (n && mode !== 'gungame') { const id = LOADOUT[+n[1] - 1]; if (id !== curW) setWeapon(id); }
+  const typing = e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
+  if (typing) return;
+  if (!studyOn && !chatOpen && state === 'dead' && (e.code === 'Enter' || (e.code === 'Space' && !codeMap.get('Space')?.includes('chat')))) { e.preventDefault(); redeploy(); return; }
+  if (e.code === 'Escape') { if (fallbackLook && state === 'playing') pauseGame(); return; }
+  const used = pressCode(e.code, e.repeat);
+  if (used && (state === 'playing' || codeMap.get(e.code).includes('panic') || codeMap.get(e.code).includes('chat'))) e.preventDefault();
 });
-addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'AltLeft' || e.code === 'AltRight') { e.preventDefault(); adsKey = false; } if (e.code === 'Tab') $('board').hidden = true; });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; firing = false; clearAds(); });
+addEventListener('keyup', e => { if (releaseCode(e.code) && state === 'playing') e.preventDefault(); });
+addEventListener('blur', () => { for (const k in held) held[k] = false; firing = false; clearAds(); });
 
 // ================= main loop =================
 let hiddenDrawT = 0, last = performance.now(), boardT = 0, labelT = 0, fpsN = 0, fpsT = performance.now();
@@ -2770,7 +2892,7 @@ function frame(now) {
   fpsN++;
   if (now - fpsT > 500) { if (opts.fps) $('fps').textContent = Math.round(fpsN * 1000 / (now - fpsT)) + ' FPS'; fpsN = 0; fpsT = now; }
 }
-renderMenu(); buildTop(); saveWallet();
+rebuildBinds(); renderMenu(); buildTop(); saveWallet();
 for (const o of ctfObjs) o.visible = mode === 'ctf';
 setWeapon(settings.gun, true);
 buildShowcase();
