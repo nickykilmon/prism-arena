@@ -134,6 +134,15 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .item.poor{opacity:.55}
 .item:hover{border-color:rgba(95,242,255,.5)}
 #hCoins{color:var(--amber)}
+#downUI{position:absolute;left:50%;top:57%;transform:translateX(-50%);text-align:center;font-family:var(--display);width:min(420px,calc(100vw - 32px))}
+#downUI b{display:block;font-size:34px;letter-spacing:.22em;color:var(--bad);text-shadow:0 0 18px rgba(255,77,106,.6)}
+#downUI span{display:block;font-size:13px;letter-spacing:.1em;color:var(--fg);margin-top:4px;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+#useUI{position:absolute;left:50%;top:61%;transform:translateX(-50%);text-align:center;font-family:var(--display);font-size:14px;letter-spacing:.12em;color:var(--fg);text-shadow:0 2px 6px rgba(0,0,0,.85);white-space:nowrap}
+#useUI kbd{font-size:12px}
+.rbar{width:220px;max-width:100%;height:8px;margin:10px auto 0;background:rgba(255,255,255,.14);border-radius:2px;overflow:hidden}
+.rbar i{display:block;height:100%;width:0;background:var(--good);box-shadow:0 0 10px var(--good)}
+.dmark{position:absolute;transform:translate(-50%,-100%);font-family:var(--display);font-size:11px;letter-spacing:.14em;color:var(--good);text-align:center;white-space:nowrap;text-shadow:0 1px 4px #000}
+.dmark::after{content:"+";display:block;font-size:24px;font-weight:800;line-height:1;text-shadow:0 0 10px var(--good)}
 .field.check label{flex-direction:row;display:flex;gap:9px;align-items:center;text-transform:none;letter-spacing:.02em;font-family:var(--body);font-size:14px;color:var(--fg);cursor:pointer;padding-top:6px}
 .field.check input{width:17px;height:17px;accent-color:var(--cyan);margin:0}
 .field label .v{color:var(--fg);font-variant-numeric:tabular-nums;margin-left:6px;letter-spacing:.06em}
@@ -232,6 +241,9 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
   <div id="cross"><i></i><i></i><i></i><i></i><b></b></div>
   <div id="hitmk"></div>
   <div id="announce"></div>
+  <div id="downUI" hidden><b>DOWNED</b><span id="downTxt">Hang on. A teammate can revive you.</span><div class="rbar" id="downBarWrap" hidden><i id="downBar"></i></div></div>
+  <div id="useUI" hidden><span id="useTxt"></span><div class="rbar"><i id="useBar"></i></div></div>
+  <div id="marks"></div>
   <div class="wp" id="wp0" hidden></div>
   <div class="wp" id="wp1" hidden></div>
   <div id="bl">
@@ -411,14 +423,16 @@ const LADDER = ['smg', 'rifle', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
 const FFA_GOAL = 20;
 // Squad Waves classes: guns, Q ability, G gadget
 const CLASSES = {
-  medic:   { name: 'Medic',   css: '#74ffb5', guns: ['rifle'],            q: 'heal',  g: 'shield', blurb: 'Keeps the squad alive.', qText: 'Healing zone (8s)', gText: 'Shield bubble (20s)' },
-  fighter: { name: 'Fighter', css: '#ffbf6b', guns: ['smg', 'rail'],      q: 'rally', g: 'nade',   blurb: 'Front-line damage.',    qText: 'Rally: team +10% damage', gText: 'Cybernade' },
-  sniper:  { name: 'Sniper',  css: '#b48cff', guns: ['rail', 'cannon'],   q: 'wall',  g: 'smoke',  blurb: 'Spots and picks off drones.', qText: 'Wallhack for the team (30s)', gText: 'Smoke: drones can\'t see you' },
-  jetpack: { name: 'Jetpack', css: '#5ff2ff', guns: ['scatter', 'nova'],  q: null,    g: 'pad',    blurb: 'Hold jump in the air to fly (4s fuel).', qText: 'Jetpack: hold jump', gText: 'Jump pad (3 uses)' },
+  medic:   { name: 'Medic',   hp: 110, css: '#74ffb5', guns: ['rifle'],            q: 'heal',  g: 'shield', blurb: 'Keeps the squad alive.', qText: 'Healing zone (8s)', gText: 'Shield bubble (20s)' },
+  fighter: { name: 'Fighter', hp: 150, css: '#ffbf6b', guns: ['smg', 'rail'],      q: 'rally', g: 'nade',   blurb: 'Front-line damage.',    qText: 'Rally: team +10% damage', gText: 'Cybernade' },
+  sniper:  { name: 'Sniper',  hp: 90,  css: '#b48cff', guns: ['rail', 'cannon'],   q: 'wall',  g: 'smoke',  blurb: 'Spots and picks off drones.', qText: 'Wallhack for the team (30s)', gText: 'Smoke: drones can\'t see you' },
+  jetpack: { name: 'Jetpack', hp: 125, css: '#5ff2ff', guns: ['scatter', 'nova'],  q: null,    g: 'pad',    blurb: 'Hold jump in the air to fly (4s fuel).', qText: 'Jetpack: hold jump', gText: 'Jump pad (3 uses)' },
 };
 const QDEF = { pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 } };
 const GDEF = { nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 } };
 const JET_MAX = 4;
+const maxHp = () => mode === 'waves' ? CLASSES[settings.cls].hp : 100;
+const REVIVE_TIME = 3.5, MEDIC_REVIVE_TIME = 1.75;
 const TEAM_NAME = ['RED', 'BLUE'], TEAM_CSS = ['#ff5a6e', '#5aa8ff'];
 const TEAM_COL = [new THREE.Color(2.9, 0.35, 0.45), new THREE.Color(0.35, 1.3, 3.0)];
 const BASES = [new V3(-44, 0, 0), new V3(44, 0, 0)];
@@ -467,7 +481,7 @@ $('quality').addEventListener('change', () => { settings.quality = $('quality').
   });
   for (const [id, c] of Object.entries(CLASSES)) {
     const b = document.createElement('button'); b.className = 'gun cls'; b.dataset.c = id; b.style.setProperty('--gc', c.css);
-    b.innerHTML = `<b>${c.name}</b><small>${c.blurb}</small><div class="kit"><i>GUNS</i><span>${c.guns.map(g => WEAPONS[g].name).join(' + ')}</span><i>Q</i><span>${c.qText}</span><i>G</i><span>${c.gText}</span></div>`;
+    b.innerHTML = `<b>${c.name}</b><small>${c.blurb}</small><div class="kit"><i>HEALTH</i><span>${c.hp}</span><i>GUNS</i><span>${c.guns.map(g => WEAPONS[g].name).join(' + ')}</span><i>Q</i><span>${c.qText}</span><i>G</i><span>${c.gText}</span></div>`;
     b.addEventListener('click', () => { settings.cls = id; store.set('cls', id); renderMenu(); buildShowcase(); });
     $('classes').appendChild(b);
   }
@@ -1017,7 +1031,7 @@ const ACTIONS = [
   ['left', 'Move left', ['KeyA', 'ArrowLeft']], ['right', 'Move right', ['KeyD', 'ArrowRight']],
   ['jump', 'Jump / double jump', ['Space', null]], ['dash', 'Dash', ['ShiftLeft', 'ShiftRight']],
   ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Ability (pulse / class)', ['KeyQ', null]], ['nade', 'Grenade / gadget', ['KeyG', null]],
-  ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]],
+  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]],
   ['panic', 'Panic screen', ['Backquote', null]],
   ...[1, 2, 3, 4, 5, 6].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
 ];
@@ -1053,7 +1067,7 @@ function renderKeyLabels() {
   const rows = [
     ['Move', ['forward', 'left', 'back', 'right'].map(bindLabel).join(' ')], ['Double jump', bindLabel('jump')],
     ['Dash', bindLabel('dash')], ['Fire', bindLabel('fire')],
-    ['Zoom (hold)', binds.zoom.filter(Boolean).map(keyName).join(' / ') || '—'], ['Zoom (toggle)', bindLabel('zoomToggle')],
+    ['Revive (hold)', bindLabel('use')], ['Zoom (hold)', binds.zoom.filter(Boolean).map(keyName).join(' / ') || '—'], ['Zoom (toggle)', bindLabel('zoomToggle')],
     ['Ability', bindLabel('pulse')], ['Grenade / gadget', bindLabel('nade')],
     ['Reload', bindLabel('reload')], ['Switch gun', [1, 2, 3, 4, 5, 6].map(n => bindLabel('w' + n)).join(' ')],
     ['Chat', bindLabel('chat')], ['Scoreboard', bindLabel('board')],
@@ -1194,7 +1208,7 @@ function spawnPlayer() {
   player.pos.copy(p); player.vel.set(0, 0, 0);
   const look = mode === 'ctf' ? new V3(0, 0, p.z * 0.3) : new V3();
   player.yaw = Math.atan2(p.x - look.x, p.z - look.z); player.pitch = -0.05;
-  player.hp = 100; player.alive = true; player.invuln = 2; player.dashCd = 0; player.pulseCd = 0; player.jumps = 0; nadeCount = GDEF[kit().g].max; nadeT = 0; jetFuel = JET_MAX;
+  player.hp = maxHp(); player.alive = true; player.downed = false; player.invuln = 2; player.dashCd = 0; player.pulseCd = 0; player.jumps = 0; nadeCount = GDEF[kit().g].max; nadeT = 0; jetFuel = JET_MAX;
   if (mode === 'gungame') setWeapon(LADDER[Math.min(ggLv, LADDER.length - 1)], true);
   else { const k = kit(); setWeapon(curW && k.guns.includes(curW) ? curW : mode === 'waves' ? k.guns[0] : settings.gun, true); }
 }
@@ -1225,7 +1239,7 @@ function updatePlayer(dt) {
   const p = player.pos, v = player.vel;
   player.dashCd = Math.max(0, player.dashCd - dt); player.pulseCd = Math.max(0, player.pulseCd - dt); player.invuln = Math.max(0, player.invuln - dt);
   if (mode !== 'waves' && time - player.lastDmgT > 4 && player.hp < 100) player.hp = Math.min(100, player.hp + 15 * dt);
-  const wish = wishDir(pWish);
+  const wish = player.downed ? pWish.set(0, 0, 0) : wishDir(pWish);
   const carrying = mode === 'ctf' && GS.fl.some(f => f[0] === 1 && f[1] === myId);
   const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (curW === 'blade' ? 1.12 : 1);
   if (player.dashT > 0) player.dashT -= dt;
@@ -1247,14 +1261,16 @@ function updatePlayer(dt) {
   if (player.onGround && !wasGround && fallV < -9) { landDip = Math.min(0.25, -fallV * 0.012); sfx.land(); }
   if (padCheck(player)) { sfx.pad(); fovKick = 12; }
   if (mode === 'waves') deployEffects(dt);
+  updateRevive(dt);
   for (let i = pickups.length - 1; i >= 0; i--) {
     const k = pickups[i];
-    if (Math.hypot(k.m.position.x - p.x, k.m.position.y - p.y - 0.9, k.m.position.z - p.z) < 1.6 && player.hp < 100) {
-      player.hp = Math.min(100, player.hp + 30); sfx.pickup(); burst(k.m.position, 20, GREEN, 5, 0.5, 0.1, 2);
+    if (Math.hypot(k.m.position.x - p.x, k.m.position.y - p.y - 0.9, k.m.position.z - p.z) < 1.6 && player.hp < maxHp()) {
+      player.hp = Math.min(maxHp(), player.hp + 30); sfx.pickup(); burst(k.m.position, 20, GREEN, 5, 0.5, 0.1, 2);
       scene.remove(k.m); pickups.splice(i, 1); toast('+30 shield');
     }
   }
-  if (p.y < -30) die(time - player.lastHitT < 5 && player.lastHitBy ? { killer: player.lastHitBy, text: 'knocked you into the clouds' } : { text: 'You fell into the clouds' });
+  if (p.y < -30 && mode === 'waves') { const a = Math.atan2(p.z, p.x); p.set(Math.cos(a) * 48, 0, Math.sin(a) * 48); v.set(0, 0, 0); if (player.alive) goDown({ text: 'fell into the clouds' }); }
+  else if (p.y < -30) die(time - player.lastHitT < 5 && player.lastHitBy ? { killer: player.lastHitBy, text: 'knocked you into the clouds' } : { text: 'You fell into the clouds' });
   const hs = Math.hypot(v.x, v.z);
   if (player.onGround && hs > 1) bobT += dt * hs * 1.15;
 }
@@ -1489,7 +1505,8 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
 function avatarFX(a) {
   if (a.rig) {
     const t = time * 2.2 + a.phase * 6;
-    a.rig.position.y = Math.sin(t) * 0.07;
+    a.rig.position.y = a.down ? -0.75 : Math.sin(t) * 0.07;
+    a.rig.rotation.z = damp(a.rig.rotation.z, a.down ? 1.35 : 0, 6, 0.016);
     a.arms[0].position.y = 1.12 + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = 1.12 + Math.sin(t + 2.1) * 0.04;
   }
   if (a.cycle) a.baseEm.setHSL((time * 0.35 + a.phase) % 1, 1, 0.5);
@@ -1640,7 +1657,7 @@ function allActors() {
   return a;
 }
 const humans = () => allActors().filter(a => !a.ent);
-const enemyOf = (team, other) => mode !== 'ctf' || team !== other;
+const enemyOf = (team, other) => mode === 'waves' ? false : mode !== 'ctf' || team !== other;
 function nameOf(id) {
   if (!id) return 'the arena';
   if (id === myId) return settings.name;
@@ -1715,7 +1732,9 @@ function hostHitHuman(a, dmg, from, attacker) {
 function hostWaves(dt) {
   const hs = humans(), alive = hs.filter(a => a.alive);
   const W = H.W;
-  if (hs.length && !alive.length && GS.wv > 0) {
+  W.downT = hs.length && !alive.length && GS.wv > 0 ? (W.downT || 0) + dt : 0;
+  if (W.downT > 1.5) {
+    W.downT = 0;
     hostEvent(`Squad wiped on wave ${GS.wv}`);
     for (const e of [...ents.values()]) removeEnt(e, false);
     W.queue = []; GS.wv = 0; GS.wst = 0;
@@ -1995,7 +2014,7 @@ function hostProcessPeers() {
       if (v > prev) {
         s.edm[k] = v;
         const e = ents.get(k);
-        if (e && e.alive && enemyOf(o.team, e.team)) hostDamageEnt(e, Math.min(v - prev, 200), o.id, WIDS[d.wp]);
+        if (e && e.alive && (e.kind === 'drone' || enemyOf(o.team, e.team))) hostDamageEnt(e, Math.min(v - prev, 200), o.id, WIDS[d.wp]);
       }
     }
     if (Array.isArray(d.kb) && d.kb[0] !== s.kb) {
@@ -2074,10 +2093,10 @@ function onGSChange() {
     if (GS.wv > p.wv && GS.wst === 1) { announce('WAVE ' + GS.wv, GS.wv === 1 ? 'Drones inbound' : 'Drones inbound', '#5ff2ff'); sfx.wave(); }
     else if (GS.wst === 1 && p.wst !== 1 && GS.wv === p.wv) { /* resumed */ }
     if (GS.wst === 2 && p.wst === 1 && GS.wv > 0) {
-      const bonus = 250 * GS.wv; if (state === 'playing') { score += bonus; player.hp = Math.min(100, player.hp + 35); addCoins(5 * GS.wv); }
+      const bonus = 250 * GS.wv; if (state === 'playing') { score += bonus; if (player.downed) reviveMe(0.5); else player.hp = Math.min(maxHp(), player.hp + 35); addCoins(5 * GS.wv); }
       announce('WAVE CLEARED', `+${bonus.toLocaleString()} score · +${5 * GS.wv} coins`, '#74ffb5');
     }
-    if (GS.wv < p.wv) { saveBest(p.wv); announce('SQUAD WIPED', `Reached wave ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); score = 0; streak = 0; runCoins = 0; }
+    if (GS.wv < p.wv) { saveBest(p.wv); announce('SQUAD WIPED', `Reached wave ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); if (state === 'playing') gameOver(p.wv); score = 0; streak = 0; runCoins = 0; }
   }
   if (GS.ph === 1 && p.ph !== 1) {
     const mine = mode === 'ctf' ? GS.pw.startsWith(TEAM_NAME[myTeam]) : GS.pw === `${settings.name} WINS`;
@@ -2156,7 +2175,7 @@ function rocketExplode(p, mine) {
 function blast(p, dmgMax, R, push) {
   let hitAny = false;
   for (const e of [...ents.values()]) {
-    if (!e.alive || !enemyOf(myTeam, e.team)) continue;
+    if (!e.alive || (e.kind !== 'drone' && !enemyOf(myTeam, e.team))) continue;
     const c = e.kind === 'drone' ? e.pos : tA.copy(e.pos).setY(e.pos.y + 0.9), d = c.distanceTo(p);
     if (d < R) { damageEnt(e, Math.round(dmgMax * (1 - 0.6 * d / R)), c, true); hitAny = true; }
   }
@@ -2274,6 +2293,12 @@ function applyAb(type, x, y, z, extra, who) {
   const pos = new V3(x, y, z);
   if (DEP[type]) { addDeploy(type, pos, extra); const pf = panFor(pos); tone(520, 1040, 0.25, 0.08 * Math.max(0.3, pf.v), 'triangle', pf.pan); return; }
   if (type === 'pu') { const d = deploys.find(q => q.kind === 'pad' && q.id === String(extra)); if (d) { d.uses--; d.dots[d.uses]?.removeFromParent(); if (d.uses <= 0) d.until = 0; } return; }
+  if (type === 'rev') {
+    const victim = String(extra);
+    if (victim === myId) reviveMe(0.4, who);
+    feedHTML(`<b>${esc(who)}</b> <i>revived</i> <b>${esc(victim === myId ? settings.name : nameOf(victim))}</b>`);
+    return;
+  }
   if (type === 'rally') { teamFx.rallyUntil = time + 15; announce('RALLY', `${who} · team damage +10% for 15s`, '#ffbf6b'); sfx.levelup(); }
   if (type === 'wall') { teamFx.wallUntil = time + 30; announce('WALLHACK', `${who} · drones visible through walls for 30s`, '#b48cff'); sfx.alert(); }
 }
@@ -2333,8 +2358,8 @@ function updateDeploys(dt) {
 function deployEffects(dt) {
   const p = player.pos;
   if (!player.alive) return;
-  if (insideDep('heal', p) && player.hp < 100) player.hp = Math.min(100, player.hp + 14 * dt);
-  if (inShield(p) && player.hp < 100) player.hp = Math.min(100, player.hp + 4 * dt);
+  if (insideDep('heal', p) && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 14 * dt);
+  if (inShield(p) && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 4 * dt);
   for (const d of deploys) if (d.kind === 'pad' && d.uses > 0 && player.vel.y <= 0.5 && Math.hypot(p.x - d.pos.x, p.z - d.pos.z) < 1.25 && p.y - d.pos.y < 0.6 && p.y - d.pos.y > -0.4) {
     player.vel.y = 31; player.onGround = false; player.lastGround = -9; player.jumps = 1; fovKick = 14; sfx.pad();
     shockRing(d.pos.clone().setY(d.pos.y + 0.2), JETC, 3.5, 0.5);
@@ -2501,7 +2526,7 @@ function hurt(dmg, src) {
   player.hp -= dmg; player.lastDmgT = time;
   dmgFlash = Math.min(1, dmgFlash + 0.5 + dmg / 40); shake = Math.max(shake, 0.18); sfx.hurt();
   if (src.killer) { player.lastHitBy = src.killer; player.lastHitT = time; }
-  if (player.hp <= 0) { player.hp = 0; die(src); }
+  if (player.hp <= 0) { player.hp = 0; if (mode === 'waves') goDown(src); else die(src); }
 }
 let killSeq = 0, killRec = null;
 function die(src) {
@@ -2525,8 +2550,74 @@ function die(src) {
   $('dead').hidden = false; $('respawn').disabled = true;
   if (document.pointerLockElement) document.exitPointerLock();
 }
+// Squad Waves: 0 health downs you; a teammate holds the use key on you to bring you back
+let reviveT = 0, reviveTarget = null, beingRevived = 0, lastRunWave = 0;
+function goDown(src) {
+  if (!player.alive) return;
+  player.alive = false; player.downed = true; player.hp = 0; deaths++; firing = false; clearAds();
+  closeChat(); feedHTML(`<em>${esc(settings.name)}</em> <i>is down</i>`);
+  sfx.hurt(); tone(300, 90, 0.6, 0.2, 'sawtooth'); shake = 0.35;
+  announce('DOWNED', humans().some(a => a.alive && !a.me) ? `Hold on. A teammate can revive you with ${bindLabel('use')}.` : 'Nobody left standing…', '#ff4d6a');
+}
+function reviveMe(frac, who) {
+  if (!player.downed) return;
+  player.downed = false; player.alive = true; player.hp = Math.max(1, Math.round(maxHp() * frac)); player.invuln = 1.5;
+  announce('REVIVED', who ? `by ${who}` : 'Back in the fight', '#74ffb5'); sfx.levelup();
+  burst(player.pos.clone().setY(player.pos.y + 1), 30, GREEN, 6, 0.6, 0.1, -2);
+}
+function gameOver(wave) {
+  player.downed = false; player.alive = false; state = 'dead'; firing = false; clearAds(); closeChat();
+  lastRunWave = wave;
+  $('downUI').hidden = true; $('useUI').hidden = true; for (const el of markEls.values()) el.remove(); markEls.clear();
+  $('deadtitle').textContent = 'SQUAD WIPED';
+  $('deadcause').textContent = `Everyone went down on wave ${wave}. Redeploy to start again from wave 1.`;
+  renderDeadStats(); respawnAt = time + 2;
+  $('dead').hidden = false; $('respawn').disabled = true;
+  if (document.pointerLockElement) document.exitPointerLock();
+}
+const markEls = new Map();
+function updateRevive(dt) {
+  beingRevived = 0;
+  if (mode !== 'waves') { reviveT = 0; reviveTarget = null; return; }
+  for (const o of peers.values()) if (Array.isArray(o.d.rp) && o.d.rp[0] === myId) beingRevived = Math.max(beingRevived, +o.d.rp[1] || 0);
+  let tgt = null;
+  if (player.alive && state === 'playing') {
+    let bd = 2.6;
+    for (const o of peers.values()) if (o.d.dn && o.d.st === 'p') { const d = Math.hypot(o.pos.x - player.pos.x, o.pos.z - player.pos.z); if (d < bd && Math.abs(o.pos.y - player.pos.y) < 2) { bd = d; tgt = o; } }
+  }
+  if (tgt && held.use) {
+    if (reviveTarget !== tgt.id) { reviveTarget = tgt.id; reviveT = 0; }
+    reviveT += dt / (settings.cls === 'medic' ? MEDIC_REVIVE_TIME : REVIVE_TIME);
+    if (Math.random() < dt * 10) burst(tA.copy(tgt.pos).setY(tgt.pos.y + 0.5), 1, GREEN, 1.5, 0.6, 0.08, -3);
+    if (reviveT >= 1) {
+      pushAb('rev', tgt.pos, tgt.id); applyAb('rev', tgt.pos.x, tgt.pos.y, tgt.pos.z, tgt.id, settings.name);
+      score += 200; sfx.kill(); reviveT = 0; reviveTarget = null;
+    }
+  } else { reviveT = 0; reviveTarget = null; }
+  // prompts
+  const show = !!tgt && !$('hud').hidden;
+  $('useUI').hidden = !show;
+  if (show) { setText('useTxt', reviveT > 0 ? `REVIVING ${tgt.name.toUpperCase()}` : `HOLD ${bindLabel('use').toUpperCase()} TO REVIVE ${tgt.name.toUpperCase()}`); setStyle($('useBar'), 'width', Math.round(reviveT * 100) + '%'); }
+  $('downUI').hidden = !player.downed;
+  if (player.downed) {
+    const anyone = humans().some(a => a.alive && !a.me);
+    setText('downTxt', beingRevived > 0 ? 'A teammate is reviving you…' : anyone ? 'Hang on. A teammate can revive you.' : 'Nobody left standing…');
+    $('downBarWrap').hidden = !(beingRevived > 0); setStyle($('downBar'), 'width', Math.round(beingRevived * 100) + '%');
+  }
+  // world markers over downed teammates (visible through walls)
+  const seen = new Set();
+  if (!$('hud').hidden) for (const o of peers.values()) {
+    if (!o.d.dn || o.d.st !== 'p') continue;
+    const v = tB.copy(o.pos).setY(o.pos.y + 1.6).project(camera); if (v.z > 1) continue;
+    seen.add(o.id);
+    let el = markEls.get(o.id); if (!el) { el = document.createElement('div'); el.className = 'dmark'; $('marks').appendChild(el); markEls.set(o.id, el); }
+    el.style.left = ((v.x + 1) / 2 * innerWidth) + 'px'; el.style.top = ((1 - v.y) / 2 * innerHeight) + 'px';
+    el.textContent = `REVIVE ${o.name.toUpperCase()} · ${Math.round(o.pos.distanceTo(player.pos))}m`;
+  }
+  for (const [id, el] of markEls) if (!seen.has(id)) { el.remove(); markEls.delete(id); }
+}
 function renderDeadStats() {
-  const s = mode === 'waves' ? [['WAVE', GS.wv || 1], ['SCORE', score.toLocaleString()], ['COINS', '+' + runCoins]]
+  const s = mode === 'waves' ? [['WAVE', lastRunWave || GS.wv || 1], ['SCORE', score.toLocaleString()], ['COINS', '+' + runCoins]]
     : mode === 'gungame' ? [['LEVEL', `${Math.min(ggLv + 1, LADDER.length)}/${LADDER.length}`], ['FRAGS', frags], ['DEATHS', deaths]]
     : mode === 'ffa' ? [['KILLS', `${frags}/${FFA_GOAL}`], ['DEATHS', deaths]]
     : [['RED', GS.cs[0]], ['BLUE', GS.cs[1]], ['FRAGS', frags]];
@@ -2584,7 +2675,7 @@ function updatePeers(dt, list) {
     o.pos.x = damp(o.pos.x, d.x, 14, dt); o.pos.y = damp(o.pos.y, +d.y || 0, 14, dt); o.pos.z = damp(o.pos.z, d.z, 14, dt);
     if (dt > 0) o.vel.set((o.pos.x - px) / dt, 0, (o.pos.z - pz) / dt);
     let dy = (+d.yw || 0) - o.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); o.yaw += dy * (1 - Math.exp(-14 * dt));
-    o.av.position.copy(o.pos); o.av.rotation.y = o.yaw; o.av.visible = d.st === 'p' && !!d.al;
+    o.av.position.copy(o.pos); o.av.rotation.y = o.yaw; o.av.visible = d.st === 'p' && (!!d.al || !!d.dn); o.down = !!d.dn;
     o.flash = Math.max(0, o.flash - dt * 7); avatarFX(o);
     // damage this peer dealt to me
     const dmv = d.dm && typeof d.dm[myKey] === 'number' ? d.dm[myKey] : 0;
@@ -2630,6 +2721,7 @@ function buildPresence() {
     n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, cl: mode === 'waves' ? settings.cls : '', jt: jetting ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
     st: state === 'menu' ? 'm' : state === 'dead' ? 'x' : 'p', al: player.alive ? 1 : 0,
     x: r2(p.x), y: r2(p.y), z: r2(p.z), yw: r2(player.yaw), wp: WIDS.indexOf(curW), lv: ggLv, f: frags, d: deaths, s: score,
+    dn: player.downed ? 1 : 0, rp: reviveTarget && reviveT > 0 ? [reviveTarget, r2(reviveT)] : null,
     dm: dmgOut, edm, sh: lastShot, rk: lastRocket, gn: lastNade, ct: lastChat, kb: killRec,
     vz: document.hidden ? 0 : 1, hs: isHost ? 1 : 0, en: null, ob: null, bs: null, ek: null, ev: null, bd: null, wv: null, wst: null, fl: null, cs: null, ph: null, pw: null, gm: null,
   };
@@ -2690,7 +2782,7 @@ const flagWord = f => f[0] === 0 ? 'HOME' : f[0] === 1 ? 'TAKEN' : 'DROPPED';
 function updateHUD() {
   const hp = Math.max(0, Math.ceil(player.hp));
   setText('hpnum', String(hp));
-  const bar = $('hpbar'); setStyle(bar, 'width', hp + '%'); bar.classList.toggle('low', hp <= 30);
+  const hpPct = Math.round(hp / maxHp() * 100), bar = $('hpbar'); setStyle(bar, 'width', hpPct + '%'); bar.classList.toggle('low', hpPct <= 30);
   if (mode === 'waves') {
     setText('hWave', String(GS.wv || 1)); setText('hScore', score.toLocaleString());
     const comboOn = time - lastKill < 3.5 && streak >= 2;
@@ -2748,7 +2840,8 @@ function updateHUD() {
   setStyle($('cross'), '--gap', Math.round(gap) + 'px');
   setStyle($('cross'), 'opacity', ads ? '0.6' : '1');
   if (dmgFlash > 0) { dmgFlash = Math.max(0, dmgFlash - 0.03); setStyle($('dmg'), 'opacity', dmgFlash.toFixed(2)); }
-  else if (player.hp <= 30 && state === 'playing') setStyle($('dmg'), 'opacity', (0.25 + Math.sin(time * 5) * 0.12).toFixed(2));
+  else if (player.downed) setStyle($('dmg'), 'opacity', '0.45');
+  else if (player.hp <= maxHp() * 0.3 && state === 'playing') setStyle($('dmg'), 'opacity', (0.25 + Math.sin(time * 5) * 0.12).toFixed(2));
   else setStyle($('dmg'), 'opacity', '0');
   if (state === 'dead') {
     const left = Math.max(0, respawnAt - time);
@@ -2964,6 +3057,7 @@ function pauseGame() {
   $('menu').hidden = false;
 }
 function toMenu() {
+  player.downed = false; $('downUI').hidden = true; $('useUI').hidden = true;
   if (document.pointerLockElement) document.exitPointerLock();
   saveBest(GS.wv);
   state = 'menu'; player.alive = false; $('dead').hidden = true; $('hud').hidden = true; $('scope').hidden = true;
@@ -3124,7 +3218,7 @@ function frame(now) {
     landDip = damp(landDip, 0, 8, dt); fovKick = damp(fovKick, 0, 5, dt); shake = damp(shake, 0, 9, dt);
     const hs = Math.hypot(player.vel.x, player.vel.z), bob = player.onGround ? Math.sin(bobT) * 0.045 * Math.min(hs / 9.5, 1) : 0;
     if (state === 'dead') { camera.position.y = damp(camera.position.y, player.pos.y + 5, 2, dt); player.pitch = damp(player.pitch, -0.6, 2, dt); }
-    else { const sh = opts.shake ? shake : 0; camera.position.set(player.pos.x + rand(-sh, sh), player.pos.y + EYE + bob - landDip + rand(-sh, sh), player.pos.z + rand(-sh, sh)); }
+    else { const sh = opts.shake ? shake : 0; camera.position.set(player.pos.x + rand(-sh, sh), player.pos.y + (player.downed ? 0.55 : EYE) + bob - landDip + rand(-sh, sh), player.pos.z + rand(-sh, sh)); }
     camera.rotation.set(player.pitch + recoilP, player.yaw, Math.sin(bobT * 0.5) * 0.004 * Math.min(hs, 9), 'YXZ');
     const zoom = ads && !WEAPONS[curW].melee ? Math.min(WEAPONS[curW].zoom, opts.fov) : opts.fov;
     camera.fov = damp(camera.fov, zoom + (ads ? 0 : fovKick + Math.min(Math.max(hs - 10, 0), 15) * 0.5), 12, dt);
