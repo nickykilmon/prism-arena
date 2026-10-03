@@ -131,13 +131,13 @@ button,input,select{font:inherit;color:inherit}
 
 /* ---------- Menu ---------- */
 .overlay{position:fixed;inset:0;z-index:5;display:flex;align-items:flex-start;padding-inline:16px;overflow:auto;background:linear-gradient(90deg,rgba(8,6,18,.86) 0%,rgba(8,6,18,.45) 55%,rgba(8,6,18,.1) 100%)}
-.slab{width:min(520px,100%);margin-left:max(0px,5vw);padding-block:26px;display:flex;flex-direction:column;gap:16px}
+.slab{width:min(580px,100%);margin-left:max(0px,5vw);padding-block:26px;display:flex;flex-direction:column;gap:16px}
 .eyebrow{font-family:var(--display);font-size:12px;letter-spacing:.32em;color:var(--cyan);text-transform:uppercase}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);line-height:.9;margin:0;letter-spacing:.02em;text-wrap:balance;background:linear-gradient(180deg,#fff 30%,#ffc6e3 70%,#ff8fc4);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 24px rgba(255,79,163,.35))}
 .sect{font-family:var(--display);font-size:11px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin-bottom:-8px}
 .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tabs{display:flex;flex-wrap:wrap;gap:2px;border-bottom:1px solid var(--line)}
-.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 9px 9px;margin-bottom:-1px;cursor:pointer;font-family:var(--display);font-weight:700;letter-spacing:.12em;font-size:12px;color:var(--dim);display:flex;gap:8px;align-items:center}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 7px 9px;margin-bottom:-1px;cursor:pointer;font-family:var(--display);font-weight:700;letter-spacing:.08em;font-size:12px;color:var(--dim);display:flex;gap:8px;align-items:center}
 .tabs .badge{font-size:10px;letter-spacing:.08em;color:var(--good);border:1px solid currentColor;border-radius:8px;padding:0 6px}
 .tabs button.sel{color:var(--fg);border-bottom-color:var(--cyan)}
 .coin{display:inline-flex;align-items:center;gap:5px;font-family:var(--display);font-weight:700;color:var(--amber);font-variant-numeric:tabular-nums;letter-spacing:.04em}
@@ -292,6 +292,19 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
 #tomenu{border-color:var(--line);color:var(--dim)}
 #respawn:disabled{opacity:.35;cursor:default}
 
+.news{display:flex;flex-direction:column;gap:8px;border:1px solid rgba(255,191,107,.45);border-radius:8px;padding:12px 14px;background:linear-gradient(160deg,rgba(255,191,107,.12),rgba(14,11,30,.75) 55%);box-shadow:0 0 30px rgba(255,191,107,.08)}
+@media (min-width:1100px){.news{position:fixed;right:24px;top:24px;width:340px;max-height:calc(100vh - 48px);overflow:auto;z-index:6;background:linear-gradient(160deg,rgba(40,26,40,.92),rgba(14,11,30,.92) 55%)}}
+.news .nlbl{display:flex;justify-content:space-between;align-items:center;font-family:var(--display);font-size:11px;letter-spacing:.24em;color:var(--amber)}
+.news .new{font-size:10px;letter-spacing:.14em;color:#14061a;background:var(--amber);border-radius:3px;padding:1px 6px}
+.news h3{font-family:var(--display);font-size:20px;line-height:1.15;margin:0;letter-spacing:.02em}
+.news .ndate{font-size:12px;color:var(--dim)}
+.news ul{margin:0;padding-left:18px;font-size:14px;line-height:1.45;color:var(--fg)}
+.news li{margin:2px 0}
+.news .scard{border-left:3px solid var(--sc);padding:6px 10px;background:rgba(255,255,255,.04);border-radius:0 6px 6px 0;font-size:13px;line-height:1.4}
+.news .scard b{color:var(--sc);font-family:var(--display);letter-spacing:.06em}
+.news .older{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:8px}
+.news .older h4{margin:0;font-family:var(--display);font-size:14px}
+.news .older p{margin:2px 0 0;font-size:13px;color:var(--dim);line-height:1.4}
 .daily{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:rgba(255,255,255,.03)}
 .dhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-family:var(--display);font-size:12px;letter-spacing:.18em}
 .dhead span{color:var(--dim);letter-spacing:.08em;font-size:12px}
@@ -399,6 +412,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     <h1>PRISM<br>ARENA</h1>
     <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="custom">CUSTOMIZE</button><button data-tab="lb">LEADERBOARD</button><button data-tab="friends">FRIENDS <span class="badge" id="frBadge" hidden></span></button><button data-tab="set">SETTINGS</button></div>
     <div class="pane" id="playPane">
+    <div class="news" id="news"></div>
     <div class="sect">Game mode</div>
     <div class="modes" id="modes">
       <button class="mode" data-mode="waves"><b>Squad Waves</b><span>Survive drone waves together. Earns coins.</span></button>
@@ -828,6 +842,7 @@ $('quality').addEventListener('change', () => { settings.quality = $('quality').
 }
 function renderMenu() {
   if ($('dlist')) renderDaily();
+  if (!$('news').childElementCount) renderNews();
   document.querySelectorAll('.mode').forEach(b => b.classList.toggle('sel', b.dataset.mode === settings.mode));
   document.querySelectorAll('.map').forEach(b => b.classList.toggle('sel', b.dataset.map === settings.map));
   document.querySelectorAll('.gun').forEach(b => b.classList.toggle('sel', b.dataset.w === settings.gun));
@@ -925,6 +940,47 @@ function renderDaily() {
   $('dreset').textContent = `New ones in ${mins >= 60 ? Math.floor(mins / 60) + 'h ' : ''}${mins % 60}m`;
 }
 setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hidden)) renderDaily(); }, 30000);
+
+// ================= news (newest first) =================
+// Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
+const NEWS = [
+  { id: 'seasonal-emotes', date: '2026-10-03', title: 'Seasonal Emotes Come To The Game',
+    lines: ['Every season now has its own emote with a prop: Trick or Treat, Feast, Unwrap, Love Toss, Solidarity, Egg Hunt, Pride Wave and Ice Cream', 'Trick or Treat is in the Halloween shop right now: hold a glowing jack-o\'-lantern basket while candy rains into it', 'Bought emotes live in Customize and work all year (press H in a match)'] },
+  { id: 'shop-customize', date: '2026-10-03', title: 'New Shop Layout & Customize Tab',
+    lines: ['The shop scrolls sideways, two sections per row', 'New Customize tab: everything you own, hover to preview, click to wear'] },
+  { id: 'waves-update', date: '2026-10-03', title: 'Squad Waves Update: The Poisoner Arrives',
+    lines: ['New green Poisoner drone: its shots poison you until a medic or health pickup cures you', 'Tank barrier is now a shield box no drone can enter', 'Squad panel, wave progress bar, easier-to-find downed teammates, faster group revives', 'Guns keep their ammo when you swap'] },
+  { id: 'walla', date: '2026-10-03', title: 'Meet The Walla', lines: ['A brand-new suit with its own body: fuzzy red head, long arms and legs that walk'] },
+  { id: 'more-seasons', date: '2026-10-03', title: 'Thanksgiving, Black History Month & Pride',
+    lines: ['Three new seasons with their own maps: Harvest Farm, Heritage Square and Pride Parade', 'Seasonal pets for every season, from the Mini Ghost to the Rainbow Unicorn'] },
+  { id: 'seasons', date: '2026-10-03', title: 'Seasons, Pets & Seasonal Maps',
+    lines: ['The shop and maps now change with the seasons', 'Pets that follow you around: dogs, cats, a baby dragon and more'] },
+];
+const fmtDate = d => new Date(d + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+let newsOpen = false;
+function renderNews() {
+  const el = $('news'); if (!el) return;
+  const top = NEWS[0], unseen = store.get('newsSeen', '') !== top.id;
+  let h = `<div class="nlbl"><span>NEWS</span>${unseen ? '<span class="new">NEW</span>' : ''}</div>`;
+  h += `<h3>${esc(top.title)}</h3><span class="ndate">${fmtDate(top.date)}</span><ul>${top.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>`;
+  // season cards update themselves from the calendar
+  for (const k of SEASONS_ON) {
+    const S = SEASONS[k], d = seasonDaysLeft(k), mapId = Object.keys(MAP_INFO).find(m => MAP_INFO[m].season === k);
+    const items = [SUITS, HATS, FINISHES, PETS, EMOTES].reduce((n, defs) => n + Object.values(defs).filter(x => x.season === k).length, 0);
+    h += `<div class="scard" style="--sc:${S.css}"><b>${S.icon} ${esc(S.name.toUpperCase())} IS LIVE</b><br>${items} limited items in the Shop${mapId ? ` and the ${esc(MAPS[mapId])} map` : ''}. Leaves in ${d} day${d === 1 ? '' : 's'}.</div>`;
+  }
+  // and a heads-up when the next season is a week away
+  const now = new Date();
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i), on = seasonsOn(d).filter(k => !SEASONS_ON.includes(k));
+    if (on.length) { const S = SEASONS[on[0]]; h += `<div class="scard" style="--sc:${S.css}"><b>${S.icon} COMING SOON</b><br>${esc(S.name)} starts ${i === 1 ? 'tomorrow' : `in ${i} days`}.</div>`; break; }
+  }
+  h += `<button class="ghost" id="newsMore">${newsOpen ? 'HIDE OLDER UPDATES' : 'OLDER UPDATES'}</button>`;
+  if (newsOpen) h += `<div class="older">${NEWS.slice(1).map(n => `<div><h4>${esc(n.title)}</h4><span class="ndate">${fmtDate(n.date)}</span><p>${n.lines.map(esc).join(' · ')}</p></div>`).join('')}</div>`;
+  el.innerHTML = h;
+  $('newsMore').addEventListener('click', () => { newsOpen = !newsOpen; renderNews(); });
+  if (unseen) setTimeout(() => store.set('newsSeen', top.id), 4000);
+}
 
 // ================= renderer / scene =================
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
