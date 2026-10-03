@@ -15,7 +15,7 @@ const MAX_MSG = 16 * 1024;
 // Creator codes -> player IDs. Built-in defaults below; the host can add or override them with
 // CREATOR_CODES="AUSTEN:P-abc123...,BECKET:P-def456..." (quotes, spaces and letter case are forgiven).
 const PID_RE = /^P-[a-z0-9]{10,24}$/;
-const DEFAULT_CREATORS = { AUSTEN: 'P-rsz9g6j79f', BECKET: 'P-0hljmdl1ka' };
+const DEFAULT_CREATORS = { AUSTEN: 'P-rsz9g6j79f', BECKET: 'P-0hljmdl1ka', JMONEY: 'P-yi5oe6n8if', HARRYBALLS: 'P-ngk4h530nz' };
 function parseCreators(raw) {
   const out = {};
   for (const part of String(raw || '').replace(/["'\s]/g, '').split(/[,;]/)) {

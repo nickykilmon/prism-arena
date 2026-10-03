@@ -642,7 +642,7 @@ const PID = (() => {
   }
   return id;
 })();
-const CREATOR_CODES = ['AUSTEN', 'BECKET'], CREATOR_CUT = 0.1;
+const CREATOR_CODES = ['AUSTEN', 'BECKET', 'JMONEY', 'HARRYBALLS'], CREATOR_CUT = 0.1;
 let creatorCode = store.get('creator', '');
 if (!CREATOR_CODES.includes(creatorCode)) creatorCode = '';
 let payOutbox = store.get('outbox', []); if (!Array.isArray(payOutbox)) payOutbox = [];
@@ -2488,7 +2488,7 @@ function renderCreator() {
 $('capply').addEventListener('click', () => {
   const v = $('ccode').value.trim().toUpperCase();
   if (!v) { creatorCode = ''; store.set('creator', ''); renderCreator(); return; }
-  if (!CREATOR_CODES.includes(v)) { const m = $('cmsg'); m.className = 'bad'; m.textContent = `"${v}" isn't a creator code. Try AUSTEN or BECKET.`; return; }
+  if (!CREATOR_CODES.includes(v)) { const m = $('cmsg'); m.className = 'bad'; m.textContent = `"${v}" isn't a creator code. Try ${CREATOR_CODES.join(', ')}.`; return; }
   creatorCode = v; store.set('creator', v); renderCreator(); toast(`Now supporting ${v}`);
 });
 $('ccode').addEventListener('keydown', e => { if (e.key === 'Enter') $('capply').click(); });

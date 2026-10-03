@@ -40,7 +40,7 @@ Other hosts that run Node apps (Railway, Fly.io, Glitch) work the same way: inst
 
 ### Creator codes
 
-Players can enter a creator code (`AUSTEN` or `BECKET`) in the Shop. Each purchase sends that creator 10% of the price as bonus coins. The buyer still pays the normal price.
+Players can enter a creator code (`AUSTEN`, `BECKET`, `JMONEY` or `HARRYBALLS`) in the Shop. Each purchase sends that creator 10% of the price as bonus coins. The buyer still pays the normal price.
 
 Coins go to the creator's **player ID**, not their callsign, so renaming or copycat names don't matter. To link a code to a player:
 
