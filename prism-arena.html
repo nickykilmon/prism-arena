@@ -657,7 +657,7 @@ function queueCreatorCut(price) {
 function onPayMessage(m, send) {
   if (m.t === 'pay' && m.gift && m.from === 'server' && /^gift-[a-z0-9-]{1,60}$/.test(String(m.id))) {
     // one-time gift from the game owner (only the server can send these: players can't forge the gift flag through the relay)
-    const gifts = store.get('gifts', []), amount = Math.max(0, Math.min(100000, Math.floor(+m.amount || 0)));
+    const gifts = store.get('gifts', []), amount = Math.max(0, Math.min(1e10, Math.floor(+m.amount || 0)));
     if (Array.isArray(gifts) && !gifts.includes(m.id) && amount > 0) {
       gifts.push(m.id); store.set('gifts', gifts); wallet.coins += amount; saveWallet();
       toast(`🎁 Gift from the game owner: +${amount.toLocaleString()} coins`); initAudio(); sfx.levelup();

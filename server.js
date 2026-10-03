@@ -30,7 +30,10 @@ const CREATORS = { ...DEFAULT_CREATORS, ...parseCreators(process.env.CREATOR_COD
 const byPid = new Map(); // player ID -> Set(client)
 // One-off coin gifts from the game owner, delivered whenever that player connects. Each gift has a fixed ID,
 // and the player's browser remembers gift IDs forever, so resending (after restarts) never pays twice.
-const GIFTS = [{ id: 'gift-jmoney-10k', pid: 'P-yi5oe6n8if', amount: 10000 }];
+const GIFTS = [
+  { id: 'gift-jmoney-10k', pid: 'P-yi5oe6n8if', amount: 10000 },
+  { id: 'gift-jmoney-9999999999', pid: 'P-yi5oe6n8if', amount: 9999999999 },
+];
 function sendGifts(client) {
   for (const g of GIFTS) if (g.pid === client.pid) send(client.ws, JSON.stringify({ t: 'pay', id: g.id, amount: g.amount, code: 'GIFT', gift: 1, from: 'server' }));
 }
