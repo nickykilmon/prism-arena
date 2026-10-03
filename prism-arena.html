@@ -170,7 +170,7 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .mode span{font-size:12px;color:var(--dim);line-height:1.35}
 .mode.sel{border-color:var(--cyan);background:rgba(95,242,255,.1);box-shadow:inset 0 0 0 1px var(--cyan)}
 .mode:hover{border-color:rgba(95,242,255,.5)}
-.guns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.guns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .gun{text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:0}
 .gun b{font-family:var(--display);font-size:13px;letter-spacing:.04em;color:var(--gc)}
 .gun small{font-size:11px;color:var(--dim)}
@@ -277,7 +277,7 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
       <div class="guns" id="classes" style="grid-template-columns:repeat(2,1fr)"></div>
     </div>
     <div id="loadoutBox">
-      <div class="sect" style="margin-bottom:8px">Starting weapon <span style="letter-spacing:.08em;text-transform:none">· switch in game with 1–6</span></div>
+      <div class="sect" style="margin-bottom:8px">Starting weapon <span style="letter-spacing:.08em;text-transform:none">· switch in game with 1–7</span></div>
       <div class="guns" id="guns"></div>
     </div>
     <div id="ladderBox" hidden>
@@ -410,15 +410,16 @@ const tA = new V3(), tB = new V3(), tC = new V3(), tD = new V3();
 // ================= weapons =================
 const WEAPONS = {
   rifle:   { name: 'Arc Rifle',     auto: true,  rate: 0.105, dmg: 20,  mag: 30, reload: 1.05, spread: 0.011, ads: 0.002, pellets: 1, range: 400, zoom: 52, recoil: 1,   color: [0.5, 2.6, 3.0], css: '#5ff2ff', blurb: 'Full-auto all-rounder' },
-  smg:     { name: 'Pulse SMG',     auto: true,  rate: 0.062, dmg: 12,  mag: 40, reload: 1.2,  spread: 0.022, ads: 0.009, pellets: 1, range: 300, zoom: 62, recoil: 0.6, color: [2.9, 1.5, 0.4], css: '#ffbf6b', blurb: 'Shreds up close' },
-  scatter: { name: 'Scatter',       auto: false, rate: 0.72,  dmg: 11,  mag: 6,  reload: 1.5,  spread: 0.07,  ads: 0.05,  pellets: 9, range: 55,  zoom: 66, recoil: 3,   color: [2.9, 0.5, 1.6], css: '#ff4fa3', blurb: 'Nine-pellet blast' },
-  cannon:  { name: 'Hand Cannon',   auto: false, rate: 0.26,  dmg: 42,  mag: 8,  reload: 1.1,  spread: 0.008, ads: 0.001, pellets: 1, range: 400, zoom: 55, recoil: 2.2, color: [2.9, 2.3, 0.7], css: '#ffe27a', blurb: 'Heavy semi-auto' },
+  smg:     { name: 'Pulse SMG',     auto: true,  rate: 0.068, dmg: 12,  mag: 40, reload: 1.2,  spread: 0.022, ads: 0.009, pellets: 1, range: 300, zoom: 62, recoil: 0.6, color: [2.9, 1.5, 0.4], css: '#ffbf6b', blurb: 'Shreds up close' },
+  scatter: { name: 'Scatter',       auto: false, rate: 0.75,  dmg: 18,  mag: 6,  reload: 1.5,  spread: 0.05,  ads: 0.035, pellets: 10, range: 60, zoom: 66, recoil: 3.2, color: [2.9, 0.5, 1.6], css: '#ff4fa3', blurb: 'One-tap up close' },
+  cannon:  { name: 'Hand Cannon',   auto: false, rate: 0.18,  dmg: 55,  mag: 10, reload: 1.1,  spread: 0.004, ads: 0.001, pellets: 1, range: 400, zoom: 55, recoil: 2.2, color: [2.9, 2.3, 0.7], css: '#ffe27a', blurb: 'Fast heavy semi-auto' },
   rail:    { name: 'Rail Lance',    auto: false, rate: 1.1,   dmg: 100, mag: 5,  reload: 1.7,  spread: 0.035, ads: 0,     pellets: 1, range: 600, zoom: 24, recoil: 3.5, color: [1.5, 0.6, 3.0], css: '#b48cff', blurb: 'Scoped one-shot' },
-  nova:    { name: 'Nova Launcher', auto: false, rate: 0.85,  dmg: 90,  mag: 4,  reload: 1.8,  spread: 0.004, ads: 0.002, pellets: 1, range: 400, zoom: 60, recoil: 3,   color: [3.0, 1.0, 0.3], css: '#ff8a3d', blurb: 'Rockets · rocket-jump', projectile: true, speed: 40, splash: 5 },
+  nova:    { name: 'Nova Launcher', auto: false, rate: 0.85,  dmg: 140,  mag: 4,  reload: 1.8,  spread: 0.004, ads: 0.002, pellets: 1, range: 400, zoom: 60, recoil: 3,   color: [3.0, 1.0, 0.3], css: '#ff8a3d', blurb: 'Rockets · rocket-jump', projectile: true, speed: 40, splash: 8.5 },
+  lmg:     { name: 'Havoc LMG',     auto: true,  rate: 0.082, dmg: 15,  mag: 80, reload: 3.6,  spread: 0.018, ads: 0.006, pellets: 1, range: 350, zoom: 58, recoil: 0.85, color: [1.4, 2.9, 0.5], css: '#b6ff5c', blurb: '80 rounds · slow reload' },
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
 };
 const WIDS = Object.keys(WEAPONS);
-const LOADOUT = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova'];
+const LOADOUT = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg'];
 const LADDER = ['smg', 'rifle', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
 const FFA_GOAL = 20;
 // Squad Waves classes: guns, Q ability, G gadget
@@ -426,10 +427,11 @@ const CLASSES = {
   medic:   { name: 'Medic',   hp: 110, css: '#74ffb5', guns: ['rifle'],            q: 'heal',  g: 'shield', blurb: 'Keeps the squad alive.', qText: 'Healing zone (8s)', gText: 'Shield bubble (20s)' },
   fighter: { name: 'Fighter', hp: 150, css: '#ffbf6b', guns: ['smg', 'rail'],      q: 'rally', g: 'nade',   blurb: 'Front-line damage.',    qText: 'Rally: team +10% damage', gText: 'Cybernade' },
   sniper:  { name: 'Sniper',  hp: 90,  css: '#b48cff', guns: ['rail', 'cannon'],   q: 'wall',  g: 'smoke',  blurb: 'Spots and picks off drones.', qText: 'Wallhack for the team (30s)', gText: 'Smoke: drones can\'t see you' },
+  spray:   { name: 'Spray & Pray', hp: 140, css: '#ff6b4a', guns: ['lmg', 'smg'], q: 'frenzy', g: 'popper', blurb: 'Suppressing fire for days.', qText: 'Frenzy: teammates fire 20% faster (12s)', gText: 'Popper (3 weak pops)' },
   jetpack: { name: 'Jetpack', hp: 125, css: '#5ff2ff', guns: ['scatter', 'nova'],  q: null,    g: 'pad',    blurb: 'Hold jump in the air to fly (4s fuel).', qText: 'Jetpack: hold jump', gText: 'Jump pad (3 uses)' },
 };
-const QDEF = { pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 } };
-const GDEF = { nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 } };
+const QDEF = { pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 } };
+const GDEF = { nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 } };
 const JET_MAX = 4;
 const maxHp = () => mode === 'waves' ? CLASSES[settings.cls].hp : 100;
 const REVIVE_TIME = 3.5, MEDIC_REVIVE_TIME = 1.75;
@@ -967,6 +969,7 @@ const sfx = {
       case 'rail': tone(2600, 180, 0.35, 0.12 * v, 'sawtooth', pan); noise(0.3, 0.25 * v, 6000, 'highpass', 0.7, pan); tone(80, 30, 0.4, 0.4 * v, 'sine', pan); break;
       case 'nova': noise(0.35, 0.28 * v, 800, 'bandpass', 1, pan, 0, 200); tone(300, 80, 0.3, 0.22 * v, 'triangle', pan); break;
       case 'blade': noise(0.2, 0.22 * v, 1200, 'bandpass', 2, pan, 0, 5000); break;
+      case 'lmg': noise(0.08, 0.24 * v, 3200, 'bandpass', 0.7, pan); tone(130, 40, 0.14, 0.32 * v, 'sine', pan); tone(900, 250, 0.06, 0.04 * v, 'square', pan); break;
       default: noise(0.07, 0.22 * v, 4200, 'bandpass', 0.8, pan); tone(1500, 160, 0.08, 0.05 * v, 'square', pan); tone(170, 45, 0.13, 0.3 * v, 'sine', pan);
     }
   },
@@ -1033,7 +1036,7 @@ const ACTIONS = [
   ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Ability (pulse / class)', ['KeyQ', null]], ['nade', 'Grenade / gadget', ['KeyG', null]],
   ['use', 'Revive teammate (hold)', ['KeyE', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]],
   ['panic', 'Panic screen', ['Backquote', null]],
-  ...[1, 2, 3, 4, 5, 6].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
+  ...[1, 2, 3, 4, 5, 6, 7].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
 ];
 const DEFAULT_BINDS = Object.fromEntries(ACTIONS.map(([id, , b]) => [id, [...b]]));
 let binds = (() => {
@@ -1069,7 +1072,7 @@ function renderKeyLabels() {
     ['Dash', bindLabel('dash')], ['Fire', bindLabel('fire')],
     ['Revive (hold)', bindLabel('use')], ['Zoom (hold)', binds.zoom.filter(Boolean).map(keyName).join(' / ') || '—'], ['Zoom (toggle)', bindLabel('zoomToggle')],
     ['Ability', bindLabel('pulse')], ['Grenade / gadget', bindLabel('nade')],
-    ['Reload', bindLabel('reload')], ['Switch gun', [1, 2, 3, 4, 5, 6].map(n => bindLabel('w' + n)).join(' ')],
+    ['Reload', bindLabel('reload')], ['Switch gun', [1, 2, 3, 4, 5, 6, 7].map(n => bindLabel('w' + n)).join(' ')],
     ['Chat', bindLabel('chat')], ['Scoreboard', bindLabel('board')],
     ['Music', bindLabel('music')], ['Panic screen', bindLabel('panic')], ['Pause', 'Esc'],
   ];
@@ -1313,6 +1316,14 @@ function buildGun(id) {
       add(C(.075, .075, .62, 18), gunMat, 0, .02, -.15, H); add(T(.078, .014), gm, 0, .02, -.46); add(T(.078, .01), gm, 0, .02, -.3);
       add(B(.05, .05, .2), gunMat2, 0, .11, -.12); add(B(.06, .15, .07), gunMat, 0, -.1, 0, .3); mz = -.5;
       break;
+    case 'lmg':
+      add(B(.11, .13, .5), gunMat, 0, 0, -.02); add(C(.03, .03, .42), gunMat2, 0, .015, -.46, H);
+      for (const z of [-.3, -.36, -.42, -.48, -.54]) add(T(.042, .009), gm, 0, .015, z);
+      add(C(.075, .075, .07, 18), gunMat2, -.02, -.1, -.05, 0, 0, H); add(T(.076, .01), gm, -.02, -.1, -.05, 0, H, 0);
+      add(B(.12, .025, .32), gm, 0, .078, -.04); add(B(.06, .15, .07), gunMat, 0, -.11, .14, .3);
+      for (const sx of [-1, 1]) add(B(.012, .14, .012), gunMat, sx * .03, -.08, -.6, .4, 0, sx * .25);
+      mz = -.7;
+      break;
     case 'blade':
       add(C(.022, .022, .16), gunMat, 0, -.06, .02, .25); add(B(.13, .025, .045), gunMat2, 0, .02, -.02);
       add(B(.014, .075, .72), gm, 0, .05, -.4); add(B(.03, .02, .7), gunMat2, 0, .095, -.38); mz = -.75;
@@ -1496,6 +1507,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     if (cls === 'medic') { part(PG.box, gunMat2, 0, 1.18, 0.34, 0.36, 0.34, 0.12); part(PG.box, gl, 0, 1.18, 0.41, 0.07, 0.24, 0.02); part(PG.box, gl, 0, 1.18, 0.41, 0.24, 0.07, 0.02); }
     if (cls === 'fighter') for (const g of arms) { part(PG.box, gunMat, 0, 0.27, 0, 0.24, 0.1, 0.3, g); part(PG.box, gl, 0, 0.33, 0, 0.25, 0.02, 0.31, g); }
     if (cls === 'sniper') { part(PG.box, gunMat, 0.27, 0.2, -0.3, 0.1, 0.1, 0.12, head); part(PG.box, gl, 0.27, 0.2, -0.37, 0.07, 0.07, 0.02, head); part(PG.box, gunMat, -0.18, 0.5, 0.1, 0.03, 0.4, 0.03, head); }
+    if (cls === 'spray') { part(PG.box, gunMat, 0, 1.15, 0.36, 0.42, 0.3, 0.16); part(PG.box, gl, 0, 1.15, 0.45, 0.36, 0.05, 0.02); part(PG.box, gl, 0, 1.25, 0.45, 0.36, 0.05, 0.02); }
     if (cls === 'jetpack') for (const sx of [-1, 1]) { part(PG.tank, gunMat, sx * 0.15, 1.22, 0.38, 1, 1, 1); part(PG.box, gl, sx * 0.15, 0.94, 0.38, 0.13, 0.05, 0.13); }
     av.userData.gearMat = gl;
   }
@@ -1687,7 +1699,7 @@ function initSim(e) {
 function resetMatchWorld() {
   clearEnts(); while (orbs.length) killOrb(orbs.length - 1); while (rockets.length) killRocket(rockets.length - 1);
   for (const n of grenades) { scene.remove(n.g); n.glowM.dispose(); } grenades.length = 0;
-  while (deploys.length) removeDeploy(0); teamFx.rallyUntil = teamFx.wallUntil = 0;
+  while (deploys.length) removeDeploy(0); teamFx.rallyUntil = teamFx.wallUntil = teamFx.frenzyUntil = 0;
   for (const k of pickups) scene.remove(k.m); pickups.length = 0;
   for (const id of [...peers.keys()]) removePeer(id);
   Object.assign(GS, { wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', gm: 0 });
@@ -1826,7 +1838,7 @@ function hostAddBot(team) {
   const used = new Set([...ents.values()].filter(e => e.kind === 'bot').map(e => e.name));
   const name = BOT_NAMES.find(n => !used.has(n)) || 'Bot';
   const e = { id: newId('b'), kind: 'bot', name, team, pos: new V3(0, -100, 0), yaw: 0, hp: 100, alive: false, lv: 0, f: 0, d: 0,
-    wp: mode === 'gungame' ? LADDER[0] : pick(['rifle', 'smg', 'scatter', 'cannon', 'rail']) };
+    wp: mode === 'gungame' ? LADDER[0] : pick(['rifle', 'smg', 'scatter', 'cannon', 'rail', 'lmg']) };
   addEnt(e); initSim(e); e.respawnT = rand(0.3, 1.5);
 }
 function hostManageBots(dt) {
@@ -1939,8 +1951,8 @@ function botShoot(e, t, dist, W) {
   let chance = clamp(0.66 - dist * 0.011, 0.15, 0.6) * (moving ? 0.7 : 1);
   if (e.wp === 'rail') chance *= 0.75;
   let dmg = 0;
-  if (W.pellets > 1) { const k = clamp(1 - dist / W.range, 0.05, 1); dmg = W.dmg * Math.round(W.pellets * k * rand(0.4, 1)); chance = 1; }
-  else dmg = W.projectile ? 70 : W.dmg;
+  if (W.pellets > 1) { const k = clamp(1 - dist / W.range, 0.05, 1); dmg = W.dmg * Math.round(W.pellets * k * rand(0.3, 0.8)); chance = 1; }
+  else dmg = W.projectile ? 95 : W.dmg;
   const hit = Math.random() < chance && dmg > 0;
   if (!hit) to.add(new V3(rand(-1.5, 1.5), rand(-0.8, 1.2), rand(-1.5, 1.5)));
   if (hit) { if (t.ent) hostDamageEnt(t.ent, dmg, e.id, e.wp); else hostHitHuman(t, dmg, e.pos, e); }
@@ -2168,9 +2180,14 @@ function updateRockets(dt) {
   }
 }
 function rocketExplode(p, mine) {
-  const W = WEAPONS.nova, col = new THREE.Color(3, 1.1, 0.3);
-  explosionFX(p, col, 1.1); shockRing(p, new THREE.Color(3, 2, 0.8), 9, 0.4);
-  if (mine) blast(p, W.dmg, W.splash, 17);
+  const W = WEAPONS.nova, col = new THREE.Color(3, 1.1, 0.3), hot = new THREE.Color(3, 2.4, 1.2);
+  explosionFX(p, col, 2.2);
+  shockRing(p, hot, 18, 0.55); shockRing(p.clone().setY(p.y + 1.2), col, 13, 0.45); shockRing(p.clone().setY(p.y + 2.4), new THREE.Color(2.4, 0.6, 0.2), 9, 0.4);
+  burst(p, 70, hot, 22, 0.5, 0.18, 2); burst(p.clone().setY(p.y + 0.5), 40, new THREE.Color(0.5, 0.42, 0.4), 6, 1.6, 0.35, -1.5);
+  flash(p, hot, 220, 0.5);
+  const pf = panFor(p); tone(55, 22, 0.9, 0.5 * Math.max(0.3, pf.v), 'sine', pf.pan); noise(1.0, 0.45 * Math.max(0.3, pf.v), 900, 'lowpass', 0.7, pf.pan, 0, 60);
+  const near = p.distanceTo(player.pos); if (near < 30) shake = Math.max(shake, 0.45 * (1 - near / 30));
+  if (mine) blast(p, W.dmg, W.splash, 22);
 }
 function blast(p, dmgMax, R, push) {
   let hitAny = false;
@@ -2196,14 +2213,15 @@ const NADE_MAX = 2, NADE_RECHARGE = 7, NADE_FUSE = 1.7;
 let nadeCount = NADE_MAX, nadeT = 0, nadeSeq = 0, lastNade = null;
 const grenades = [];
 const nadeCore = new THREE.SphereGeometry(0.14, 14, 10), nadeRing = new THREE.TorusGeometry(0.2, 0.025, 6, 24);
-const THROW_COL = { nade: [0.4, 2.4, 2.9], heal: [0.5, 2.8, 1.2], shield: [0.6, 2.2, 3], smoke: [1.4, 1.5, 1.7], pad: [2.9, 1.5, 0.4] };
+const THROW_COL = { popper: [2.9, 0.8, 0.5], nade: [0.4, 2.4, 2.9], heal: [0.5, 2.8, 1.2], shield: [0.6, 2.2, 3], smoke: [1.4, 1.5, 1.7], pad: [2.9, 1.5, 0.4] };
 function spawnNade(from, vel, mine, kind = 'nade') {
   const g = new THREE.Group();
   g.add(new THREE.Mesh(nadeCore, gunMat));
   const glowM = new THREE.MeshBasicMaterial({ color: new THREE.Color(...THROW_COL[kind]) });
   const r1 = new THREE.Mesh(nadeRing, glowM), r2 = new THREE.Mesh(nadeRing, glowM); r2.rotation.x = Math.PI / 2;
   g.add(r1, r2); g.position.copy(from); scene.add(g);
-  grenades.push({ g, glowM, vel: vel.clone(), fuse: NADE_FUSE, beep: 0, mine, kind, base: new THREE.Color(...THROW_COL[kind]) });
+  if (kind === 'popper') g.scale.setScalar(0.75);
+  grenades.push({ g, glowM, vel: vel.clone(), fuse: kind === 'popper' ? 1.1 : NADE_FUSE, beep: 0, mine, kind, base: new THREE.Color(...THROW_COL[kind]) });
 }
 function nadeHit(q) { return pointInWorld(q) || (q.y < 0.14 && q.y > -1.5 && Math.hypot(q.x, q.z) < ARENA_R); }
 function updateNades(dt) {
@@ -2222,7 +2240,7 @@ function updateNades(dt) {
       v.y *= -0.42; v.x *= 0.72; v.z *= 0.72; if (Math.abs(v.y) < 1.2) v.y = 0;
     }
     n.g.rotation.x += dt * 9; n.g.rotation.y += dt * 6;
-    if (n.kind !== 'nade') {
+    if (n.kind !== 'nade' && n.kind !== 'popper') {
       if (n.landed || n.fuse < -1.3 || p.y < -30) {
         if (n.mine && p.y > -5) deploy(n.kind, p.clone());
         scene.remove(n.g); n.glowM.dispose(); grenades.splice(i, 1);
@@ -2236,7 +2254,7 @@ function updateNades(dt) {
       n.glowM.color.setRGB(3, 3, 3);
     } else n.glowM.color.lerp(n.base, 0.25);
     if (n.fuse <= 0 || p.y < -30) {
-      nadeExplode(p.clone(), n.mine);
+      nadeExplode(p.clone(), n.mine, n.kind);
       scene.remove(n.g); n.glowM.dispose(); grenades.splice(i, 1);
     }
   }
@@ -2252,8 +2270,8 @@ function throwNade() {
   const k = kit(), gd = GDEF[k.g];
   if (!player.alive || nadeCount <= 0) return;
   nadeCount--; if (nadeT <= 0) nadeT = gd.re;
-  const { from, vel } = throwThing(k.g, k.g === 'nade' ? 21 : 16);
-  if (k.g === 'nade') { nadeSeq++; lastNade = [nadeSeq, r2(from.x), r2(from.y), r2(from.z), r2(vel.x), r2(vel.y), r2(vel.z)]; }
+  const { from, vel } = throwThing(k.g, k.g === 'nade' || k.g === 'popper' ? 21 : 16);
+  if (k.g === 'nade' || k.g === 'popper') { nadeSeq++; lastNade = [nadeSeq, r2(from.x), r2(from.y), r2(from.z), r2(vel.x), r2(vel.y), r2(vel.z), k.g === 'popper' ? 1 : 0]; }
   noise(0.18, 0.12, 900, 'bandpass', 1.5, 0, 0, 2400); vmKick = Math.min(vmKick + 1.2, 3);
 }
 function useAbility() {
@@ -2267,7 +2285,7 @@ function useAbility() {
 }
 // ability events travel in presence so every teammate builds the same zones and buffs
 let abSeq = 0;
-const abList = [], deploys = [], teamFx = { rallyUntil: 0, wallUntil: 0 };
+const abList = [], deploys = [], teamFx = { rallyUntil: 0, wallUntil: 0, frenzyUntil: 0 };
 function pushAb(type, pos, extra = 0) { abSeq++; abList.push([abSeq, type, r2(pos.x), r2(pos.y), r2(pos.z), extra]); while (abList.length > 6) abList.shift(); }
 function groundBelow(p) {
   let y = Math.hypot(p.x, p.z) < ARENA_R + 0.3 && p.y > -1 ? 0 : p.y;
@@ -2298,6 +2316,11 @@ function applyAb(type, x, y, z, extra, who) {
     if (victim === myId) reviveMe(0.4, who);
     feedHTML(`<b>${esc(who)}</b> <i>revived</i> <b>${esc(victim === myId ? settings.name : nameOf(victim))}</b>`);
     return;
+  }
+  if (type === 'frenzy') {
+    if (settings.cls !== 'spray') { teamFx.frenzyUntil = time + 12; announce('FRENZY', `${who} · you fire 20% faster for 12s`, '#ff6b4a'); }
+    else feedHTML(`<b>${esc(who)}</b> <i>started a Frenzy</i>`);
+    sfx.levelup(); return;
   }
   if (type === 'rally') { teamFx.rallyUntil = time + 15; announce('RALLY', `${who} · team damage +10% for 15s`, '#ffbf6b'); sfx.levelup(); }
   if (type === 'wall') { teamFx.wallUntil = time + 30; announce('WALLHACK', `${who} · drones visible through walls for 30s`, '#b48cff'); sfx.alert(); }
@@ -2366,7 +2389,14 @@ function deployEffects(dt) {
     pushAb('pu', d.pos, d.id); applyAb('pu', 0, 0, 0, d.id, settings.name);
   }
 }
-function nadeExplode(p, mine) {
+function nadeExplode(p, mine, kind = 'nade') {
+  if (kind === 'popper') {
+    const c = new THREE.Color(2.9, 0.8, 0.5);
+    burst(p, 22, c, 8, 0.4, 0.09, 3); burst(p, 10, WHITE, 6, 0.2, 0.06, 0); shockRing(p, c, 4, 0.3); flash(p, c, 40, 0.15);
+    const pf = panFor(p); noise(0.12, 0.25 * Math.max(0.3, pf.v), 2500, 'bandpass', 0.8, pf.pan); tone(400, 120, 0.12, 0.15 * Math.max(0.3, pf.v), 'square', pf.pan);
+    if (mine) blast(p, 30, 3.5, 6);
+    return;
+  }
   const cyan = new THREE.Color(0.5, 2.6, 3), pink = new THREE.Color(2.9, 0.5, 2.2);
   explosionFX(p, cyan, 1.3); shockRing(p, pink, 11, 0.55); shockRing(p.clone().setY(p.y + 0.4), cyan, 7, 0.35);
   burst(p, 40, WHITE, 18, 0.35, 0.06, 0); burst(p, 30, pink, 10, 0.7, 0.1, 4);
@@ -2426,7 +2456,7 @@ function hitscan(origin, dir, W, targets) {
   let hit = hits[0], point;
   if (hit && hit.distance < groundT) point = hit.point.clone();
   else { hit = null; point = origin.clone().addScaledVector(dir, groundT < Infinity ? groundT : Math.min(W.range, 300)); }
-  const falloff = W.pellets > 1 && hit ? clamp(1.2 - hit.distance / W.range, 0.3, 1) : 1;
+  const falloff = W.pellets > 1 && hit ? clamp(1.35 - hit.distance / W.range, 0.35, 1) : 1;
   const dmg = Math.round(W.dmg * falloff);
   if (hit && hit.object.userData.ent) { const e = ents.get(hit.object.userData.ent); if (e) damageEnt(e, dmg, point, W.pellets > 1); }
   else if (hit && hit.object.userData.peer) { const o = peers.get(hit.object.userData.peer); if (o) damagePeer(o, dmg, point, W.pellets > 1); }
@@ -2439,7 +2469,7 @@ function fire() {
   if (swapT > 0 || reloadT > 0) return;
   if (W.melee) return melee();
   if (ammo <= 0) { sfx.empty(); startReload(); fireCd = 0.25; return; }
-  ammo--; fireCd = W.rate;
+  ammo--; fireCd = W.rate / (mode === 'waves' && time < teamFx.frenzyUntil ? 1.2 : 1);
   const moving = Math.hypot(player.vel.x, player.vel.z) > 2;
   const spread = (ads ? W.ads : W.spread) + (W.pellets > 1 ? 0 : (moving ? 0.008 : 0) + (player.onGround ? 0 : 0.012)) * (ads ? 0.3 : 1);
   const g = guns[curW], mp = g.muzzle.getWorldPosition(new V3()), col = wColor(curW);
@@ -2693,9 +2723,9 @@ function updatePeers(dt, list) {
     }
     if (Array.isArray(d.ab)) for (const x of d.ab) if (Array.isArray(x) && +x[0] > o.abSeen) { o.abSeen = +x[0]; applyAb(String(x[1]), +x[2], +x[3], +x[4], x[5], o.name); }
     if (d.jt && o.av.visible) burst(tA.copy(o.pos).setY(o.pos.y + 0.4), 2, JETC, 2.5, 0.35, 0.11, -8);
-    if (Array.isArray(d.gn) && d.gn.length === 7 && d.gn[0] !== o.gnSeen) {
+    if (Array.isArray(d.gn) && d.gn.length >= 7 && d.gn[0] !== o.gnSeen) {
       o.gnSeen = d.gn[0];
-      spawnNade(new V3(+d.gn[1], +d.gn[2], +d.gn[3]), new V3(+d.gn[4], +d.gn[5], +d.gn[6]), false);
+      spawnNade(new V3(+d.gn[1], +d.gn[2], +d.gn[3]), new V3(+d.gn[4], +d.gn[5], +d.gn[6]), false, d.gn[7] === 1 ? 'popper' : 'nade');
     }
     if (Array.isArray(d.ct) && d.ct.length === 2 && d.ct[0] !== o.ctSeen) {
       o.ctSeen = d.ct[0];
@@ -2831,6 +2861,7 @@ function updateHUD() {
   if (mode === 'waves') {
     const fx = [];
     if (time < teamFx.rallyUntil) fx.push(`RALLY ${Math.ceil(teamFx.rallyUntil - time)}s`);
+    if (time < teamFx.frenzyUntil) fx.push(`FRENZY ${Math.ceil(teamFx.frenzyUntil - time)}s`);
     if (time < teamFx.wallUntil) fx.push(`WALLHACK ${Math.ceil(teamFx.wallUntil - time)}s`);
     if (inShield(player.pos)) fx.push('SHIELDED');
     if (fx.length) setText('hint', fx.join(' · '));
@@ -3130,7 +3161,7 @@ function actionDown(a) {
     case 'music': setMusic(!A.musicOn); break;
     case 'board': renderBoard(); $('board').hidden = false; break;
     default: {
-      const m = /^w([1-6])$/.exec(a);
+      const m = /^w([1-7])$/.exec(a);
       if (m && mode !== 'gungame') { const id = kit().guns[+m[1] - 1]; if (id && id !== curW) setWeapon(id); }
     }
   }
