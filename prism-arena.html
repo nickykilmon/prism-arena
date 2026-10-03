@@ -134,6 +134,13 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .item.poor{opacity:.55}
 .item:hover{border-color:rgba(95,242,255,.5)}
 #hCoins{color:var(--amber)}
+.creator{display:flex;flex-direction:column;gap:6px}
+.creator label{font-family:var(--display);font-size:11px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+.crow{display:flex;gap:8px;align-items:center;min-width:0}
+.crow input{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:4px;padding:9px 10px;font-size:15px;text-transform:uppercase;letter-spacing:.08em}
+.crow code{flex:1;min-width:0;font-family:var(--display);font-size:14px;letter-spacing:.06em;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:4px;padding:8px 10px;overflow-wrap:anywhere}
+#cmsg{font-size:13px;color:var(--dim)}
+#cmsg.ok{color:var(--good)} #cmsg.bad{color:var(--bad)}
 #downUI{position:absolute;left:50%;top:57%;transform:translateX(-50%);text-align:center;font-family:var(--display);width:min(420px,calc(100vw - 32px))}
 #downUI b{display:block;font-size:34px;letter-spacing:.22em;color:var(--bad);text-shadow:0 0 18px rgba(255,77,106,.6)}
 #downUI span{display:block;font-size:13px;letter-spacing:.1em;color:var(--fg);margin-top:4px;text-shadow:0 2px 6px rgba(0,0,0,.8)}
@@ -303,6 +310,11 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
     </div>
     <div class="pane" id="shopPane" hidden>
       <div class="shophead"><span class="coin" id="coinBig">0</span><p>Earn coins by destroying drones in Squad Waves. Clearing a wave pays a bonus.</p></div>
+      <div class="creator">
+        <label for="ccode">Support a creator</label>
+        <div class="crow"><input id="ccode" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Creator code"><button class="ghost" id="capply">APPLY</button></div>
+        <small id="cmsg">Creators get 10% of the coins you spend, on top of your purchase.</small>
+      </div>
       <div class="sect" style="margin-bottom:8px">Suits</div>
       <div class="items" id="suitItems"></div>
       <div class="sect" style="margin-bottom:8px">Gun finishes</div>
@@ -335,6 +347,9 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
         <div class="field"><label for="vsfx">Sound effects<span class="v" id="vsfxV"></span></label><input type="range" id="vsfx" min="0" max="1" step="0.05"></div>
         <div class="field check"><label><input type="checkbox" id="chaton">Show chat</label></div>
       </div>
+      <div class="sect" style="margin-bottom:-4px">Account</div>
+      <div class="field"><label>Your player ID</label><div class="crow"><code id="pidv"></code><button class="ghost" id="pidcopy">COPY</button></div></div>
+      <p class="note">This ID stays the same even if you change your callsign. Creators share theirs so creator-code coins reach them.</p>
       <div class="sect" style="margin-bottom:-4px">Keybinds</div>
       <p class="note">Click a slot, then press a key or mouse button. Backspace clears the slot, Esc cancels. Avoid Alt and Ctrl: the browser uses them for its own shortcuts, such as Alt+D and Ctrl+W.</p>
       <div class="binds" id="binds"></div>
@@ -468,6 +483,45 @@ store.set('hue', settings.hue);
 let best = store.get('best', { wave: 0, score: 0 });
 const opts = Object.assign({ scale: null, fov: 80, zsens: 1, invY: false, shake: true, vMaster: 0.8, vMusic: 0.6, vSfx: 0.9, fps: false, chat: true, autoQ: true }, store.get('opts', {}));
 const saveOpts = () => store.set('opts', opts);
+// permanent player ID, kept in this browser; creator-code payouts are addressed to it
+const PID = (() => {
+  let id = store.get('pid', null);
+  if (typeof id !== 'string' || !/^P-[a-z0-9]{10,24}$/.test(id)) {
+    const r = new Uint8Array(10); try { crypto.getRandomValues(r); } catch { for (let i = 0; i < 10; i++) r[i] = Math.random() * 256; }
+    id = 'P-' + [...r].map(b => (b % 36).toString(36)).join(''); store.set('pid', id);
+  }
+  return id;
+})();
+const CREATOR_CODES = ['AUSTEN', 'BECKET'], CREATOR_CUT = 0.1;
+let creatorCode = store.get('creator', '');
+if (!CREATOR_CODES.includes(creatorCode)) creatorCode = '';
+let payOutbox = store.get('outbox', []); if (!Array.isArray(payOutbox)) payOutbox = [];
+let payRecv = store.get('recv', []); if (!Array.isArray(payRecv)) payRecv = [];
+function queueCreatorCut(price) {
+  if (!creatorCode) return;
+  const amount = Math.max(1, Math.round(price * CREATOR_CUT));
+  payOutbox.push({ id: `${PID}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`, code: creatorCode, amount });
+  store.set('outbox', payOutbox.slice(-200));
+}
+// messages relayed by the website server (not available inside the Claude artifact)
+function onPayMessage(m, send) {
+  if (m.t === 'pay' && typeof m.id === 'string' && m.id.length < 80) {
+    const amount = Math.max(0, Math.min(500, Math.floor(+m.amount || 0)));
+    if (!payRecv.includes(m.id) && amount > 0) {
+      payRecv.push(m.id); payRecv = payRecv.slice(-1000); store.set('recv', payRecv);
+      wallet.coins += amount; saveWallet();
+      toast(`Creator code ${String(m.code || '').slice(0, 16)}: +${amount} coins from a supporter`);
+    }
+    send({ t: 'ack', id: m.id, to: m.from });
+  } else if (m.t === 'ack' && typeof m.id === 'string') {
+    const n = payOutbox.length; payOutbox = payOutbox.filter(o => o.id !== m.id);
+    if (payOutbox.length !== n) store.set('outbox', payOutbox);
+  }
+}
+setInterval(() => {
+  if (!payOutbox.length || !conn || !conn.send || !conn.connected()) return;
+  for (const o of payOutbox.slice(0, 20)) conn.send({ t: 'pay', code: o.code, id: o.id, amount: o.amount });
+}, 8000);
 $('name').value = settings.name; $('roomcode').value = settings.room;
 const cleanRoom = s => (s || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20) || 'public';
 $('name').addEventListener('change', () => { settings.name = ($('name').value.trim() || 'Pilot').slice(0, 14); $('name').value = settings.name; store.set('name', settings.name); });
@@ -1454,13 +1508,14 @@ function wsAdapter(name) {
   const pm = new Map(); let id = null, ws = null, alive = true, mine = {};
   function connect() {
     try { ws = new WebSocket(base + '/ws'); } catch { return; }
-    ws.onopen = () => ws.send(JSON.stringify({ t: 'join', room: name }));
+    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); ws.send(JSON.stringify({ t: 'join', room: name })); };
     ws.onmessage = e => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'hello') id = m.id;
       else if (m.t === 'peers') { pm.clear(); for (const p of m.list) pm.set(p.id, p.d || {}); }
       else if (m.t === 'u') pm.set(m.id, m.d || {});
       else if (m.t === 'bye') pm.delete(m.id);
+      else if (m.t === 'pay' || m.t === 'ack') onPayMessage(m, o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
     };
     ws.onclose = () => { pm.clear(); id = null; if (alive) setTimeout(connect, 2000); };
     ws.onerror = () => {};
@@ -1472,6 +1527,7 @@ function wsAdapter(name) {
     peers() { const a = id ? [{ id, me: true, d: mine }] : []; for (const [pid, d] of pm) if (pid !== id) a.push({ id: pid, me: false, d }); return a; },
     connected() { return !!ws && ws.readyState === 1 && !!id; },
     myId() { return id; },
+    send(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); },
     leave() { alive = false; try { ws.close(); } catch {} },
   };
 }
@@ -1639,7 +1695,7 @@ function equip(kind, id) {
 function shopClick(kind, id, def) {
   if (owns(kind, id)) return equip(kind, id);
   if (wallet.coins < def.price) { toast(`You need ${(def.price - wallet.coins).toLocaleString()} more coins. Earn them in Squad Waves.`); return; }
-  wallet.coins -= def.price; wallet.owned.push(kind + ':' + id); saveWallet();
+  wallet.coins -= def.price; wallet.owned.push(kind + ':' + id); saveWallet(); queueCreatorCut(def.price);
   initAudio(); sfx.pickup(); toast(`Unlocked ${def.name}`);
   equip(kind, id); renderMenu();
 }
@@ -1674,6 +1730,25 @@ function setMenuTab(t) {
   if (t === 'shop') { renderShop(); buildShowcase(); }
 }
 document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => setMenuTab(b.dataset.tab)));
+function renderCreator() {
+  $('ccode').value = creatorCode;
+  const m = $('cmsg');
+  if (creatorCode) { m.className = 'ok'; m.textContent = `Supporting ${creatorCode}: they get 10% of the coins you spend.`; }
+  else { m.className = ''; m.textContent = 'Creators get 10% of the coins you spend, on top of your purchase.'; }
+}
+$('capply').addEventListener('click', () => {
+  const v = $('ccode').value.trim().toUpperCase();
+  if (!v) { creatorCode = ''; store.set('creator', ''); renderCreator(); return; }
+  if (!CREATOR_CODES.includes(v)) { const m = $('cmsg'); m.className = 'bad'; m.textContent = `"${v}" isn't a creator code. Try AUSTEN or BECKET.`; return; }
+  creatorCode = v; store.set('creator', v); renderCreator(); toast(`Now supporting ${v}`);
+});
+$('ccode').addEventListener('keydown', e => { if (e.key === 'Enter') $('capply').click(); });
+$('pidv').textContent = PID;
+$('pidcopy').addEventListener('click', () => {
+  const done = () => toast('Player ID copied');
+  try { navigator.clipboard.writeText(PID).then(done, () => { getSelection().selectAllChildren($('pidv')); }); } catch { getSelection().selectAllChildren($('pidv')); }
+});
+renderCreator();
 settings.hue = HUES.reduce((a, b) => Math.abs(b - settings.hue) < Math.abs(a - settings.hue) ? b : a, HUES[0]);
 for (const id of ['swatches', 'swatches2']) for (const h of HUES) {
   const b = document.createElement('button'); b.dataset.h = h; b.setAttribute('aria-label', `Color hue ${h}`);

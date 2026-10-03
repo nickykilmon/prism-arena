@@ -35,6 +35,21 @@ Free Render servers go to sleep when nobody is playing, so the first visit after
 
 Other hosts that run Node apps (Railway, Fly.io, Glitch) work the same way: install with `npm install`, start with `npm start`.
 
+### Creator codes
+
+Players can enter a creator code (`AUSTEN` or `BECKET`) in the Shop. Each purchase sends that creator 10% of the price as bonus coins. The buyer still pays the normal price.
+
+Coins go to the creator's **player ID**, not their callsign, so renaming or copycat names don't matter. To link a code to a player:
+
+1. Have the creator open the game (any mode, even just the menu). Their player ID is in **Settings → Account**, or:
+2. While they're online, open `https://<your-site>/players`. It lists everyone online with their callsign and player ID.
+3. In Render, open your service → **Environment** → **Add Environment Variable**:
+   - Key: `CREATOR_CODES`
+   - Value: `AUSTEN:P-xxxxxxxxxx,BECKET:P-yyyyyyyyyy` (use the real IDs)
+4. Save. Render restarts the server with the new setting.
+
+Payouts arrive the next time the buyer and the creator are online at the same time (any mode or room). Until then they wait in the buyer's browser.
+
 ### Solo-only static version
 
 If you only want a single-player page (bots, no multiplayer), run `npm run build`. Then upload `dist/index.html` to any static host, such as GitHub Pages, Netlify or itch.io.
