@@ -2837,7 +2837,11 @@ function hostInfect(dt) {
       const pool = acts.filter(a => a.alive);
       if (pool.length < 2) { I.pre = 3; GS.ip = 3; return; }
       GS.ip = 0; GS.it = INF_TIME; I.t = INF_TIME; I.last = '';
-      infectActor(pick(pool), true);
+      // patient zero is always a smart bot (a bot is promoted to smart if none is); only a lobby without bots infects a player
+      const bots = pool.filter(a => a.ent), smart = bots.filter(a => a.ent.skill === 'hard');
+      const zero = smart.length ? pick(smart) : bots.length ? pick(bots) : pick(pool);
+      if (zero.ent) zero.ent.skill = 'hard';
+      infectActor(zero, true);
     }
     return;
   }
