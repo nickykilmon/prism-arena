@@ -560,7 +560,7 @@ const WEAPONS = {
   nova:    { name: 'Nova Launcher', auto: false, rate: 0.85,  dmg: 140,  mag: 4,  reload: 1.8,  spread: 0.004, ads: 0.002, pellets: 1, range: 400, zoom: 60, recoil: 3,   color: [3.0, 1.0, 0.3], css: '#ff8a3d', blurb: 'Rockets · rocket-jump', projectile: true, speed: 40, splash: 8.5 },
   lmg:     { name: 'Havoc LMG',     auto: true,  rate: 0.082, dmg: 15,  mag: 80, reload: 5,  spread: 0.018, ads: 0.006, pellets: 1, range: 350, zoom: 58, recoil: 0.85, color: [1.4, 2.9, 0.5], css: '#b6ff5c', blurb: '80 rounds · slow reload' },
   dual:    { name: 'Twin Blades',   melee: true, rate: 0.28, dmg: 70, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [3.0, 0.4, 2.2], css: '#ff3d6e', blurb: 'Berserker only' },
-  claw:    { name: 'Infected Claws', melee: true, rate: 0.38, dmg: 55, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [0.6, 3.0, 0.5], css: '#7dff4a', blurb: 'Infected only' },
+  claw:    { name: 'Infected Claws', melee: true, rate: 0.38, dmg: 100, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [0.6, 3.0, 0.5], css: '#7dff4a', blurb: 'Infected only' },
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
 };
 const WIDS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'dual', 'blade', 'claw'];
@@ -1795,7 +1795,7 @@ function updatePlayer(dt) {
   if (!coop() && time - player.lastDmgT > 4 && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 15 * dt);
   const wish = player.downed ? pWish.set(0, 0, 0) : wishDir(pWish);
   const carrying = mode === 'ctf' && GS.fl.some(f => f[0] === 1 && f[1] === myId);
-  const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.18 : 1);
+  const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1);
   updateRift(dt);
   if (player.dashT > 0) player.dashT -= dt;
   else if (player.onGround) { v.x = damp(v.x, wish.x * spd, 14, dt); v.z = damp(v.z, wish.z * spd, 14, dt); }
@@ -3027,7 +3027,7 @@ function hostUpdateBot(e, dt, acts) {
     const nx = e.pos.x + dir.x * 3, nz = e.pos.z + dir.z * 3;
     if (Math.hypot(nx, nz) > ARENA_R - 2) dir.set(-e.pos.x, 0, -e.pos.z).normalize();
   }
-  const spd = 8.3 * skillOf(e).speed * (W.melee ? 1.1 : 1) * (mode === 'infect' && e.team === 1 ? 1.12 : 1);
+  const spd = 8.3 * skillOf(e).speed * (W.melee ? 1.1 : 1) * (mode === 'infect' && e.team === 1 ? 1.28 : 1);
   if (e.onGround) { e.vel.x = damp(e.vel.x, dir.x * spd, 10, dt); e.vel.z = damp(e.vel.z, dir.z * spd, 10, dt); }
   else if (dir.lengthSq() > 0) { const hs = Math.max(spd, Math.hypot(e.vel.x, e.vel.z)); e.vel.x = damp(e.vel.x, dir.x * hs, 2.5, dt); e.vel.z = damp(e.vel.z, dir.z * hs, 2.5, dt); }
   if (dir.lengthSq() > 0 && Math.hypot(e.vel.x, e.vel.z) < 1.2 && e.onGround) { e.stuckT += dt; if (e.stuckT > 0.5) { e.vel.y = 11; e.side *= -1; e.stuckT = 0; } } else e.stuckT = 0;
