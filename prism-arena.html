@@ -318,6 +318,7 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
         <div class="field"><label for="scale">Render scale<span class="v" id="scaleV"></span></label><input type="range" id="scale" min="0.4" max="1" step="0.05"></div>
         <div class="field"><label for="fov">Field of view<span class="v" id="fovV"></span></label><input type="range" id="fov" min="65" max="110" step="1"></div>
         <div class="field check"><label><input type="checkbox" id="showfps">Show FPS counter</label></div>
+        <div class="field check"><label><input type="checkbox" id="autoq">Auto-lower graphics when FPS drops</label></div>
       </div>
       <p class="note">Laggy? Pick Performance or Potato, then lower Render scale until it feels smooth. The game also steps down by itself if your frame rate drops.</p>
       <div class="sect" style="margin-bottom:-4px">Controls</div>
@@ -465,13 +466,13 @@ function kit() {
 }
 store.set('hue', settings.hue);
 let best = store.get('best', { wave: 0, score: 0 });
-const opts = Object.assign({ scale: null, fov: 80, zsens: 1, invY: false, shake: true, vMaster: 0.8, vMusic: 0.6, vSfx: 0.9, fps: false, chat: true }, store.get('opts', {}));
+const opts = Object.assign({ scale: null, fov: 80, zsens: 1, invY: false, shake: true, vMaster: 0.8, vMusic: 0.6, vSfx: 0.9, fps: false, chat: true, autoQ: true }, store.get('opts', {}));
 const saveOpts = () => store.set('opts', opts);
 $('name').value = settings.name; $('roomcode').value = settings.room;
 const cleanRoom = s => (s || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20) || 'public';
 $('name').addEventListener('change', () => { settings.name = ($('name').value.trim() || 'Pilot').slice(0, 14); $('name').value = settings.name; store.set('name', settings.name); });
 $('roomcode').addEventListener('change', () => { settings.room = cleanRoom($('roomcode').value); $('roomcode').value = settings.room; store.set('room', settings.room); menuChanged(); });
-$('quality').addEventListener('change', () => { settings.quality = $('quality').value; store.set('quality3', settings.quality); opts.scale = null; saveOpts(); perfDrops = 9; applyQuality(); });
+$('quality').addEventListener('change', () => { settings.quality = $('quality').value; store.set('quality3', settings.quality); opts.scale = null; opts.autoQ = false; saveOpts(); applyQuality(); });
 {
   const g = $('guns');
   LOADOUT.forEach((id, i) => {
@@ -3102,15 +3103,15 @@ function syncSettingsUI() {
   $('sens').value = settings.sens; $('sensV').textContent = (+settings.sens).toFixed(2);
   $('zsens').value = opts.zsens; $('zsensV').textContent = (+opts.zsens).toFixed(2);
   for (const k of ['vmaster', 'vmusic', 'vsfx']) { const key = { vmaster: 'vMaster', vmusic: 'vMusic', vsfx: 'vSfx' }[k]; $(k).value = opts[key]; $(k + 'V').textContent = Math.round(opts[key] * 100) + '%'; }
-  $('showfps').checked = opts.fps; $('invy').checked = opts.invY; $('shakeon').checked = opts.shake; $('chaton').checked = opts.chat;
+  $('showfps').checked = opts.fps; $('autoq').checked = opts.autoQ; $('invy').checked = opts.invY; $('shakeon').checked = opts.shake; $('chaton').checked = opts.chat;
   $('fps').hidden = !opts.fps;
 }
-$('scale').addEventListener('input', () => { opts.scale = +$('scale').value; saveOpts(); perfDrops = 9; applyQuality(); });
+$('scale').addEventListener('input', () => { opts.scale = +$('scale').value; opts.autoQ = false; saveOpts(); applyQuality(); });
 $('fov').addEventListener('input', () => { opts.fov = +$('fov').value; saveOpts(); syncSettingsUI(); });
 $('sens').addEventListener('input', () => { settings.sens = +$('sens').value; store.set('sens', settings.sens); syncSettingsUI(); });
 $('zsens').addEventListener('input', () => { opts.zsens = +$('zsens').value; saveOpts(); syncSettingsUI(); });
 for (const [id, key] of [['vmaster', 'vMaster'], ['vmusic', 'vMusic'], ['vsfx', 'vSfx']]) $(id).addEventListener('input', () => { opts[key] = +$(id).value; saveOpts(); applyAudio(); syncSettingsUI(); });
-for (const [id, key] of [['showfps', 'fps'], ['invy', 'invY'], ['shakeon', 'shake'], ['chaton', 'chat']]) $(id).addEventListener('change', () => { opts[key] = $(id).checked; saveOpts(); syncSettingsUI(); if (key === 'chat') $('chat').hidden = !opts.chat; });
+for (const [id, key] of [['showfps', 'fps'], ['autoq', 'autoQ'], ['invy', 'invY'], ['shakeon', 'shake'], ['chaton', 'chat']]) $(id).addEventListener('change', () => { opts[key] = $(id).checked; saveOpts(); syncSettingsUI(); if (key === 'chat') $('chat').hidden = !opts.chat; });
 applyQuality();
 $('chat').hidden = !opts.chat;
 addEventListener('resize', () => {
@@ -3119,7 +3120,7 @@ addEventListener('resize', () => {
 });
 let perfT = 0, perfN = 0, perfDrops = 0;
 function perfWatch(dt) {
-  if (state !== 'playing') { perfT = 0; perfN = 0; return; }
+  if (state !== 'playing' || !opts.autoQ) { perfT = 0; perfN = 0; return; }
   perfT += dt; perfN++;
   if (perfT >= 3) {
     const fps = perfN / perfT; perfT = 0; perfN = 0;
@@ -3127,7 +3128,7 @@ function perfWatch(dt) {
       const i = QORDER.indexOf(settings.quality);
       if (i < QORDER.length - 1) {
         settings.quality = QORDER[i + 1]; opts.scale = null; store.set('quality3', settings.quality); saveOpts(); applyQuality(); perfDrops++;
-        toast(`Low frame rate: graphics set to ${settings.quality}. Change it in Settings.`);
+        toast(`Low frame rate: graphics set to ${settings.quality}. Turn off auto-lowering in Settings.`);
       } else if (opts.scale > 0.45) { opts.scale = Math.max(0.4, +(opts.scale - 0.1).toFixed(2)); saveOpts(); applyQuality(); perfDrops++; }
     }
   }
