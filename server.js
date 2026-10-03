@@ -12,11 +12,21 @@ const PORT = process.env.PORT || 3000;
 const MAX_ROOM = 12;
 const MAX_MSG = 16 * 1024;
 
-// Creator codes -> player IDs, set on the host as CREATOR_CODES="AUSTEN:P-abc123...,BECKET:P-def456..."
-const CREATORS = Object.fromEntries((process.env.CREATOR_CODES || '').split(',')
-  .map(x => x.trim().split(':').map(v => v.trim())).filter(a => a.length === 2 && a[0] && /^P-[a-z0-9]{10,24}$/.test(a[1]))
-  .map(([code, pid]) => [code.toUpperCase(), pid]));
+// Creator codes -> player IDs. Built-in defaults below; the host can add or override them with
+// CREATOR_CODES="AUSTEN:P-abc123...,BECKET:P-def456..." (quotes, spaces and letter case are forgiven).
 const PID_RE = /^P-[a-z0-9]{10,24}$/;
+const DEFAULT_CREATORS = { AUSTEN: 'P-rsz9g6j79f' };
+function parseCreators(raw) {
+  const out = {};
+  for (const part of String(raw || '').replace(/["'\s]/g, '').split(/[,;]/)) {
+    const m = /^([A-Za-z0-9_]+)[:=]([Pp]-[A-Za-z0-9]+)$/.exec(part);
+    if (!m) continue;
+    const pid = 'P-' + m[2].slice(2).toLowerCase();
+    if (PID_RE.test(pid)) out[m[1].toUpperCase()] = pid;
+  }
+  return out;
+}
+const CREATORS = { ...DEFAULT_CREATORS, ...parseCreators(process.env.CREATOR_CODES) };
 const byPid = new Map(); // player ID -> Set(client)
 const seen = new Map();  // player ID -> { name, last, room } for the /players lookup page
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
