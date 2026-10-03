@@ -1441,35 +1441,62 @@ function avatarLook(team, hue) {
   return { col: new THREE.Color().setHSL(hue / 360, 0.65, 0.55), gl: new THREE.Color().setHSL(hue / 360, 1, 0.6).multiplyScalar(2.6), css: `hsl(${hue},100%,72%)` };
 }
 const avGunGeo = new THREE.BoxGeometry(0.12, 0.14, 0.7), FLASHC = new THREE.Color(1, 1, 1);
-const gearGeo = { box: new THREE.BoxGeometry(1, 1, 1), tank: new THREE.CylinderGeometry(0.11, 0.11, 0.55, 12) };
+// hover-bot pilots: upside-down cone body, floating dome head with eyes, two floating arms
+const PG = {
+  cone: new THREE.ConeGeometry(0.5, 1.05, 28, 1).rotateX(Math.PI),
+  dome: new THREE.SphereGeometry(0.44, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+  domeBase: new THREE.CircleGeometry(0.44, 28).rotateX(Math.PI / 2),
+  eye: new THREE.SphereGeometry(0.075, 14, 10),
+  arm: new THREE.CapsuleGeometry(0.085, 0.3, 4, 10),
+  hand: new THREE.SphereGeometry(0.12, 14, 10),
+  hit: new THREE.CapsuleGeometry(0.46, 1.1, 4, 10),
+  box: new THREE.BoxGeometry(1, 1, 1), tank: new THREE.CylinderGeometry(0.11, 0.11, 0.5, 12),
+};
+const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '') {
-  const av = new THREE.Group();
+  const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
-  const body = new THREE.Mesh(capGeo, mat); body.position.y = 0.92; body.castShadow = true; av.add(body);
   const vis = new THREE.MeshBasicMaterial({ color: look.gl });
-  const visor = new THREE.Mesh(visorGeo, vis); visor.position.set(0, 1.42, -0.3); av.add(visor);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: look.gl.clone().lerp(new THREE.Color(3, 3, 3), 0.55) });
+  const add = (geo, m, x, y, z, parent = rig) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); parent.add(o); return o; };
+  const cone = add(PG.cone, mat, 0, 1.0, 0); cone.castShadow = true;
+  const head = new THREE.Group(); head.position.y = 1.64; rig.add(head);
+  add(PG.dome, mat, 0, 0, 0, head).castShadow = true; add(PG.domeBase, mat, 0, 0, 0, head);
+  for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.13, 0.19, -0.375, head); e.scale.set(1, 1.5, 0.55); }
+  const arms = [-1, 1].map(sx => {
+    const g = new THREE.Group(); g.position.set(sx * 0.68, 1.12, -0.04); rig.add(g);
+    const a = add(PG.arm, mat, 0, 0.06, 0, g); a.rotation.z = sx * 0.18; a.castShadow = true;
+    add(PG.hand, mat, sx * 0.03, -0.22, -0.06, g);
+    return g;
+  });
   const gm = new THREE.MeshStandardMaterial(); applyFinish(gm, null, finish);
-  const gun = new THREE.Mesh(avGunGeo, gm); gun.position.set(0.38, 1.05, -0.35); av.add(gun);
-  const foot = new THREE.Mesh(footGeo, vis); foot.rotation.x = Math.PI / 2; foot.position.y = 0.05; av.add(foot);
-  const lab = nameSprite(label, look.css, through); av.add(lab);
+  const gun = add(avGunGeo, gm, 0, -0.16, -0.38, arms[1]);
+  const foot = add(footGeo, vis, 0, 0.06, 0, av); foot.rotation.x = Math.PI / 2; foot.scale.setScalar(0.62);
+  const body = add(PG.hit, hitMat, 0, 1.25, 0, av);
+  const lab = nameSprite(label, look.css, through); lab.position.y = 2.5; av.add(lab);
   if (cls) {
     const c = new THREE.Color(CLASSES[cls].css).multiplyScalar(2.2), gl = new THREE.MeshBasicMaterial({ color: c });
-    const part = (geo, mat, x, y, z, sx, sy, sz) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx, sy, sz); av.add(m); return m; };
-    if (cls === 'medic') { part(gearGeo.box, gunMat2, 0, 1.15, 0.42, 0.42, 0.42, 0.14); part(gearGeo.box, gl, 0, 1.15, 0.5, 0.08, 0.3, 0.02); part(gearGeo.box, gl, 0, 1.15, 0.5, 0.3, 0.08, 0.02); }
-    if (cls === 'fighter') for (const sx of [-1, 1]) { part(gearGeo.box, gunMat, sx * 0.46, 1.42, 0, 0.2, 0.12, 0.42); part(gearGeo.box, gl, sx * 0.46, 1.49, 0, 0.21, 0.02, 0.43); }
-    if (cls === 'sniper') { part(gearGeo.box, gunMat, 0.3, 1.62, -0.05, 0.05, 0.05, 0.5); part(gearGeo.box, gl, 0.3, 1.62, -0.31, 0.06, 0.06, 0.02); }
-    if (cls === 'jetpack') for (const sx of [-1, 1]) { const t = part(gearGeo.tank, gunMat, sx * 0.15, 1.1, 0.45, 1, 1, 1); part(gearGeo.box, gl, sx * 0.15, 0.8, 0.45, 0.14, 0.05, 0.14); }
+    const part = (geo, m, x, y, z, sx, sy, sz, parent = rig) => { const o = add(geo, m, x, y, z, parent); o.scale.set(sx, sy, sz); return o; };
+    if (cls === 'medic') { part(PG.box, gunMat2, 0, 1.18, 0.34, 0.36, 0.34, 0.12); part(PG.box, gl, 0, 1.18, 0.41, 0.07, 0.24, 0.02); part(PG.box, gl, 0, 1.18, 0.41, 0.24, 0.07, 0.02); }
+    if (cls === 'fighter') for (const g of arms) { part(PG.box, gunMat, 0, 0.27, 0, 0.24, 0.1, 0.3, g); part(PG.box, gl, 0, 0.33, 0, 0.25, 0.02, 0.31, g); }
+    if (cls === 'sniper') { part(PG.box, gunMat, 0.27, 0.2, -0.3, 0.1, 0.1, 0.12, head); part(PG.box, gl, 0.27, 0.2, -0.37, 0.07, 0.07, 0.02, head); part(PG.box, gunMat, -0.18, 0.5, 0.1, 0.03, 0.4, 0.03, head); }
+    if (cls === 'jetpack') for (const sx of [-1, 1]) { part(PG.tank, gunMat, sx * 0.15, 1.22, 0.38, 1, 1, 1); part(PG.box, gl, sx * 0.15, 0.94, 0.38, 0.13, 0.05, 0.13); }
     av.userData.gearMat = gl;
   }
   scene.add(av);
-  return { av, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random() };
+  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis };
 }
 function avatarFX(a) {
+  if (a.rig) {
+    const t = time * 2.2 + a.phase * 6;
+    a.rig.position.y = Math.sin(t) * 0.07;
+    a.arms[0].position.y = 1.12 + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = 1.12 + Math.sin(t + 2.1) * 0.04;
+  }
   if (a.cycle) a.baseEm.setHSL((time * 0.35 + a.phase) % 1, 1, 0.5);
   if (a.gunCycle) a.gunMat.emissive.setHSL((time * 0.35 + a.phase + 0.5) % 1, 1, 0.5);
   a.mat.emissive.copy(a.baseEm); if (a.flash > 0) a.mat.emissive.lerp(FLASHC, a.flash * 0.8);
 }
-function disposeAvatar(a) { scene.remove(a.av); a.av.userData.gearMat?.dispose(); a.mat.dispose(); a.gunMat.dispose(); a.label.material.map.dispose(); a.label.material.dispose(); }
+function disposeAvatar(a) { scene.remove(a.av); a.av.userData.gearMat?.dispose(); a.eyeMat?.dispose(); a.vis?.dispose(); a.mat.dispose(); a.gunMat.dispose(); a.label.material.map.dispose(); a.label.material.dispose(); }
 
 // ================= locker: showcase avatar + shop =================
 const SHOW = new V3(21.2, 3, 21.2), UP = new V3(0, 1, 0), camHelper = new THREE.PerspectiveCamera();
@@ -1481,7 +1508,7 @@ function buildShowcase() {
   const look = { col: new THREE.Color().setHSL(h / 360, 0.65, 0.55), gl: new THREE.Color().setHSL(h / 360, 1, 0.6).multiplyScalar(2.6), css: `hsl(${h},100%,72%)` };
   showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, settings.mode === 'waves' ? settings.cls : '');
   showcase.av.position.copy(SHOW); showcase.label.visible = false; showcase.gun.visible = false;
-  const g = guns[settings.mode === 'waves' ? CLASSES[settings.cls].guns[0] : settings.gun].g.clone(true); g.visible = true; g.scale.setScalar(1.6); g.position.set(0.36, 1.08, -0.42); showcase.av.add(g);
+  const g = guns[settings.mode === 'waves' ? CLASSES[settings.cls].guns[0] : settings.gun].g.clone(true); g.visible = true; g.scale.setScalar(1.35); g.position.set(0, -0.16, -0.32); showcase.arms[1].add(g);
   showcase.av.rotation.y = showYaw;
 }
 function refreshPreview() { applyFinish(vmMat, vmMat2, preview.finish || settings.finish); buildShowcase(); }
