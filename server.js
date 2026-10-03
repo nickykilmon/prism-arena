@@ -28,6 +28,25 @@ function parseCreators(raw) {
 }
 const CREATORS = { ...DEFAULT_CREATORS, ...parseCreators(process.env.CREATOR_CODES) };
 const byPid = new Map(); // player ID -> Set(client)
+// Squad Waves leaderboard: player ID -> { n, w, s }. Clients re-upload their cached copy, so it survives restarts.
+const LB = new Map();
+function lbTop() { return [...LB.entries()].map(([pid, v]) => ({ pid, n: v.n, w: v.w, s: v.s })).sort((a, b) => b.w - a.w || b.s - a.s).slice(0, 100); }
+function lbMerge(client, entries) {
+  if (!Array.isArray(entries)) return;
+  for (const e of entries.slice(0, 60)) {
+    if (!e || typeof e.pid !== 'string' || !PID_RE.test(e.pid)) continue;
+    const w = Math.floor(+e.w), sc = Math.max(0, Math.floor(+e.s || 0));
+    if (!(w > 0 && w < 1000) || sc > 1e9) continue;
+    const n = String(e.n || 'Pilot').replace(/[\u0000-\u001f]/g, '').slice(0, 14) || 'Pilot', cur = LB.get(e.pid);
+    // a player's own submission also updates their name; copies relayed from other players only fill gaps or raise scores
+    if (e.pid === client.pid) LB.set(e.pid, { n, w: Math.max(w, cur?.w || 0), s: Math.max(sc, cur?.s || 0) });
+    else if (!cur || w > cur.w || (w === cur.w && sc > cur.s)) LB.set(e.pid, { n: cur?.n || n, w: Math.max(w, cur?.w || 0), s: Math.max(sc, cur?.s || 0) });
+  }
+  if (LB.size > 1000) {
+    const all = [...LB.entries()].sort((a, b) => b[1].w - a[1].w || b[1].s - a[1].s);
+    for (const [pid] of all.slice(1000)) LB.delete(pid);
+  }
+}
 const seen = new Map();  // player ID -> { name, last, room } for the /players lookup page
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function playersPage() {
@@ -72,6 +91,9 @@ const server = http.createServer((req, res) => {
   if (url === '/' || url === '/index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
     res.end(page());
+  } else if (url === '/leaderboard') {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify(lbTop().map(({ n, w, s }) => ({ name: n, wave: w, score: s }))));
   } else if (url === '/players') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(playersPage());
@@ -118,6 +140,11 @@ wss.on('connection', ws => {
       const amount = Math.max(0, Math.min(500, Math.floor(+m.amount || 0)));
       const msg = JSON.stringify({ t: 'pay', id: m.id, amount, code: String(m.code).toUpperCase(), from: client.pid });
       for (const o of byPid.get(target) || []) send(o.ws, msg);
+    } else if (m.t === 'lb' && client.pid) {
+      lbMerge(client, m.entries);
+      send(ws, JSON.stringify({ t: 'lbtop', list: lbTop() }));
+    } else if (m.t === 'lbget') {
+      send(ws, JSON.stringify({ t: 'lbtop', list: lbTop() }));
     } else if (m.t === 'ack' && client.pid && typeof m.id === 'string' && typeof m.to === 'string') {
       const msg = JSON.stringify({ t: 'ack', id: m.id });
       for (const o of byPid.get(m.to) || []) send(o.ws, msg);

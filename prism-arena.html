@@ -134,6 +134,18 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .item.poor{opacity:.55}
 .item:hover{border-color:rgba(95,242,255,.5)}
 #hCoins{color:var(--amber)}
+.lbhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lbhead b{font-family:var(--display);letter-spacing:.18em;font-size:13px}
+.lbhead p{margin:0;font-size:13px;color:var(--dim)}
+.lbwrap{overflow-x:auto}
+table.lb{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.lb th{text-align:left;font-family:var(--display);font-size:11px;letter-spacing:.14em;color:var(--dim);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.lb td{padding:8px;border-bottom:1px solid rgba(255,255,255,.05);font-size:15px}
+table.lb td.n,table.lb th.n{text-align:right}
+table.lb td.rk{font-family:var(--display);font-weight:700;color:var(--dim);width:36px}
+table.lb tr.g1 td.rk{color:#ffd76b} table.lb tr.g2 td.rk{color:#d6dbe8} table.lb tr.g3 td.rk{color:#e8a26b}
+table.lb tr.me td{color:var(--cyan)}
+table.lb .you{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6px;font-family:var(--display)}
 .creator{display:flex;flex-direction:column;gap:6px}
 .creator label{font-family:var(--display);font-size:11px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
 .crow{display:flex;gap:8px;align-items:center;min-width:0}
@@ -270,7 +282,7 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
   <div class="slab">
     <div class="eyebrow" id="menuEyebrow">Live sky arena · up to 8 players</div>
     <h1>PRISM<br>ARENA</h1>
-    <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="set">SETTINGS</button></div>
+    <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="lb">LEADERBOARD</button><button data-tab="set">SETTINGS</button></div>
     <div class="pane" id="playPane">
     <div class="sect">Game mode</div>
     <div class="modes" id="modes">
@@ -321,6 +333,10 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
       <div class="items" id="finishItems"></div>
       <div class="sect" style="margin-bottom:8px">Color</div>
       <div class="swatches" id="swatches2"></div>
+    </div>
+    <div class="pane" id="lbPane" hidden>
+      <div class="lbhead"><b>SQUAD WAVES · BEST WAVE</b><p id="lbNote">Loading…</p></div>
+      <div class="lbwrap"><table class="lb"><thead><tr><th>#</th><th>Pilot</th><th class="n">Wave</th><th class="n">Score</th></tr></thead><tbody id="lbBody"></tbody></table></div>
     </div>
     <div class="pane" id="setPane" hidden>
       <div class="sect" style="margin-bottom:-4px">Graphics</div>
@@ -524,7 +540,7 @@ setInterval(() => {
 }, 8000);
 $('name').value = settings.name; $('roomcode').value = settings.room;
 const cleanRoom = s => (s || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20) || 'public';
-$('name').addEventListener('change', () => { settings.name = ($('name').value.trim() || 'Pilot').slice(0, 14); $('name').value = settings.name; store.set('name', settings.name); });
+$('name').addEventListener('change', () => { settings.name = ($('name').value.trim() || 'Pilot').slice(0, 14); $('name').value = settings.name; store.set('name', settings.name); sendLB(false); });
 $('roomcode').addEventListener('change', () => { settings.room = cleanRoom($('roomcode').value); $('roomcode').value = settings.room; store.set('room', settings.room); menuChanged(); });
 $('quality').addEventListener('change', () => { settings.quality = $('quality').value; store.set('quality3', settings.quality); opts.scale = null; opts.autoQ = false; saveOpts(); applyQuality(); });
 {
@@ -676,9 +692,11 @@ if (!SUITS[settings.skin]) settings.skin = 'standard';
 if (!FINISHES[settings.finish]) settings.finish = 'factory';
 let wallet = store.get('wallet', null);
 if (!wallet || typeof wallet.coins !== 'number' || !Array.isArray(wallet.owned)) wallet = { coins: 0, owned: [] };
+const ADDONS = { beckcam: { name: 'Becket Cam', price: 1500, pv: 'radial-gradient(circle at 58% 50%,#3f7fe0 0 14%,#0a1430 15% 22%,#c8ccd6 23% 27%,#18181c 28% 60%,#2a2a30 61%)' } };
 const owns = (kind, id) => (kind === 'suit' ? SUITS : FINISHES)[id]?.price === 0 || wallet.owned.includes(kind + ':' + id);
 if (!owns('suit', settings.skin)) settings.skin = 'standard';
 if (!owns('finish', settings.finish)) settings.finish = 'factory';
+settings.lmgCam = !!store.get('lmgcam', false) && owns('addon', 'beckcam');
 const TEX = {};
 function canvasTex(name, draw, rep = 1) {
   if (TEX[name]) return TEX[name];
@@ -1390,7 +1408,7 @@ const vm = new THREE.Group(); camera.add(vm);
 const guns = {};
 function buildGun(id) {
   const gunMat = vmMat, gunMat2 = vmMat2;
-  const W = WEAPONS[id], g = new THREE.Group(), gm = new THREE.MeshBasicMaterial({ color: new THREE.Color(...W.color).multiplyScalar(0.45) });
+  const W = WEAPONS[id] || WEAPONS.lmg, g = new THREE.Group(), gm = new THREE.MeshBasicMaterial({ color: new THREE.Color(...W.color).multiplyScalar(0.45) });
   const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); g.add(m); return m; };
   const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), C = (r1, r2, l, s = 14) => new THREE.CylinderGeometry(r1, r2, l, s), T = (r, t) => new THREE.TorusGeometry(r, t, 8, 22);
   const H = Math.PI / 2;
@@ -1431,6 +1449,26 @@ function buildGun(id) {
       for (const sx of [-1, 1]) add(B(.012, .14, .012), gunMat, sx * .03, -.08, -.6, .4, 0, sx * .25);
       mz = -.7;
       break;
+    case 'lmgcam': {
+      // Becket Cam: the Havoc LMG as a camcorder (its own materials, so it ignores the gun finish)
+      const cam = new THREE.MeshStandardMaterial({ color: 0x141418, roughness: 0.6, metalness: 0.2 });
+      const silver = new THREE.MeshStandardMaterial({ color: 0xbfc3cf, roughness: 0.25, metalness: 1 });
+      const glass = new THREE.MeshStandardMaterial({ color: 0x0a1a3a, roughness: 0.04, metalness: 0.9, emissive: 0x1d4aa8, emissiveIntensity: 0.7 });
+      const screen = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.45, 0.9, 1.5) });
+      const rec = new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.15, 0.15) });
+      add(B(.15, .13, .26), cam, 0, 0, -.02);
+      add(C(.058, .064, .17, 24), cam, 0, 0, -.23, H);
+      for (const z of [-.17, -.24, -.29]) add(T(.062, .007), silver, 0, 0, z);
+      add(C(.074, .062, .045, 24), cam, 0, 0, -.335, H);
+      add(C(.05, .05, .01, 24), glass, 0, 0, -.355, H);
+      add(B(.03, .025, .2), cam, 0, .1, -.02); add(B(.02, .04, .02), cam, 0, .08, .07); add(B(.02, .04, .02), cam, 0, .08, -.1);
+      add(B(.012, .085, .12), cam, -.085, .01, -.02); add(B(.003, .07, .1), screen, -.0925, .01, -.02);
+      add(B(.016, .09, .17), gunMat2, .083, -.005, -.02);
+      g.userData.rec = add(new THREE.SphereGeometry(.011, 10, 8), rec, .045, .068, -.13);
+      add(B(.06, .13, .07), cam, 0, -.12, .07, .3);
+      mz = -.37;
+      break;
+    }
     case 'blade': {
       // energy katana: curved single-edge blade with a glowing core and aura, wrapped grip, gem guard, crystal pommel
       const sh = new THREE.Shape();
@@ -1461,6 +1499,9 @@ function buildGun(id) {
   return { g, gm, muzzle, base: new THREE.Color(...W.color).multiplyScalar(0.45) };
 }
 for (const id of WIDS) guns[id] = buildGun(id);
+guns.lmgcam = buildGun('lmgcam');
+const gunKey = id => id === 'lmg' && settings.lmgCam ? 'lmgcam' : id;
+const curGun = () => guns[gunKey(curW)];
 const flashSprite = (() => {
   const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
   const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.3, 'rgba(255,240,220,.8)'); g.addColorStop(1, 'rgba(255,200,180,0)');
@@ -1471,8 +1512,8 @@ const flashSprite = (() => {
 function setWeapon(id, instant) {
   if (!WEAPONS[id]) id = 'rifle';
   for (const k in guns) guns[k].g.visible = false;
-  curW = id; guns[id].g.visible = true; guns[id].muzzle.add(flashSprite);
-  flashSprite.material.color.copy(guns[id].base).multiplyScalar(0.5);
+  curW = id; const gv = guns[gunKey(id)]; gv.g.visible = true; gv.muzzle.add(flashSprite);
+  flashSprite.material.color.copy(gv.base).multiplyScalar(0.5);
   ammo = WEAPONS[id].mag; reloadT = 0; swapT = instant ? 0 : 0.35; adsToggle = false; ads = false;
   if (!instant) sfx.swap();
   $('slots').innerHTML = mode === 'gungame' ? '' : kit().guns.map((w, i) => `<span class="${w === id ? 'on' : ''}">${i + 1}</span>`).join('');
@@ -1508,13 +1549,14 @@ function wsAdapter(name) {
   const pm = new Map(); let id = null, ws = null, alive = true, mine = {};
   function connect() {
     try { ws = new WebSocket(base + '/ws'); } catch { return; }
-    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); ws.send(JSON.stringify({ t: 'join', room: name })); };
+    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); ws.send(JSON.stringify({ t: 'join', room: name })); ws.send(JSON.stringify({ t: 'lb', entries: lbPayload(true) })); };
     ws.onmessage = e => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'hello') id = m.id;
       else if (m.t === 'peers') { pm.clear(); for (const p of m.list) pm.set(p.id, p.d || {}); }
       else if (m.t === 'u') pm.set(m.id, m.d || {});
       else if (m.t === 'bye') pm.delete(m.id);
+      else if (m.t === 'lbtop') onLBTop(m.list);
       else if (m.t === 'pay' || m.t === 'ack') onPayMessage(m, o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
     };
     ws.onclose = () => { pm.clear(); id = null; if (alive) setTimeout(connect, 2000); };
@@ -1677,18 +1719,25 @@ function disposeAvatar(a) { scene.remove(a.av); for (const m of a.av.userData.ex
 // ================= locker: showcase avatar + shop =================
 const SHOW = new V3(21.2, 3, 21.2), UP = new V3(0, 1, 0), camHelper = new THREE.PerspectiveCamera();
 let showcase = null, showYaw = -0.6, menuTab = 'play';
-const preview = { suit: null, finish: null };
+const preview = { suit: null, finish: null, addon: null };
 function buildShowcase() {
   if (showcase) disposeAvatar(showcase);
   const h = settings.hue;
   const look = { col: new THREE.Color().setHSL(h / 360, 0.65, 0.55), gl: new THREE.Color().setHSL(h / 360, 1, 0.6).multiplyScalar(2.6), css: `hsl(${h},100%,72%)` };
   showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, settings.mode === 'waves' ? settings.cls : '');
   showcase.av.position.copy(SHOW); showcase.label.visible = false; showcase.gun.visible = false;
-  const g = guns[settings.mode === 'waves' ? CLASSES[settings.cls].guns[0] : settings.gun].g.clone(true); g.visible = true; g.scale.setScalar(1.35); g.position.set(0, -0.16, -0.32); showcase.arms[1].add(g);
+  const sgun = settings.mode === 'waves' ? CLASSES[settings.cls].guns[0] : settings.gun;
+  const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.scale.setScalar(1.35); g.position.set(0, -0.16, -0.32); showcase.arms[1].add(g);
   showcase.av.rotation.y = showYaw;
 }
 function refreshPreview() { applyFinish(vmMat, vmMat2, preview.finish || settings.finish); buildShowcase(); }
 function equip(kind, id) {
+  if (kind === 'addon') {
+    settings.lmgCam = !settings.lmgCam; store.set('lmgcam', settings.lmgCam);
+    toast(settings.lmgCam ? 'Becket Cam on: your Havoc LMG is now a camera' : 'Becket Cam off');
+    if (curW === 'lmg') setWeapon('lmg', true);
+    preview.addon = null; buildShowcase(); renderShop(); return;
+  }
   if (kind === 'suit') { settings.skin = id; store.set('skin', id); } else { settings.finish = id; store.set('finish', id); }
   preview[kind] = null; refreshPreview(); renderShop();
 }
@@ -1720,11 +1769,29 @@ function renderShop() {
       el.appendChild(b);
     }
   }
+  // add-ons stack on top of the chosen finish
+  for (const [id, def] of Object.entries(ADDONS)) {
+    const own = owns('addon', id), on = own && settings.lmgCam;
+    const b = document.createElement('button');
+    b.className = 'item' + (on ? ' eq' : own ? ' owned' : '') + (!own && wallet.coins < def.price ? ' poor' : '');
+    b.style.setProperty('--pv', def.pv);
+    const pv = document.createElement('div'); pv.className = 'pv';
+    const nm = document.createElement('b'); nm.textContent = def.name;
+    const sm = document.createElement('small'); if (!own) sm.className = 'coin';
+    sm.textContent = on ? 'ON · LMG ONLY' : own ? 'OWNED · TURN ON' : def.price.toLocaleString();
+    b.title = 'Turns the Havoc LMG into a camera. Your other finish still applies to every other gun.';
+    b.append(pv, nm, sm);
+    b.addEventListener('mouseenter', () => { preview.addon = id; buildShowcase(); });
+    b.addEventListener('mouseleave', () => { preview.addon = null; buildShowcase(); });
+    b.addEventListener('click', () => shopClick('addon', id, def));
+    $('finishItems').appendChild(b);
+  }
 }
 function setMenuTab(t) {
   menuTab = t;
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('sel', b.dataset.tab === t));
-  $('playPane').hidden = t !== 'play'; $('shopPane').hidden = t !== 'shop'; $('setPane').hidden = t !== 'set';
+  $('playPane').hidden = t !== 'play'; $('shopPane').hidden = t !== 'shop'; $('setPane').hidden = t !== 'set'; $('lbPane').hidden = t !== 'lb';
+  if (t === 'lb') { renderLB(); if (conn && conn.send && conn.connected()) conn.send({ t: 'lbget' }); }
   if (t === 'set') { syncSettingsUI(); renderBinds(); }
   else if (bindCapture) { bindCapture = null; }
   if (t === 'shop') { renderShop(); buildShowcase(); }
@@ -2638,7 +2705,7 @@ function fire() {
   ammo--; fireCd = W.rate / (mode === 'waves' && time < teamFx.frenzyUntil ? 1.2 : 1);
   const moving = Math.hypot(player.vel.x, player.vel.z) > 2;
   const spread = (ads ? W.ads : W.spread) + (W.pellets > 1 ? 0 : (moving ? 0.008 : 0) + (player.onGround ? 0 : 0.012)) * (ads ? 0.3 : 1);
-  const g = guns[curW], mp = g.muzzle.getWorldPosition(new V3()), col = wColor(curW);
+  const g = curGun(), mp = g.muzzle.getWorldPosition(new V3()), col = wColor(curW);
   if (W.projectile) {
     const dir = new V3(rand(-spread, spread), rand(-spread, spread), -1).normalize().applyQuaternion(camera.quaternion);
     const from = camera.position.clone().addScaledVector(dir, 0.6);
@@ -2659,6 +2726,7 @@ function fire() {
   muzzleLight.position.copy(mp); muzzleLight.color.copy(col).multiplyScalar(0.35); muzzleLight.intensity = 18;
   vmKick = Math.min(vmKick + W.recoil, 3); recoilP += (ads ? 0.006 : 0.011) * W.recoil; shake = Math.max(shake, 0.03 * W.recoil);
   sfx.shot(curW);
+  if (curW === 'lmg' && settings.lmgCam) { tone(3200, 3200, 0.018, 0.05, 'square'); noise(0.03, 0.08, 6000, 'highpass'); }
   if (ammo === 0) startReload();
 }
 function melee() {
@@ -2709,7 +2777,8 @@ function updateWeapon(dt) {
   const sw = swingT > 0 ? Math.sin((1 - swingT / 0.32) * Math.PI) : 0;
   vm.rotation.x = vmKick * 0.05 - rl * 0.9 - sw * 0.5;
   vm.rotation.y = sw * 1.1; vm.rotation.z = rl * 0.4 + sw * 0.6;
-  const g = guns[curW], heat = 1 + vmKick * 0.4;
+  const g = curGun(), heat = 1 + vmKick * 0.4;
+  if (guns.lmgcam.g.visible) guns.lmgcam.g.userData.rec.visible = Math.sin(time * 6) > 0;
   g.gm.color.copy(g.base).multiplyScalar(reloadT > 0 ? 0.3 + 0.7 * (1 - reloadT / Math.max(W.reload, 0.01)) : heat);
   const scoped = curW === 'rail' && ads && camera.fov < 34;
   $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && !scoped;
@@ -2828,7 +2897,37 @@ function renderDeadStats() {
 }
 function saveBest(wv) {
   if (mode !== 'waves') return;
-  if (score > best.score || wv > best.wave) { best = { wave: Math.max(best.wave, wv), score: Math.max(best.score, score) }; store.set('best', best); renderMenu(); }
+  if (score > best.score || wv > best.wave) { best = { wave: Math.max(best.wave, wv), score: Math.max(best.score, score) }; store.set('best', best); renderMenu(); sendLB(false); }
+}
+// Global leaderboard. Every client keeps a copy and re-uploads it, so the board survives server restarts.
+let lbList = store.get('lbcache', []); if (!Array.isArray(lbList)) lbList = [];
+let lbLive = false;
+const validLB = e => e && typeof e.pid === 'string' && /^P-[a-z0-9]{10,24}$/.test(e.pid) && Number.isFinite(+e.w) && +e.w > 0;
+function ownLB() { return best.wave > 0 ? { pid: PID, n: settings.name, w: best.wave, s: best.score } : null; }
+function lbPayload(all) { const own = ownLB(); const rest = all ? lbList.filter(e => e.pid !== PID).slice(0, 50) : []; return own ? [own, ...rest] : rest; }
+function sendLB(all) { if (conn && conn.send && conn.connected()) conn.send({ t: 'lb', entries: lbPayload(all) }); }
+function onLBTop(list) {
+  if (!Array.isArray(list)) return;
+  lbList = list.filter(validLB).map(e => ({ pid: e.pid, n: String(e.n || 'Pilot').slice(0, 14), w: Math.floor(+e.w), s: Math.floor(+e.s || 0) })).slice(0, 100);
+  lbLive = true; store.set('lbcache', lbList);
+  if (menuTab === 'lb') renderLB();
+}
+function renderLB() {
+  const own = ownLB(), rows = lbList.filter(e => e.pid !== PID);
+  if (own) rows.push(own);
+  rows.sort((a, b) => b.w - a.w || b.s - a.s);
+  const tb = $('lbBody'); tb.textContent = '';
+  rows.slice(0, 50).forEach((r, i) => {
+    const tr = document.createElement('tr'); tr.className = (r.pid === PID ? 'me ' : '') + (i < 3 ? 'g' + (i + 1) : '');
+    const rk = document.createElement('td'); rk.className = 'rk'; rk.textContent = i + 1;
+    const nm = document.createElement('td'); nm.textContent = r.n;
+    if (r.pid === PID) { const y = document.createElement('span'); y.className = 'you'; y.textContent = 'YOU'; nm.appendChild(y); }
+    const w = document.createElement('td'); w.className = 'n'; w.textContent = r.w;
+    const sc = document.createElement('td'); sc.className = 'n'; sc.textContent = (+r.s || 0).toLocaleString();
+    tr.append(rk, nm, w, sc); tb.appendChild(tr);
+  });
+  if (!rows.length) { const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 4; td.textContent = 'No runs yet. Survive a wave in Squad Waves to get on the board.'; tr.appendChild(td); tb.appendChild(tr); }
+  $('lbNote').textContent = netKind !== 'ws' ? 'The global board needs the website version. Showing your own best.' : lbLive ? `${rows.length} pilot${rows.length === 1 ? '' : 's'} · live` : 'Showing the last saved copy. Connecting…';
 }
 const STREAKS = ['', '', 'DOUBLE KILL', 'TRIPLE KILL', 'QUAD KILL', 'RAMPAGE', 'UNSTOPPABLE', 'GODLIKE'];
 function creditKill(kind, pts, name) {
