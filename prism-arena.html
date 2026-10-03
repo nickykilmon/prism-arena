@@ -151,12 +151,17 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .shophead .coin::before{width:20px;height:20px}
 .shophead p{margin:0;font-size:13px;color:var(--dim);max-width:34ch;line-height:1.45}
 .items{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-#shopPane{gap:12px}
-#shopPane .items{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-behavior:smooth;gap:8px;padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:rgba(150,225,255,.35) transparent;cursor:grab}
-#shopPane .items.drag{cursor:grabbing;scroll-behavior:auto;scroll-snap-type:none}
-#shopPane .items::-webkit-scrollbar{height:6px}#shopPane .items::-webkit-scrollbar-thumb{background:rgba(150,225,255,.3);border-radius:3px}
-#shopPane .item{flex:0 0 116px;scroll-snap-align:start}
-#shopPane .item .pv{height:64px}
+#shopPane,#custPane{gap:12px}
+.slab.wide{width:min(840px,calc(100vw - 400px));min-width:min(520px,100%)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+.scol{display:flex;flex-direction:column;gap:8px;min-width:0}
+.emptyrow{font-size:13px;color:var(--dim);padding:14px 4px}
+@media (max-width:760px){.sgrid{grid-template-columns:1fr}}
+.hrow{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-behavior:smooth;gap:8px;padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:rgba(150,225,255,.35) transparent;cursor:grab}
+.hrow.drag{cursor:grabbing;scroll-behavior:auto;scroll-snap-type:none}
+.hrow::-webkit-scrollbar{height:6px}.hrow::-webkit-scrollbar-thumb{background:rgba(150,225,255,.3);border-radius:3px}
+.hrow .item{flex:0 0 116px;scroll-snap-align:start}
+.hrow .item .pv{height:64px}
 .srh{display:flex;justify-content:space-between;align-items:center;margin-bottom:-4px}
 .srh .sect{margin:0}
 .srh span.n{font-family:var(--display);font-size:11px;color:var(--dim);letter-spacing:.1em;margin-left:6px}
@@ -392,7 +397,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
   <div class="slab">
     <div class="eyebrow" id="menuEyebrow">Live sky arena · up to 8 players</div>
     <h1>PRISM<br>ARENA</h1>
-    <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="lb">LEADERBOARD</button><button data-tab="friends">FRIENDS <span class="badge" id="frBadge" hidden></span></button><button data-tab="set">SETTINGS</button></div>
+    <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="custom">CUSTOMIZE</button><button data-tab="lb">LEADERBOARD</button><button data-tab="friends">FRIENDS <span class="badge" id="frBadge" hidden></span></button><button data-tab="set">SETTINGS</button></div>
     <div class="pane" id="playPane">
     <div class="sect">Game mode</div>
     <div class="modes" id="modes">
@@ -449,18 +454,25 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         </div>
       </div>
       <div id="seasonBoxes" class="pane" style="gap:12px"></div>
-      <div class="srh"><span class="sect">Suits<span class="n" id="nsuitItems"></span></span><span class="arrows" data-for="suitItems"></span></div>
-      <div class="items" id="suitItems"></div>
-      <div class="srh"><span class="sect">Hats<span class="n" id="nhatItems"></span></span><span class="arrows" data-for="hatItems"></span></div>
-      <div class="items" id="hatItems"></div>
-      <div class="srh"><span class="sect">Pets<span class="n" id="npetItems"></span></span><span class="arrows" data-for="petItems"></span></div>
-      <div class="items" id="petItems"></div>
-      <div class="srh"><span class="sect">Emotes · press H in a match<span class="n" id="nemoteItems"></span></span><span class="arrows" data-for="emoteItems"></span></div>
-      <div class="items" id="emoteItems"></div>
-      <div class="srh"><span class="sect">Gun finishes<span class="n" id="nfinishItems"></span></span><span class="arrows" data-for="finishItems"></span></div>
-      <div class="items" id="finishItems"></div>
-      <div class="sect" style="margin-bottom:8px">Color</div>
-      <div class="swatches" id="swatches2"></div>
+      <div class="sgrid">
+        <div class="scol"><div class="srh"><span class="sect">Suits<span class="n" id="nsuitItems"></span></span><span class="arrows" data-for="suitItems"></span></div><div class="items hrow" id="suitItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Hats<span class="n" id="nhatItems"></span></span><span class="arrows" data-for="hatItems"></span></div><div class="items hrow" id="hatItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Pets<span class="n" id="npetItems"></span></span><span class="arrows" data-for="petItems"></span></div><div class="items hrow" id="petItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Emotes<span class="n" id="nemoteItems"></span></span><span class="arrows" data-for="emoteItems"></span></div><div class="items hrow" id="emoteItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Gun finishes<span class="n" id="nfinishItems"></span></span><span class="arrows" data-for="finishItems"></span></div><div class="items hrow" id="finishItems"></div></div>
+      </div>
+      <p class="note">Things you buy go to <b>Customize</b>, where you put them on.</p>
+    </div>
+    <div class="pane" id="custPane" hidden>
+      <p class="note" style="margin:0">Everything you own. Hover to preview, click to put it on.</p>
+      <div class="sgrid">
+        <div class="scol"><div class="srh"><span class="sect">Suits<span class="n" id="ncSuitItems"></span></span><span class="arrows" data-for="cSuitItems"></span></div><div class="items hrow" id="cSuitItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Hats<span class="n" id="ncHatItems"></span></span><span class="arrows" data-for="cHatItems"></span></div><div class="items hrow" id="cHatItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Gun finishes<span class="n" id="ncFinishItems"></span></span><span class="arrows" data-for="cFinishItems"></span></div><div class="items hrow" id="cFinishItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Pets<span class="n" id="ncPetItems"></span></span><span class="arrows" data-for="cPetItems"></span></div><div class="items hrow" id="cPetItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Emotes · H in a match<span class="n" id="ncEmoteItems"></span></span><span class="arrows" data-for="cEmoteItems"></span></div><div class="items hrow" id="cEmoteItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Color</span></div><div class="swatches" id="swatches2"></div></div>
+      </div>
     </div>
     <div class="pane" id="lbPane" hidden>
       <div class="seg" id="lbTabs" style="grid-template-columns:1fr 1fr"><button data-b="waves">SQUAD WAVES</button><button data-b="boss">BOSS RAID</button></div>
@@ -3197,22 +3209,26 @@ let shopDrag = null, shopDragged = false;
 addEventListener('pointermove', e => { const d = shopDrag; if (!d) return; const dx = e.clientX - d.x; if (Math.abs(dx) > 6) { shopDragged = true; d.el.classList.add('drag'); } if (shopDragged) d.el.scrollLeft = d.left - dx; });
 addEventListener('pointerup', () => { if (shopDrag) { shopDrag.el.classList.remove('drag'); shopDrag = null; } });
 function setupShopRows() {
-  for (const el of document.querySelectorAll('#shopPane .items')) {
+  for (const el of document.querySelectorAll('.hrow')) {
     if (el.dataset.rowReady) continue; el.dataset.rowReady = 1;
     el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; shopDrag = { el, x: e.clientX, left: el.scrollLeft }; shopDragged = false; });
     el.addEventListener('click', e => { if (shopDragged) { e.stopPropagation(); e.preventDefault(); shopDragged = false; } }, true);
   }
-  for (const a of document.querySelectorAll('#shopPane .arrows')) {
+  for (const a of document.querySelectorAll('.arrows')) {
     if (a.dataset.ready) continue; a.dataset.ready = 1;
     for (const [lbl, dir] of [['◀', -1], ['▶', 1]]) { const b = document.createElement('button'); b.textContent = lbl; b.setAttribute('aria-label', dir < 0 ? 'Scroll left' : 'Scroll right'); b.addEventListener('click', () => { const row = $(a.dataset.for); row.scrollBy({ left: dir * row.clientWidth * 0.85 }); }); a.appendChild(b); }
   }
 }
 function renderShop() {
-  const keep = {}; for (const el of document.querySelectorAll('#shopPane .items')) if (el.id) keep[el.id] = el.scrollLeft;
+  const keep = {}; for (const el of document.querySelectorAll('.hrow')) if (el.id) keep[el.id] = el.scrollLeft;
   renderShopInner();
-  for (const id of ['suitItems', 'hatItems', 'petItems', 'emoteItems', 'finishItems']) { const n = $('n' + id); if (n) n.textContent = String($(id).children.length); }
+  for (const el of document.querySelectorAll('.hrow')) {
+    if (!el.id) continue;
+    const n = $('n' + el.id), cnt = el.querySelectorAll('.item').length; if (n) n.textContent = String(cnt);
+    if (!cnt) { const m = document.createElement('div'); m.className = 'emptyrow'; m.textContent = el.id.startsWith('c') ? 'Nothing here yet. Get some in the Shop.' : 'You own all of these. Put them on in Customize.'; el.appendChild(m); }
+  }
   setupShopRows();
-  for (const el of document.querySelectorAll('#shopPane .items')) if (el.id && keep[el.id]) { el.style.scrollBehavior = 'auto'; el.scrollLeft = keep[el.id]; el.style.scrollBehavior = ''; }
+  for (const el of document.querySelectorAll('.hrow')) if (el.id && keep[el.id]) { el.style.scrollBehavior = 'auto'; el.scrollLeft = keep[el.id]; el.style.scrollBehavior = ''; }
 }
 function renderShopInner() {
   $('coinBig').textContent = wallet.coins.toLocaleString();
@@ -3221,13 +3237,17 @@ function renderShopInner() {
   for (const k of SEASONS_ON) {
     const S = SEASONS[k], left = seasonDaysLeft(k), box = document.createElement('div'); box.className = 'seasonbox'; box.style.setProperty('--sc', S.css);
     box.innerHTML = `<div class="seasonhead"><b>${S.icon} ${S.name.toUpperCase()} SHOP</b><span>Leaves in ${left} day${left === 1 ? '' : 's'} · yours forever once bought</span></div>`;
-    const el = document.createElement('div'); el.className = 'items'; box.appendChild(el); boxes.appendChild(box);
+    const el = document.createElement('div'); el.className = 'items hrow'; box.appendChild(el); boxes.appendChild(box);
     for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet]])
       for (const [id, def] of Object.entries(defs)) if (def.season === k) shopItem(kind, id, def, cur, el);
   }
-  for (const [kind, defs, box, cur] of [['suit', SUITS, 'suitItems', settings.skin], ['hat', HATS, 'hatItems', settings.hat], ['finish', FINISHES, 'finishItems', settings.finish], ['pet', PETS, 'petItems', settings.pet], ['emote', EMOTES, 'emoteItems', '']]) {
-    const el = $(box); el.textContent = '';
-    for (const [id, def] of Object.entries(defs)) if (!def.season || (!seasonActive(def.season) && owns(kind, id))) shopItem(kind, id, def, cur, el);
+  // Shop rows only list what you can still buy; Customize lists everything you own
+  for (const [kind, defs, box, cbox, cur] of [['suit', SUITS, 'suitItems', 'cSuitItems', settings.skin], ['hat', HATS, 'hatItems', 'cHatItems', settings.hat], ['finish', FINISHES, 'finishItems', 'cFinishItems', settings.finish], ['pet', PETS, 'petItems', 'cPetItems', settings.pet], ['emote', EMOTES, 'emoteItems', 'cEmoteItems', '']]) {
+    const el = $(box), cel = $(cbox); el.textContent = ''; cel.textContent = '';
+    for (const [id, def] of Object.entries(defs)) {
+      if (owns(kind, id)) shopItem(kind, id, def, cur, cel);
+      else if (!def.season && !def.bundle) shopItem(kind, id, def, cur, el);
+    }
   }
   // add-ons stack on top of the chosen finish
   for (const [id, def] of Object.entries(ADDONS)) {
@@ -3244,20 +3264,21 @@ function renderShopInner() {
     b.addEventListener('mouseenter', () => { preview.addon = id; buildShowcase(); });
     b.addEventListener('mouseleave', () => { preview.addon = null; buildShowcase(); });
     b.addEventListener('click', () => shopClick('addon', id, def));
-    $('finishItems').appendChild(b);
+    $(own ? 'cFinishItems' : 'finishItems').appendChild(b);
   }
 }
 function setMenuTab(t) {
   menuTab = t;
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('sel', b.dataset.tab === t));
   const was = menuTab;
-  $('playPane').hidden = t !== 'play'; $('shopPane').hidden = t !== 'shop'; $('setPane').hidden = t !== 'set'; $('lbPane').hidden = t !== 'lb'; $('frPane').hidden = t !== 'friends'; $('profPane').hidden = t !== 'prof';
+  $('playPane').hidden = t !== 'play'; $('shopPane').hidden = t !== 'shop'; $('custPane').hidden = t !== 'custom';
+  document.querySelector('#menu .slab').classList.toggle('wide', t === 'shop' || t === 'custom'); $('setPane').hidden = t !== 'set'; $('lbPane').hidden = t !== 'lb'; $('frPane').hidden = t !== 'friends'; $('profPane').hidden = t !== 'prof';
   if (t === 'friends') { renderFriends(); askWho(); }
   if (t === 'prof' || was === 'prof') buildShowcase();
   if (t === 'lb') { renderLB(); if (conn && conn.send && conn.connected()) conn.send({ t: 'lbget', boards: Object.keys(LBD) }); }
   if (t === 'set') { syncSettingsUI(); renderBinds(); }
   else if (bindCapture) { bindCapture = null; }
-  if (t === 'shop') { renderShop(); buildShowcase(); }
+  if (t === 'shop' || t === 'custom') { renderShop(); buildShowcase(); }
 }
 document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => setMenuTab(b.dataset.tab)));
 function renderCreator() {
@@ -3283,7 +3304,7 @@ settings.hue = HUES.reduce((a, b) => Math.abs(b - settings.hue) < Math.abs(a - s
 for (const id of ['swatches', 'swatches2']) for (const h of HUES) {
   const b = document.createElement('button'); b.dataset.h = h; b.setAttribute('aria-label', `Color hue ${h}`);
   b.style.setProperty('--sw', `hsl(${h},80%,60%)`);
-  b.addEventListener('click', () => { settings.hue = h; store.set('hue', h); renderMenu(); if (menuTab === 'shop') renderShop(); buildShowcase(); });
+  b.addEventListener('click', () => { settings.hue = h; store.set('hue', h); renderMenu(); if (menuTab === 'shop' || menuTab === 'custom') renderShop(); buildShowcase(); });
   $(id).appendChild(b);
 }
 
@@ -5842,16 +5863,19 @@ function frame(now) {
   labelT -= dt; if (labelT <= 0) { labelT = 1; updateNetLabel(); if (menuOpenNow()) renderParty(); }
 
   const menuOpen = state === 'menu' || (state === 'paused' && !$('menu').hidden);
-  const closeUp = menuTab === 'shop' || menuTab === 'prof';
+  const closeUp = menuTab === 'shop' || menuTab === 'custom' || menuTab === 'prof';
   if (showcase) { showcase.av.visible = menuOpen && (closeUp || state === 'menu'); showYaw += dt * 0.5; showcase.av.rotation.y = showYaw; avatarFX(showcase); }
   if ((preview.finish || settings.finish) === 'rainbow') vmMat.emissive.setHSL((time * 0.35) % 1, 1, 0.5);
   if (menuOpen && (closeUp || state === 'menu')) {
     let camPos, target, fov;
     if (closeUp) {
       const dirC = tA.set(-SHOW.x, 0, -SHOW.z).normalize();
-      camPos = tB.copy(SHOW).addScaledVector(dirC, 4.4).setY(SHOW.y + 1.7);
+      const wideTab = menuTab === 'shop' || menuTab === 'custom', camD = wideTab && innerWidth > 760 ? 6.4 : 4.4;
+      camPos = tB.copy(SHOW).addScaledVector(dirC, camD).setY(SHOW.y + (wideTab ? 2 : 1.7));
       const fwd = tC.copy(SHOW).setY(SHOW.y + 1.1).sub(camPos).normalize(), right = tD.crossVectors(fwd, UP).normalize();
-      target = new V3().copy(SHOW).setY(SHOW.y + 1.05).addScaledVector(right, innerWidth > 760 ? -1.35 : 0);
+      const slabR = $('menu').querySelector('.slab').getBoundingClientRect().right, freeX = (slabR + innerWidth) / 2, ndc = freeX / innerWidth * 2 - 1;
+      const halfW = Math.tan(THREE.MathUtils.degToRad(25)) * (innerWidth / innerHeight) * camD;
+      target = new V3().copy(SHOW).setY(SHOW.y + 1.05).addScaledVector(right, innerWidth > 760 ? -clamp(ndc, 0, 0.8) * halfW : 0);
       fov = 50;
     } else {
       const a = time * 0.06;
