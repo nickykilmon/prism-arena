@@ -47,6 +47,17 @@ function lbMerge(client, entries) {
     for (const [pid] of all.slice(1000)) LB.delete(pid);
   }
 }
+// Player profiles (look + stats). Each player re-uploads their own whenever they connect.
+const PROF = new Map();
+const STAT_KEYS = ['k', 'd', 'w', 'bk', 'inf', 'gp', 'pt', 'ch', 'bw', 'bs'];
+function cleanProfile(p) {
+  if (!p || typeof p !== 'object') return null;
+  const num = v => Math.max(0, Math.min(1e9, Math.floor(+v || 0)));
+  const str = (v, n) => String(v || '').replace(/[\u0000-\u001f]/g, '').slice(0, n);
+  const st = p.st && typeof p.st === 'object' ? p.st : {};
+  return { n: str(p.n, 14) || 'Pilot', h: num(p.h) % 360, sk: str(p.sk, 16), fn: str(p.fn, 16), ht: str(p.ht, 16), cl: str(p.cl, 12),
+    st: Object.fromEntries(STAT_KEYS.map(k => [k, num(st[k])])), since: Math.max(0, Math.min(Date.now(), Math.floor(+p.since || 0))) };
+}
 const seen = new Map();  // player ID -> { name, last, room } for the /players lookup page
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function playersPage() {
@@ -73,7 +84,7 @@ function page() {
   const body = fs.readFileSync(GAME_FILE, 'utf8');
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
-    '<meta name="description" content="Prism Arena: a first-person sky arena shooter. Squad Waves, Gun Game and Capture the Flag.">' +
+    '<meta name="description" content="Prism Arena: a first-person sky arena shooter. Squad Waves, Boss Raid, Free-for-All, Gun Game, Capture the Flag and Infection.">' +
     '<style>body{margin:0}[hidden]{display:none!important}</style></head><body>' + body + '</body></html>';
 }
 
@@ -145,6 +156,25 @@ wss.on('connection', ws => {
       send(ws, JSON.stringify({ t: 'lbtop', list: lbTop() }));
     } else if (m.t === 'lbget') {
       send(ws, JSON.stringify({ t: 'lbtop', list: lbTop() }));
+    } else if (m.t === 'prof' && client.pid) {
+      const pr = cleanProfile(m.p);
+      if (pr) { PROF.delete(client.pid); PROF.set(client.pid, pr); if (PROF.size > 5000) PROF.delete(PROF.keys().next().value); }
+    } else if (m.t === 'profget' && typeof m.pid === 'string' && PID_RE.test(m.pid)) {
+      send(ws, JSON.stringify({ t: 'profile', pid: m.pid, p: PROF.get(m.pid) || null, on: byPid.has(m.pid), room: seen.get(m.pid)?.room || '' }));
+    } else if (m.t === 'who' && Array.isArray(m.pids)) {
+      // friends list status: online, current room, last seen
+      const list = m.pids.slice(0, 100).filter(x => typeof x === 'string' && PID_RE.test(x)).map(pid => {
+        const v = seen.get(pid) || {};
+        return { pid, on: byPid.has(pid), n: PROF.get(pid)?.n || v.name || '', room: byPid.has(pid) ? v.room || '' : '', last: v.last || 0 };
+      });
+      send(ws, JSON.stringify({ t: 'whois', list }));
+    } else if (m.t === 'invite' && client.pid && typeof m.to === 'string' && PID_RE.test(m.to)) {
+      const now = Date.now(); if (now - (client.invT || 0) < 1500) return; client.invT = now;
+      const str = (v, n) => String(v || '').replace(/[^a-z0-9-]/gi, '').slice(0, n);
+      const msg = JSON.stringify({ t: 'invite', from: client.pid, n: String(m.n || '').replace(/[\u0000-\u001f]/g, '').slice(0, 14), mode: str(m.mode, 10), map: str(m.map, 10), room: str(m.room, 20).toLowerCase() });
+      const targets = byPid.get(m.to);
+      for (const o of targets || []) send(o.ws, msg);
+      send(ws, JSON.stringify({ t: 'invsent', to: m.to, ok: !!(targets && targets.size) }));
     } else if (m.t === 'ack' && client.pid && typeof m.id === 'string' && typeof m.to === 'string') {
       const msg = JSON.stringify({ t: 'ack', id: m.id });
       for (const o of byPid.get(m.to) || []) send(o.ws, msg);

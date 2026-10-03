@@ -1,12 +1,15 @@
 # Prism Arena
 
-First-person sky arena shooter that runs in the browser. Three modes:
+First-person sky arena shooter that runs in the browser. Six modes on two maps (Prism Spire and Frostfall):
 
 - **Squad Waves**: co-op. Everyone in the room fights the same drone waves.
+- **Boss Raid**: co-op. Take down a giant Titan with three phases. Its orbiting core takes double damage.
+- **Free-for-All**: first to 20 kills. Kill streaks call in an air strike (5) and a sentry drone (10).
 - **Gun Game**: free-for-all. Every kill swaps your gun (SMG → Rifle → Scatter → Hand Cannon → Rail → Nova → Blade). A Blade kill wins.
 - **Capture the Flag**: Red vs Blue. First team to 3 captures wins.
+- **Infection**: one player starts infected. Survivors last 3 minutes; anyone killed joins the infected.
 
-Bots fill empty slots, so every mode works solo.
+Bots fill empty slots, so every mode works solo. The website version also has friends (add by player ID), invites and player profiles; those need the server.
 
 ## Run it on your computer
 
