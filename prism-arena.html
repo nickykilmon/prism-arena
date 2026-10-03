@@ -1077,6 +1077,21 @@ const blackIceTex = () => canvasTex('blackice', x => {
   for (let i = 0; i < 14; i++) { let px = Math.random() * 256, py = Math.random() * 256; x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 3; k++) { px += rand(-26, 26); py += rand(-26, 26); x.lineTo(px, py); } x.stroke(); }
 }, 2);
 const carbonTex = () => canvasTex('carbon', x => { for (let i = 0; i < 32; i++) for (let j = 0; j < 32; j++) { x.fillStyle = (i + j) % 2 ? '#3a3a44' : '#1c1c22'; x.fillRect(i * 8, j * 8, 8, 8); } }, 3);
+// Infection: glowing toxic veins over dark rotting armor
+const veinTex = () => canvasTex('veins', x => {
+  x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); x.lineCap = 'round';
+  for (let i = 0; i < 9; i++) { const cx = Math.random() * 256, cy = Math.random() * 256, r = rand(10, 26), g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, 'rgba(160,255,90,.55)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, r * 2, r * 2); }
+  const branch = (px, py, a, len, w) => {
+    if (w < 0.6 || len < 4) return;
+    const nx = px + Math.cos(a) * len, ny = py + Math.sin(a) * len;
+    x.strokeStyle = w > 2 ? '#eaffc8' : '#b6ff6a'; x.lineWidth = w; x.shadowColor = '#7dff4a'; x.shadowBlur = 8;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(nx, ny); x.stroke();
+    branch(nx, ny, a + rand(-0.5, 0.5), len * 0.82, w * 0.86);
+    if (Math.random() < 0.35) branch(nx, ny, a + rand(0.6, 1.2) * (Math.random() < 0.5 ? -1 : 1), len * 0.6, w * 0.6);
+  };
+  for (let i = 0; i < 14; i++) branch(Math.random() * 256, Math.random() * 256, rand(0, 6.28), rand(14, 26), rand(2.5, 4));
+}, 1);
+const BLIGHT = new THREE.Color(0.45, 2.4, 0.2), TOXIC_P = new THREE.Color(0.25, 1.6, 0.08);
 function suitMaterial(id, col, glowCol) {
   switch (id) {
     case 'chrome': return new THREE.MeshStandardMaterial({ color: 0xe9ecf7, metalness: 1, roughness: 0.06 });
@@ -1102,6 +1117,7 @@ function suitMaterial(id, col, glowCol) {
     case 'panda': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pandaTex(), roughness: 0.85 });
     case 'fox': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: foxTex(), roughness: 0.85 });
     case 'leopard': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: leopardTex(), roughness: 0.7 });
+    case 'infected': return new THREE.MeshStandardMaterial({ color: 0x18210f, roughness: 0.55, metalness: 0.25, emissive: BLIGHT.clone(), emissiveMap: veinTex(), emissiveIntensity: 1.4 });
     case 'pastel': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pastelTex(), metalness: 0.05, roughness: 0.4 });
     case 'zebra': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: zebraTex(), metalness: 0.05, roughness: 0.55 });
     case 'tiger': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: tigerTex(), metalness: 0.05, roughness: 0.55 });
@@ -2251,19 +2267,35 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     add(PG.dome, mat, 0, 0, 0, head).castShadow = true; add(PG.domeBase, mat, 0, 0, 0, head);
     for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.13, 0.19, -0.375, head); e.scale.set(1, 1.5, 0.55); }
   }
-  addHat(head, hat, hotdog, extraMats, av);
+  const blight = skin === 'infected';
+  if (!blight) addHat(head, hat, hotdog, extraMats, av);
   av.userData.extraMats = extraMats;
+  let blightRing = null;
+  if (blight) {
+    // bone spikes, glowing crown, claws and a toxic halo so the infected read clearly from far away
+    const toxic = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.22, 1.5, 0.06) });
+    const bone = new THREE.MeshStandardMaterial({ color: 0xd8dcae, roughness: 0.5, emissive: 0x2a4a10 });
+    extraMats.push(toxic, bone);
+    eyeMat.color.setRGB(1.5, 1.9, 0.05);
+    for (let k = 0; k < 6; k++) {
+      const a = k / 6 * Math.PI * 2, sp = add(PG.horn, k % 2 ? bone : toxic, Math.sin(a) * 0.26, 0.3, Math.cos(a) * 0.26, head);
+      sp.rotation.set(Math.cos(a) * 0.65, 0, -Math.sin(a) * 0.65); sp.scale.set(1.5, k % 2 ? 2.2 : 1.6, 1.5);
+    }
+    for (const [y, sc] of [[1.12, 1], [1.32, 1.3], [1.5, 1.6]]) { const sp = add(PG.horn, bone, 0, y, 0.5 * (y - 0.475) / 1.05 + 0.02); sp.rotation.x = 1.05; sp.scale.setScalar(sc); sp.castShadow = true; }
+    blightRing = add(PG.gring, toxic, 0, 1.05, 0); blightRing.rotation.x = Math.PI / 2;
+  }
   const arms = [-1, 1].map(sx => {
     const g = new THREE.Group(); g.position.set(sx * 0.68, 1.12, -0.04); rig.add(g);
     const a = add(PG.arm, limbMat, 0, 0.06, 0, g); a.rotation.z = sx * 0.18; a.castShadow = true;
     add(PG.hand, limbMat, sx * 0.03, -0.22, -0.06, g);
+    if (blight) for (const cx of [-0.06, 0, 0.06]) { const c = add(PG.horn, extraMats[0], sx * 0.03 + cx, -0.32, -0.12, g); c.rotation.x = Math.PI + 0.5; c.scale.set(0.6, 0.8, 0.6); }
     return g;
   });
   const gm = new THREE.MeshStandardMaterial(); applyFinish(gm, null, finish);
   const gun = add(avGunGeo, gm, 0, -0.16, -0.38, arms[1]);
   const foot = add(footGeo, vis, 0, 0.06, 0, av); foot.rotation.x = Math.PI / 2; foot.scale.setScalar(0.62);
   const body = add(PG.hit, hitMat, 0, 1.25, 0, av);
-  const lab = nameSprite(label, look.css, through); lab.position.y = 2.5; av.add(lab);
+  const lab = nameSprite(blight ? '☣ ' + label : label, look.css, through); lab.position.y = 2.5; av.add(lab);
   if (cls) {
     const c = new THREE.Color(CLASSES[cls].css).multiplyScalar(2.2), gl = new THREE.MeshBasicMaterial({ color: c });
     const part = (geo, m, x, y, z, sx, sy, sz, parent = rig) => { const o = add(geo, m, x, y, z, parent); o.scale.set(sx, sy, sz); return o; };
@@ -2280,7 +2312,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     av.userData.gearMat = gl;
   }
   scene.add(av);
-  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis };
+  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing };
 }
 function bubbleSprite(text) {
   const c = document.createElement('canvas'); c.width = 320; c.height = 96; const x = c.getContext('2d');
@@ -2332,6 +2364,11 @@ function avatarFX(a) {
     a.arms[1].rotation.x = damp(a.arms[1].rotation.x, P.r[0], 10, 0.016); a.arms[1].rotation.z = damp(a.arms[1].rotation.z, P.r[1], 10, 0.016);
   }
   if (a.cycle) a.baseEm.setHSL((time * 0.35 + a.phase) % 1, 1, 0.5);
+  if (a.blight) {
+    const k = 0.75 + 0.45 * Math.sin(time * 4 + a.phase * 6);
+    a.baseEm.copy(BLIGHT).multiplyScalar(k); a.blightRing.scale.setScalar(0.95 + 0.12 * k); a.blightRing.rotation.z += 0.03;
+    if (a.av.visible && Math.random() < 0.12) burst(tA.copy(a.av.position).add(tB.set(rand(-0.4, 0.4), rand(0.6, 1.9), rand(-0.4, 0.4))), 1, TOXIC_P, 0.6, 0.8, 0.09, 3);
+  }
   if (a.gunCycle) a.gunMat.emissive.setHSL((time * 0.35 + a.phase + 0.5) % 1, 1, 0.5);
   a.mat.emissive.copy(a.baseEm); if (a.flash > 0) a.mat.emissive.lerp(FLASHC, a.flash * 0.8);
 }
@@ -2526,7 +2563,7 @@ function makeDroneVis(e) {
 }
 function makeBotVis(e) {
   const look = avatarLook(e.team, (hashStr(e.id) * 37) % 360);
-  const a = makeAvatar(look, e.name, teamMode() && e.team === myTeam);
+  const a = makeAvatar(look, e.name, teamMode() && e.team === myTeam, mode === 'infect' && e.team === 1 ? 'infected' : 'standard');
   a.body.userData.ent = e.id; a.hit = a.body; e.vis = a; e.visTeam = e.team; e.visThr = teamMode() && e.team === myTeam;
 }
 function addEnt(e) {
@@ -4163,8 +4200,9 @@ function updatePeers(dt, list) {
     const hue = typeof d.h === 'number' ? ((d.h % 360) + 360) % 360 : 180;
     const team = mode === 'ctf' ? (+d.tm === 1 ? 1 : 0) : mode === 'infect' ? (GS.inf.includes(p.id) ? 1 : 0) : -1;
     const thr = teamMode() && team === myTeam;
+    const blighted = mode === 'infect' && team === 1;
     const nm = String(d.n || 'Pilot').replace(/[\u0000-\u001f]/g, '').slice(0, 14) || 'Pilot';
-    const sk = SUITS[d.sk] ? d.sk : 'standard', fn = FINISHES[d.fn] ? d.fn : 'factory', cl = CLASSES[d.cl] ? d.cl : '', ht = HATS[d.ht] ? d.ht : 'none';
+    const sk = blighted ? 'infected' : SUITS[d.sk] ? d.sk : 'standard', fn = FINISHES[d.fn] ? d.fn : 'factory', cl = CLASSES[d.cl] ? d.cl : '', ht = blighted ? 'none' : HATS[d.ht] ? d.ht : 'none';
     if (o && (o.team !== team || o.thr !== thr || o.name !== nm || o.sk !== sk || o.fn !== fn || o.cl !== cl || o.ht !== ht || o.hue !== hue)) { disposeAvatar(o); peers.delete(p.id); o = null; }
     if (!o) {
       const a = makeAvatar(avatarLook(team, hue), nm, thr, sk, fn, cl, ht);
