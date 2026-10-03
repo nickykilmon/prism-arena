@@ -28,6 +28,12 @@ function parseCreators(raw) {
 }
 const CREATORS = { ...DEFAULT_CREATORS, ...parseCreators(process.env.CREATOR_CODES) };
 const byPid = new Map(); // player ID -> Set(client)
+// One-off coin gifts from the game owner, delivered whenever that player connects. Each gift has a fixed ID,
+// and the player's browser remembers gift IDs forever, so resending (after restarts) never pays twice.
+const GIFTS = [{ id: 'gift-jmoney-10k', pid: 'P-yi5oe6n8if', amount: 10000 }];
+function sendGifts(client) {
+  for (const g of GIFTS) if (g.pid === client.pid) send(client.ws, JSON.stringify({ t: 'pay', id: g.id, amount: g.amount, code: 'GIFT', gift: 1, from: 'server' }));
+}
 // Leaderboards (Squad Waves best wave, Boss Raid furthest round): player ID -> { n, w, s }.
 // Clients re-upload their cached copies, so the boards survive restarts.
 const BOARDS = { waves: new Map(), boss: new Map() };
@@ -144,6 +150,7 @@ wss.on('connection', ws => {
       if (!byPid.has(m.pid)) byPid.set(m.pid, new Set());
       byPid.get(m.pid).add(client);
       seen.set(m.pid, { ...(seen.get(m.pid) || {}), last: Date.now() });
+      sendGifts(client);
     } else if (m.t === 'pay' && client.pid && typeof m.id === 'string' && m.id.length < 80) {
       // route a creator-code payout to the creator's player ID if they're online; the buyer retries until acked
       const target = CREATORS[String(m.code || '').toUpperCase()];
