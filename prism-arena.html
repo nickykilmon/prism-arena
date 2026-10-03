@@ -593,6 +593,11 @@ const SUITS = {
   toxic: { name: 'Toxic', price: 700, pv: 'radial-gradient(circle at 30% 40%,#7dff4a,transparent 22%),radial-gradient(circle at 70% 70%,#5cff3a,transparent 18%),#0b120b' },
   void: { name: 'Void', price: 1500, pv: 'radial-gradient(circle at 50% 50%,#b04bff55,transparent 60%),repeating-linear-gradient(60deg,#050308 0 10px,#2a0f45 10px 11px),#050308' },
   diamond: { name: 'Diamond', price: 3000, pv: 'conic-gradient(from 10deg,#ffffff,#d6f6ff,#ffffff,#ffe6fb,#ffffff,#e6ffef,#ffffff)' },
+  sunset: { name: 'Sunset', price: 500, pv: 'linear-gradient(180deg,#ffcf6b,#ff6b8b 50%,#7a4bd6)' },
+  ocean: { name: 'Ocean', price: 450, pv: 'repeating-radial-gradient(circle at 30% 120%,#0b3d6e 0 6px,#1d6fb0 6px 10px,#4fb3e8 10px 12px)' },
+  ruby: { name: 'Ruby', price: 650, pv: 'radial-gradient(circle at 35% 30%,#ff8fa3,#c4123a 40%,#5a0616)' },
+  circuit: { name: 'Circuit', price: 900, pv: 'linear-gradient(90deg,transparent 46%,#3dff8a 46% 54%,transparent 54%) 0 0/18px 18px,linear-gradient(0deg,transparent 46%,#3dff8a 46% 54%,transparent 54%) 9px 0/18px 36px,#07130c' },
+  austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
   factory: { name: 'Factory', price: 0, pv: 'linear-gradient(135deg,#d9d4ee 0 30%,#2b2840 30%)' },
@@ -606,6 +611,11 @@ const FINISHES = {
   ice: { name: 'Glacier', price: 300, pv: 'linear-gradient(135deg,#fff,#bfe8ff 50%,#7cc4ff)' },
   toxic: { name: 'Toxic', price: 450, pv: 'radial-gradient(circle at 40% 50%,#7dff4a,transparent 30%),#0b120b' },
   void: { name: 'Void', price: 900, pv: 'radial-gradient(circle,#b04bff66,transparent 65%),#050308' },
+  bubblegum: { name: 'Bubblegum', price: 250, pv: 'radial-gradient(circle,#fff 2px,transparent 2.5px) 0 0/10px 10px,#ff8fc8' },
+  sunset: { name: 'Sunset', price: 300, pv: 'linear-gradient(180deg,#ffcf6b,#ff6b8b 50%,#7a4bd6)' },
+  ruby: { name: 'Ruby', price: 400, pv: 'radial-gradient(circle at 35% 30%,#ff8fa3,#c4123a 40%,#5a0616)' },
+  circuit: { name: 'Circuit', price: 500, pv: 'linear-gradient(90deg,transparent 44%,#3dff8a 44% 56%,transparent 56%) 0 0/14px 14px,#07130c' },
+  blackice: { name: 'Black Ice', price: 750, pv: 'conic-gradient(from 20deg at 30% 40%,#0b1830,#3f8fd6,#e6f7ff,#1e4f8a,#8fd3ff,#0b1830)' },
 };
 if (!SUITS[settings.skin]) settings.skin = 'standard';
 if (!FINISHES[settings.finish]) settings.finish = 'factory';
@@ -636,6 +646,38 @@ const candyTex = () => canvasTex('candy', x => { const cols = ['#ff8fc4', '#ffff
 const camoTex = () => canvasTex('camo', x => { const cols = ['#6b6a3d', '#4b5d34', '#2f3b22', '#8a7d52']; for (let i = 0; i < 16; i++) for (let j = 0; j < 16; j++) { x.fillStyle = cols[Math.floor(hash(i, j, 3) * 4)]; x.fillRect(i * 16, j * 16, 16, 16); } }, 2);
 const toxicTex = () => canvasTex('toxic', x => { x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 28; i++) { const cx = Math.random() * 256, cy = Math.random() * 256, r = rand(6, 22); const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, r * 2, r * 2); x.fillStyle = 'rgba(255,255,255,.8)'; x.fillRect(cx - 1.5, cy, 3, rand(10, 40)); } });
 const hexTex = () => canvasTex('hex', x => { x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); x.strokeStyle = '#fff'; x.lineWidth = 2.5; const R = 22, w = Math.sqrt(3) * R; for (let r = -1; r < 9; r++) for (let q = -1; q < 8; q++) { const cx = q * w + (r % 2) * w / 2, cy = r * R * 1.5; x.beginPath(); for (let k = 0; k <= 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; x.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a)); } x.stroke(); } }, 2);
+const sunsetTex = () => canvasTex('sunset', x => { const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#ffcf6b'); g.addColorStop(0.5, '#ff6b8b'); g.addColorStop(1, '#7a4bd6'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); });
+const oceanTex = () => canvasTex('ocean', x => {
+  const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#4fb3e8'); g.addColorStop(1, '#0b3d6e'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.strokeStyle = 'rgba(220,245,255,.55)'; x.lineWidth = 3;
+  for (let y = 10; y < 256; y += 22) { x.beginPath(); for (let px = 0; px <= 256; px += 8) x.lineTo(px, y + Math.sin(px / 20 + y) * 5); x.stroke(); }
+}, 2);
+const circuitTex = () => canvasTex('circuit', x => {
+  x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); x.strokeStyle = '#fff'; x.fillStyle = '#fff'; x.lineWidth = 2.5;
+  for (let i = 0; i < 40; i++) {
+    let px = Math.floor(Math.random() * 16) * 16, py = Math.floor(Math.random() * 16) * 16; x.beginPath(); x.moveTo(px, py);
+    for (let k = 0; k < 4; k++) { if (Math.random() < 0.5) px += (Math.random() < .5 ? -1 : 1) * 32; else py += (Math.random() < .5 ? -1 : 1) * 32; x.lineTo(px, py); }
+    x.stroke(); x.beginPath(); x.arc(px, py, 4, 0, 7); x.fill();
+  }
+}, 2);
+const dotsTex = () => canvasTex('dots', x => { x.fillStyle = '#ff8fc8'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#ffffff'; for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { x.beginPath(); x.arc(i * 32 + (j % 2) * 16 + 8, j * 32 + 16, 6, 0, 7); x.fill(); } }, 2);
+// Black Ice: fractured crystal shards in navy, ice blue and frost white with dark seams
+const blackIceTex = () => canvasTex('blackice', x => {
+  const pal = ['#0b1830', '#12305a', '#1e4f8a', '#3f8fd6', '#8fd3ff', '#cfeeff', '#f2fbff'];
+  x.fillStyle = '#0b1830'; x.fillRect(0, 0, 256, 256);
+  const pts = []; for (let i = 0; i < 9; i++) for (let j = 0; j < 9; j++) pts.push([i * 32 + rand(-11, 11), j * 32 + rand(-11, 11)]);
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+    const a = pts[i * 9 + j], b = pts[(i + 1) * 9 + j], c = pts[(i + 1) * 9 + j + 1], d = pts[i * 9 + j + 1];
+    for (const tri of Math.random() < .5 ? [[a, b, c], [a, c, d]] : [[a, b, d], [b, c, d]]) {
+      const shade = pal[Math.min(pal.length - 1, Math.floor(Math.pow(Math.random(), 1.4) * pal.length))];
+      const g = x.createLinearGradient(tri[0][0], tri[0][1], tri[2][0], tri[2][1]); g.addColorStop(0, shade); g.addColorStop(1, pal[Math.max(0, pal.indexOf(shade) - 2)]);
+      x.fillStyle = g; x.beginPath(); x.moveTo(...tri[0]); x.lineTo(...tri[1]); x.lineTo(...tri[2]); x.closePath(); x.fill();
+      x.strokeStyle = 'rgba(4,10,24,.9)'; x.lineWidth = 1.6; x.stroke();
+    }
+  }
+  x.strokeStyle = 'rgba(240,250,255,.7)'; x.lineWidth = 1;
+  for (let i = 0; i < 14; i++) { let px = Math.random() * 256, py = Math.random() * 256; x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 3; k++) { px += rand(-26, 26); py += rand(-26, 26); x.lineTo(px, py); } x.stroke(); }
+}, 2);
 const carbonTex = () => canvasTex('carbon', x => { for (let i = 0; i < 32; i++) for (let j = 0; j < 32; j++) { x.fillStyle = (i + j) % 2 ? '#3a3a44' : '#1c1c22'; x.fillRect(i * 8, j * 8, 8, 8); } }, 3);
 function suitMaterial(id, col, glowCol) {
   switch (id) {
@@ -652,6 +694,11 @@ function suitMaterial(id, col, glowCol) {
     case 'ice': return new THREE.MeshPhysicalMaterial({ color: 0xcdeeff, metalness: 0.05, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05, iridescence: 0.35, emissive: 0x2a6a9a, emissiveIntensity: 0.35 });
     case 'toxic': return new THREE.MeshStandardMaterial({ color: 0x0b120b, roughness: 0.5, metalness: 0.2, emissive: 0x5cff3a, emissiveMap: toxicTex(), emissiveIntensity: 2 });
     case 'void': return new THREE.MeshStandardMaterial({ color: 0x050308, roughness: 0.2, metalness: 0.6, emissive: 0xb04bff, emissiveMap: hexTex(), emissiveIntensity: 2.2 });
+    case 'sunset': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: sunsetTex(), metalness: 0.2, roughness: 0.35 });
+    case 'ocean': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: oceanTex(), metalness: 0.15, roughness: 0.25 });
+    case 'ruby': return new THREE.MeshPhysicalMaterial({ color: 0xa3102e, metalness: 0.3, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.03, iridescence: 0.25 });
+    case 'circuit': return new THREE.MeshStandardMaterial({ color: 0x07130c, roughness: 0.4, metalness: 0.5, emissive: 0x3dff8a, emissiveMap: circuitTex(), emissiveIntensity: 2 });
+    case 'austen': return new THREE.MeshPhysicalMaterial({ color: 0xb84a2c, roughness: 0.35, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.3 });
     case 'diamond': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0, clearcoat: 1, clearcoatRoughness: 0, iridescence: 1, iridescenceIOR: 2.4, iridescenceThicknessRange: [100, 900], flatShading: true, emissive: 0x30304a, emissiveIntensity: 0.4 });
     default: return new THREE.MeshStandardMaterial({ color: col, metalness: 0.45, roughness: 0.35 });
   }
@@ -669,6 +716,11 @@ function applyFinish(m1, m2, id) {
     case 'hazard': set(m1, 0xffffff, 0.3, 0.5); m1.map = stripeTex(); set(m2, 0x222226, 0.6, 0.4); break;
     case 'ice': set(m1, 0xbfe8ff, 0.2, 0.08); m1.emissive.set(0x2a6a9a); m1.emissiveIntensity = 0.5; set(m2, 0xffffff, 0.3, 0.05); break;
     case 'toxic': set(m1, 0x0b120b, 0.2, 0.5); m1.emissive.set(0x5cff3a); m1.emissiveMap = toxicTex(); m1.emissiveIntensity = 1.4; set(m2, 0x2a3a2a, 0.4, 0.5); break;
+    case 'bubblegum': set(m1, 0xffffff, 0.1, 0.35); m1.map = dotsTex(); set(m2, 0xffd6ec, 0.2, 0.3); break;
+    case 'sunset': set(m1, 0xffffff, 0.3, 0.3); m1.map = sunsetTex(); set(m2, 0x2a1840, 0.5, 0.3); break;
+    case 'ruby': set(m1, 0xa3102e, 0.6, 0.08); set(m2, 0xffd0da, 0.8, 0.1); break;
+    case 'circuit': set(m1, 0x07130c, 0.5, 0.4); m1.emissive.set(0x3dff8a); m1.emissiveMap = circuitTex(); m1.emissiveIntensity = 1.5; set(m2, 0x1a2a20, 0.6, 0.3); break;
+    case 'blackice': set(m1, 0xffffff, 0.45, 0.16); m1.map = blackIceTex(); set(m2, 0x0b1830, 0.7, 0.2); break;
     case 'void': set(m1, 0x050308, 0.6, 0.2); m1.emissive.set(0xb04bff); m1.emissiveMap = hexTex(); m1.emissiveIntensity = 1.6; set(m2, 0x1a1024, 0.6, 0.3); break;
     default: set(m1, 0x2b2840, 0.85, 0.3); set(m2, 0xd9d4ee, 0.6, 0.35);
   }
@@ -1497,6 +1549,10 @@ const PG = {
   hand: new THREE.SphereGeometry(0.12, 14, 10),
   hit: new THREE.CapsuleGeometry(0.46, 1.1, 4, 10),
   box: new THREE.BoxGeometry(1, 1, 1), tank: new THREE.CylinderGeometry(0.11, 0.11, 0.5, 12),
+  sausage: new THREE.CapsuleGeometry(0.2, 1.5, 8, 18),
+  bun: new THREE.CapsuleGeometry(0.3, 1.0, 8, 18),
+  // mustard zigzag down the front of the sausage
+  mustard: new THREE.TubeGeometry(new THREE.CatmullRomCurve3(Array.from({ length: 11 }, (_, i) => new THREE.Vector3((i % 2 ? 0.1 : -0.1), 0.55 + i * 0.13, -0.26))), 80, 0.026, 8, false),
 };
 const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '') {
@@ -1505,14 +1561,29 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   const vis = new THREE.MeshBasicMaterial({ color: look.gl });
   const eyeMat = new THREE.MeshBasicMaterial({ color: look.gl.clone().lerp(new THREE.Color(3, 3, 3), 0.55) });
   const add = (geo, m, x, y, z, parent = rig) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); parent.add(o); return o; };
-  const cone = add(PG.cone, mat, 0, 1.0, 0); cone.castShadow = true;
-  const head = new THREE.Group(); head.position.y = 1.64; rig.add(head);
-  add(PG.dome, mat, 0, 0, 0, head).castShadow = true; add(PG.domeBase, mat, 0, 0, 0, head);
-  for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.13, 0.19, -0.375, head); e.scale.set(1, 1.5, 0.55); }
+  const hotdog = skin === 'austen', extraMats = [];
+  let limbMat = mat;
+  const head = new THREE.Group(); rig.add(head);
+  if (hotdog) {
+    const bun = new THREE.MeshStandardMaterial({ color: 0xe2a65a, roughness: 0.85, metalness: 0 });
+    const mustard = new THREE.MeshStandardMaterial({ color: 0xffd21f, roughness: 0.4, emissive: 0x3a2a00 });
+    extraMats.push(bun, mustard); limbMat = bun;
+    const sausage = add(PG.sausage, mat, 0, 1.2, -0.05); sausage.castShadow = true;
+    for (const sx of [-1, 1]) { const b = add(PG.bun, bun, sx * 0.26, 1.15, 0.07); b.scale.set(0.42, 1, 0.7); b.castShadow = true; }
+    add(PG.mustard, mustard, 0, 0, 0);
+    head.position.y = 1.86;
+    for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.08, 0.06, -0.235, head); e.scale.set(0.85, 1.25, 0.5); }
+  } else {
+    const cone = add(PG.cone, mat, 0, 1.0, 0); cone.castShadow = true;
+    head.position.y = 1.64;
+    add(PG.dome, mat, 0, 0, 0, head).castShadow = true; add(PG.domeBase, mat, 0, 0, 0, head);
+    for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.13, 0.19, -0.375, head); e.scale.set(1, 1.5, 0.55); }
+  }
+  av.userData.extraMats = extraMats;
   const arms = [-1, 1].map(sx => {
     const g = new THREE.Group(); g.position.set(sx * 0.68, 1.12, -0.04); rig.add(g);
-    const a = add(PG.arm, mat, 0, 0.06, 0, g); a.rotation.z = sx * 0.18; a.castShadow = true;
-    add(PG.hand, mat, sx * 0.03, -0.22, -0.06, g);
+    const a = add(PG.arm, limbMat, 0, 0.06, 0, g); a.rotation.z = sx * 0.18; a.castShadow = true;
+    add(PG.hand, limbMat, sx * 0.03, -0.22, -0.06, g);
     return g;
   });
   const gm = new THREE.MeshStandardMaterial(); applyFinish(gm, null, finish);
@@ -1544,7 +1615,7 @@ function avatarFX(a) {
   if (a.gunCycle) a.gunMat.emissive.setHSL((time * 0.35 + a.phase + 0.5) % 1, 1, 0.5);
   a.mat.emissive.copy(a.baseEm); if (a.flash > 0) a.mat.emissive.lerp(FLASHC, a.flash * 0.8);
 }
-function disposeAvatar(a) { scene.remove(a.av); a.av.userData.gearMat?.dispose(); a.eyeMat?.dispose(); a.vis?.dispose(); a.mat.dispose(); a.gunMat.dispose(); a.label.material.map.dispose(); a.label.material.dispose(); }
+function disposeAvatar(a) { scene.remove(a.av); for (const m of a.av.userData.extraMats || []) m.dispose(); a.av.userData.gearMat?.dispose(); a.eyeMat?.dispose(); a.vis?.dispose(); a.mat.dispose(); a.gunMat.dispose(); a.label.material.map.dispose(); a.label.material.dispose(); }
 
 // ================= locker: showcase avatar + shop =================
 const SHOW = new V3(21.2, 3, 21.2), UP = new V3(0, 1, 0), camHelper = new THREE.PerspectiveCamera();
