@@ -274,6 +274,11 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
 #elist button kbd{font-size:10px;padding:0 5px}
 #elist button:hover{border-color:var(--cyan)}
 .pv.em{display:flex;align-items:center;justify-content:center;font-size:26px}
+#seasonBox{border:1px solid var(--sc,#ff8a2a);border-radius:8px;padding:10px;background:linear-gradient(180deg,color-mix(in srgb,var(--sc,#ff8a2a) 14%,transparent),transparent)}
+.seasonhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px;font-family:var(--display)}
+.seasonhead b{letter-spacing:.16em;font-size:13px;color:var(--sc,#ff8a2a)}
+.seasonhead span{font-size:12px;color:var(--dim);letter-spacing:.06em}
+.item .tagS{font-family:var(--display);font-size:9px;letter-spacing:.12em;color:var(--dim)}
 
 .party{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:rgba(255,255,255,.03)}
 .prow,.frow{display:grid;grid-template-columns:10px 1fr auto;gap:2px 10px;align-items:center;font-size:14px;min-width:0}
@@ -366,10 +371,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
       <button class="mode" data-mode="infect"><b>Infection</b><span>One player starts infected. Survive 3 minutes or join the horde.</span></button>
     </div>
     <div class="sect">Map</div>
-    <div class="maps" id="maps">
-      <button class="map" data-map="prism"><i style="--mp:linear-gradient(160deg,#ffcf9a,#ff8fc4 35%,#b48cff 60%,#3b355e)"></i><b>Prism Spire</b><span>Floating crystal arena at sunset.</span></button>
-      <button class="map" data-map="frost"><i style="--mp:radial-gradient(ellipse at 50% 0,#3fffb0aa,transparent 60%),linear-gradient(180deg,#14214a,#3a5c9a 45%,#cfe4ff 75%,#9fb8dc)"></i><b>Frostfall</b><span>Frozen keep under the aurora.</span></button>
-    </div>
+    <div class="maps" id="maps"></div>
     <div id="classBox" hidden>
       <div class="sect" style="margin-bottom:8px">Class <span style="letter-spacing:.08em;text-transform:none">· Q uses your ability · G throws your gadget · 1–2 switch guns</span></div>
       <div class="guns clsgrid" id="classes"></div>
@@ -412,10 +414,13 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="crow"><input id="ccode" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Creator code"><button class="ghost" id="capply">APPLY</button></div>
         <small id="cmsg">Creators get 10% of the coins you spend, on top of your purchase.</small>
       </div>
+      <div id="seasonBox" hidden><div class="seasonhead"><b id="seasonTitle"></b><span id="seasonLeft"></span></div><div class="items" id="seasonItems"></div></div>
       <div class="sect" style="margin-bottom:8px">Suits</div>
       <div class="items" id="suitItems"></div>
       <div class="sect" style="margin-bottom:8px">Hats</div>
       <div class="items" id="hatItems"></div>
+      <div class="sect" style="margin-bottom:8px">Pets <span style="letter-spacing:.08em;text-transform:none">· they follow you around</span></div>
+      <div class="items" id="petItems"></div>
       <div class="sect" style="margin-bottom:8px">Emotes <span style="letter-spacing:.08em;text-transform:none">· press H in a match</span></div>
       <div class="items" id="emoteItems"></div>
       <div class="sect" style="margin-bottom:8px">Gun finishes</div>
@@ -599,6 +604,31 @@ const BASES = [new V3(-44, 0, 0), new V3(44, 0, 0)];
 const BOT_NAMES = ['Viper', 'Nyx', 'Rook', 'Echo', 'Jinx', 'Talon', 'Pixel', 'Bolt', 'Halo', 'Mako', 'Rune', 'Vex'];
 const DTYPES = ['scout', 'charger', 'warden', 'titan'];
 
+// ================= seasons =================
+// Every season runs on the same dates each year. Its shop items and its map only appear while it is on;
+// anything you buy stays yours forever.
+const SEASONS = {
+  halloween: { name: 'Halloween', icon: '🎃', from: [10, 1], to: [11, 7], css: '#ff8a2a' },
+  christmas: { name: 'Winter Holidays', icon: '🎄', from: [12, 1], to: [1, 6], css: '#ff4d6a' },
+  valentine: { name: "Valentine's", icon: '💘', from: [2, 1], to: [2, 20], css: '#ff6fb5' },
+  easter: { name: 'Easter', icon: '🥚', from: [3, 20], to: [4, 30], css: '#b6ff8a' },
+  summer: { name: 'Summer', icon: '🏖️', from: [6, 15], to: [8, 31], css: '#5ff2ff' },
+};
+function seasonOn(d = new Date()) {
+  const md = (d.getMonth() + 1) * 100 + d.getDate();
+  for (const [k, v] of Object.entries(SEASONS)) { const a = v.from[0] * 100 + v.from[1], b = v.to[0] * 100 + v.to[1]; if (a <= b ? md >= a && md <= b : md >= a || md <= b) return k; }
+  return null;
+}
+// localStorage prism.seasonTest previews another season (for testing)
+const SEASON = (() => { const t = store.get('seasonTest', null); return SEASONS[t] ? t : seasonOn(); })();
+function seasonDaysLeft() {
+  if (!SEASON) return 0;
+  const v = SEASONS[SEASON], now = new Date();
+  let end = new Date(now.getFullYear(), v.to[0] - 1, v.to[1], 23, 59, 59);
+  if (end < now) end = new Date(now.getFullYear() + 1, v.to[0] - 1, v.to[1], 23, 59, 59);
+  return Math.max(1, Math.ceil((end - now) / 86400000));
+}
+
 // ================= settings & menu =================
 const settings = {
   name: store.get('name', 'Pilot' + Math.floor(rand(100, 999))),
@@ -614,13 +644,35 @@ const settings = {
   skin: store.get('skin', 'standard'),
   finish: store.get('finish', 'factory'),
   hat: store.get('hat', 'none'),
+  pet: store.get('pet', 'none'),
 };
 const MODES = ['waves', 'boss', 'ffa', 'gungame', 'ctf', 'infect'];
 if (!MODES.includes(settings.mode)) settings.mode = 'waves';
 if (!LOADOUT.includes(settings.gun)) settings.gun = 'rifle';
-const MAPS = { prism: 'Prism Spire', frost: 'Frostfall' };
-if (!MAPS[settings.map]) settings.map = 'prism';
+const MAPS = { prism: 'Prism Spire', frost: 'Frostfall', haunted: 'Haunted Hollow', xmas: 'Candy Cane Village', valentine: 'Heart Gardens', easter: 'Egg Meadow', summer: 'Splash Isle' };
+// seasonal maps only show up during their season
+const MAP_INFO = {
+  prism: { blurb: 'Floating crystal arena at sunset.', mp: 'linear-gradient(160deg,#ffcf9a,#ff8fc4 35%,#b48cff 60%,#3b355e)' },
+  frost: { blurb: 'Frozen keep under the aurora.', mp: 'radial-gradient(ellipse at 50% 0,#3fffb0aa,transparent 60%),linear-gradient(180deg,#14214a,#3a5c9a 45%,#cfe4ff 75%,#9fb8dc)' },
+  haunted: { season: 'halloween', blurb: 'Graveyard, giant pumpkins and a haunted tower.', mp: 'radial-gradient(circle at 75% 25%,#fff3c4 0 8%,transparent 9%),linear-gradient(180deg,#1a0f2a,#4a1f4a 55%,#ff7a1a)' },
+  xmas: { season: 'christmas', blurb: 'Gingerbread houses around a giant tree.', mp: 'radial-gradient(circle at 50% 35%,#ffd23a 0 6%,transparent 7%),linear-gradient(180deg,#24305a,#7a8ac8 50%,#f4f8ff)' },
+  valentine: { season: 'valentine', blurb: 'Rose gardens and a heart fountain.', mp: 'radial-gradient(circle at 50% 55%,#ff2f6e 0 12%,transparent 13%),linear-gradient(180deg,#ff9ac0,#ffd6e6 60%,#f2a6c4)' },
+  easter: { season: 'easter', blurb: 'A spring meadow full of giant eggs.', mp: 'radial-gradient(ellipse at 50% 70%,#ffd6ec 0 14%,transparent 15%),linear-gradient(180deg,#8fd0ff,#cfeaff 50%,#7fc85a 51%)' },
+  summer: { season: 'summer', blurb: 'Sandcastles, palm trees and open sea.', mp: 'linear-gradient(180deg,#5fc8ff,#bfeaff 50%,#19c7d0 51%,#f6e0aa 75%)' },
+};
+const mapOpen = id => !!MAPS[id] && (!MAP_INFO[id].season || MAP_INFO[id].season === SEASON);
+if (!mapOpen(settings.map)) settings.map = 'prism';
 const FROST = settings.map === 'frost';
+const THEMES = {
+  prism: { exp: 0.62, fog: [0xa17f9f, 140], sun: [15, 205], sky: [4.5, 2.4, 0.0012, 0.9], hemi: [0xffd4c4, 0x2c2450, 0.9], sunC: [0xffd2a8, 2.7], stone: [0x7a72a6, 0.72, 0.18, 0x8a82b6], tileRM: [0.42, 0.35], tiles: ['#3b355e', '#5a5190', '#7a6fb8'], under: [0.15, 1.2, 1.45], rim: [2.9, 0.45, 1.5], cone: [0.09, 0.07, 0.16, 0.12, 0.08, 0.12], isle: [[0.42, 0.36, 0.62], [0.12, 0.09, 0.2], 0.22, [0x5ff2ff, 0xff4fa3]], cloud: [0.88, 0.98, 0.45, 0.72, 0.86], fx: 'dust' },
+  frost: { exp: 0.6, fog: [0x9fb4d6, 120], sun: [13, 150], sky: [1.1, 1.1, 0.0025, 0.86], hemi: [0xd6e6ff, 0x2a3656, 1.0], sunC: [0xffd6b8, 2.3], stone: [0xa8bde0, 0.55, 0.08, 0xbccbe6], tileRM: [0.14, 0.2], tiles: ['#7c97c2', '#c4d6f2', '#5fd8ff'], under: [0.45, 1.5, 2.2], rim: [0.8, 2.3, 3.0], cone: [0.28, 0.4, 0.62, 0.4, 0.4, 0.32], isle: [[0.86, 0.92, 1.0], [0.3, 0.5, 0.78], 0.75, [0x9feaff, 0x7dffc8]], cloud: [0.55, 0.62, 0.35, 0.8, 0.92], fx: 'snow', fxColor: 0xffffff, snowCaps: true, aurora: true },
+  haunted: { exp: 0.55, fog: [0x2a1838, 70], sun: [3, 250], sky: [10, 3.2, 0.006, 0.93], hemi: [0x9a7ac0, 0x140a1c, 0.8], sunC: [0xff8a40, 1.7], stone: [0x4a4060, 0.85, 0.1, 0x5e5280], tileRM: [0.6, 0.1], tiles: ['#1e1828', '#30263f', '#ff7a1a'], under: [1.4, 0.5, 0.1], rim: [2.9, 1.1, 0.2], cone: [0.05, 0.04, 0.07, 0.08, 0.05, 0.1], isle: [[0.24, 0.2, 0.3], [0.06, 0.04, 0.08], 0.35, [0xff8a1f, 0x9a4bff]], cloud: [0.74, 0.8, 0.25, 0.22, 0.38], fx: 'embers', fxColor: 0xff8a2a, moon: true },
+  xmas: { exp: 0.6, fog: [0xb8c6e0, 110], sun: [8, 120], sky: [2, 1.6, 0.003, 0.88], hemi: [0xdde8ff, 0x3a2a40, 1.0], sunC: [0xffc89a, 2.2], stone: [0xb0784a, 0.8, 0.05, 0xc08a5a], tileRM: [0.6, 0.05], tiles: ['#c9d6ea', '#f4f8ff', '#e2313f'], under: [1.6, 0.3, 0.4], rim: [2.9, 0.4, 0.5], cone: [0.3, 0.38, 0.55, 0.5, 0.45, 0.4], isle: [[0.9, 0.94, 1.0], [0.35, 0.45, 0.6], 0.45, [0xff4d6a, 0x2fbf6a]], cloud: [0.58, 0.62, 0.2, 0.85, 0.95], fx: 'snow', fxColor: 0xffffff, snowCaps: true, aurora: true },
+  valentine: { exp: 0.58, fog: [0xe8a6c0, 120], sun: [5, 220], sky: [9, 3.6, 0.007, 0.93], hemi: [0xffd6e6, 0x5a2440, 0.95], sunC: [0xffb0c0, 2.4], stone: [0xf2dce6, 0.4, 0.1, 0xf6e4ec], tileRM: [0.3, 0.2], tiles: ['#c85a8a', '#f2a6c4', '#ff2f6e'], under: [2.6, 0.6, 1.4], rim: [2.9, 0.4, 1.0], cone: [0.35, 0.15, 0.25, 0.4, 0.3, 0.3], isle: [[0.95, 0.75, 0.85], [0.4, 0.15, 0.25], 0.25, [0xff2f6e, 0xffffff]], cloud: [0.92, 0.98, 0.6, 0.8, 0.9], fx: 'petals', fxColor: 0xff6f9f },
+  easter: { exp: 0.48, fog: [0xa8d4ff, 220], sun: [40, 160], sky: [2, 1.2, 0.003, 0.8], hemi: [0xfff6e0, 0x4a6a3a, 0.75], sunC: [0xfff2d6, 2.2], stone: [0xfff0d6, 0.6, 0.05, 0xfff4e2], tileRM: [0.85, 0], tiles: ['#4f9e3c', '#86cc5e', '#ffd6ec'], under: [0.6, 1.6, 0.6], rim: [2.6, 1.6, 2.4], cone: [0.3, 0.2, 0.1, 0.2, 0.45, 0.15], isle: [[0.45, 0.8, 0.35], [0.35, 0.25, 0.15], 0.3, [0xffb6dc, 0xb6e0ff]], cloud: [0, 1, 0, 0.92, 1], fx: 'petals', fxColor: 0xffd6ec },
+  summer: { exp: 0.48, fog: [0x8fd0ff, 230], sun: [50, 200], sky: [2.5, 1, 0.003, 0.8], hemi: [0xfff2d0, 0x3a7a8a, 0.8], sunC: [0xfff0c8, 2.4], stone: [0xe8cf96, 0.85, 0.02, 0xf0dcb0], tileRM: [0.9, 0], tiles: ['#dcbd7e', '#f6e0aa', '#19c7d0'], under: [0.2, 1.8, 2.4], rim: [0.3, 2.6, 2.9], cone: [0.55, 0.45, 0.3, 0.35, 0.3, 0.2], isle: [[0.95, 0.85, 0.6], [0.45, 0.38, 0.28], 0.25, [0x19c7d0, 0xff6f91]], cloud: [0, 1, 0, 0.94, 1], fx: 'dust', fxColor: 0x6a5a40, ocean: true },
+};
+const TH = THEMES[settings.map] || THEMES.prism;
 if (!CLASSES[settings.cls]) settings.cls = 'fighter';
 // what this player carries in the current mode
 function kit() {
@@ -705,7 +757,12 @@ $('quality').addEventListener('change', () => { settings.quality = $('quality').
   document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => { settings.mode = b.dataset.mode; store.set('mode', settings.mode); menuChanged(); }));
   document.querySelectorAll('#teams button').forEach(b => b.addEventListener('click', () => { settings.team = b.dataset.team; store.set('team', settings.team); renderMenu(); }));
   // the arena is built once at load, so switching maps reloads the page (your room and mode are kept)
-  document.querySelectorAll('.map').forEach(b => b.addEventListener('click', () => switchMap(b.dataset.map)));
+  for (const [id, name] of Object.entries(MAPS)) {
+    if (!mapOpen(id)) continue;
+    const I = MAP_INFO[id], b = document.createElement('button'); b.className = 'map'; b.dataset.map = id;
+    b.innerHTML = `<i style="--mp:${I.mp}"></i><b>${name}${I.season ? ` <span style="font-size:11px;color:${SEASONS[I.season].css}">${SEASONS[I.season].icon} LIMITED</span>` : ''}</b><span>${I.blurb}</span>`;
+    b.addEventListener('click', () => switchMap(id)); $('maps').appendChild(b);
+  }
 }
 function renderMenu() {
   if ($('dlist')) renderDaily();
@@ -729,7 +786,7 @@ function renderMenu() {
 }
 
 function switchMap(id) {
-  if (!MAPS[id] || id === settings.map) return;
+  if (!mapOpen(id) || id === settings.map) return;
   store.set('map', id); settings.map = id; renderMenu();
   toast(`Loading ${MAPS[id]}…`);
   setTimeout(() => location.reload(), 120);
@@ -811,7 +868,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = FROST ? 0.6 : 0.62;
+renderer.toneMappingExposure = TH.exp;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.shadowMap.autoUpdate = false;
@@ -820,14 +877,13 @@ $('stage').appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(78, innerWidth / innerHeight, 0.03, 6000);
 scene.add(camera);
-scene.fog = FROST ? new THREE.Fog(0x9fb4d6, 120, 760) : new THREE.Fog(0xa17f9f, 140, 760);
+scene.fog = new THREE.Fog(TH.fog[0], TH.fog[1], 760);
 
-const sunDir = new V3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - (FROST ? 13 : 15)), THREE.MathUtils.degToRad(FROST ? 150 : 205));
+const sunDir = new V3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - TH.sun[0]), THREE.MathUtils.degToRad(TH.sun[1]));
 function makeSky() {
   const s = new Sky(); s.scale.setScalar(4000);
   const u = s.material.uniforms;
-  if (FROST) { u.turbidity.value = 1.1; u.rayleigh.value = 1.1; u.mieCoefficient.value = 0.0025; u.mieDirectionalG.value = 0.86; }
-  else { u.turbidity.value = 4.5; u.rayleigh.value = 2.4; u.mieCoefficient.value = 0.0012; u.mieDirectionalG.value = 0.9; }
+  [u.turbidity.value, u.rayleigh.value, u.mieCoefficient.value, u.mieDirectionalG.value] = TH.sky;
   u.sunPosition.value.copy(sunDir);
   return s;
 }
@@ -839,8 +895,8 @@ function makeSky() {
   scene.background = skyRT.texture;
   scene.environment = new THREE.PMREMGenerator(renderer).fromCubemap(skyRT.texture).texture;
 }
-const hemi = FROST ? new THREE.HemisphereLight(0xd6e6ff, 0x2a3656, 1.0) : new THREE.HemisphereLight(0xffd4c4, 0x2c2450, 0.9); scene.add(hemi);
-const sun = new THREE.DirectionalLight(FROST ? 0xffd6b8 : 0xffd2a8, FROST ? 2.3 : 2.7);
+const hemi = new THREE.HemisphereLight(...TH.hemi); scene.add(hemi);
+const sun = new THREE.DirectionalLight(...TH.sunC);
 sun.position.copy(sunDir).multiplyScalar(140);
 sun.castShadow = true;
 Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 10, far: 320 });
@@ -859,15 +915,15 @@ function panelTexture() {
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
   return t;
 }
-const stoneMat = new THREE.MeshStandardMaterial({ color: FROST ? 0xa8bde0 : 0x7a72a6, map: panelTexture(), roughness: FROST ? 0.55 : 0.72, metalness: FROST ? 0.08 : 0.18 });
+const stoneMat = new THREE.MeshStandardMaterial({ color: TH.stone[0], map: panelTexture(), roughness: TH.stone[1], metalness: TH.stone[2] });
 const rockMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0.02, flatShading: true });
-const tileMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: FROST ? 0.14 : 0.42, metalness: FROST ? 0.2 : 0.35 });
+const tileMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: TH.tileRM[0], metalness: TH.tileRM[1] });
 const snowMat = new THREE.MeshStandardMaterial({ color: 0xf4f8ff, roughness: 0.92, metalness: 0, emissive: 0x1a2440 });
 const pineMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true });
 // Lambert twins swapped in on low presets: much cheaper per pixel than PBR
 const CHEAP = new Map([
   [tileMat, new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x1d1838 })],
-  [stoneMat, new THREE.MeshLambertMaterial({ color: FROST ? 0xbccbe6 : 0x8a82b6, map: stoneMat.map })],
+  [stoneMat, new THREE.MeshLambertMaterial({ color: TH.stone[3], map: stoneMat.map })],
   [snowMat, new THREE.MeshLambertMaterial({ color: 0xf4f8ff, emissive: 0x2a3450 })],
   [pineMat, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true })],
   [rockMat, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true })],
@@ -914,6 +970,24 @@ const SUITS = {
   fox: { name: 'Fox', price: 550, pv: 'linear-gradient(180deg,#e8732a 0 65%,#fbf3ea 65%)' },
   leopard: { name: 'Leopard', price: 600, pv: 'radial-gradient(circle at 50% 50%,#c88a3a 0 18%,#2a1a0a 20% 30%,transparent 32%) 0 0/16px 16px,#e3b45c' },
   matrix: { name: 'Matrix', price: 1000, pv: 'repeating-linear-gradient(90deg,#03140a 0 6px,#2bff6a 6px 7px,#03140a 7px 12px)' },
+  pumpkin: { name: 'Pumpkin', price: 450, season: 'halloween', pv: 'radial-gradient(circle at 35% 45%,#ffd25a 0 7%,transparent 8%),radial-gradient(circle at 65% 45%,#ffd25a 0 7%,transparent 8%),repeating-linear-gradient(90deg,#ff8a1f 0 10px,#d9650c 10px 13px)' },
+  skeleton: { name: 'Skeleton', price: 500, season: 'halloween', pv: 'repeating-linear-gradient(0deg,#141414 0 7px,#f2f0e6 7px 11px)' },
+  ghost: { name: 'Ghost', price: 600, season: 'halloween', pv: 'radial-gradient(circle at 35% 40%,#222 0 6%,transparent 7%),radial-gradient(circle at 65% 40%,#222 0 6%,transparent 7%),linear-gradient(180deg,#ffffff,#cfe6ff)' },
+  vampire: { name: 'Vampire', price: 700, season: 'halloween', pv: 'linear-gradient(160deg,#0a0508 0 42%,#8a0a1e 42% 58%,#0a0508 58%)' },
+  gingerbread: { name: 'Gingerbread', price: 450, season: 'christmas', pv: 'repeating-linear-gradient(135deg,transparent 0 10px,#fff 10px 12px),#a8652e' },
+  snowman: { name: 'Snowman', price: 500, season: 'christmas', pv: 'radial-gradient(circle at 50% 30%,#111 0 5%,transparent 6%),radial-gradient(circle at 50% 55%,#111 0 5%,transparent 6%),radial-gradient(circle at 50% 80%,#111 0 5%,transparent 6%),#f6f9ff' },
+  elf: { name: 'Elf', price: 550, season: 'christmas', pv: 'linear-gradient(180deg,#1f9a3a 0 55%,#e2313f 55% 68%,#1f9a3a 68%)' },
+  nutcracker: { name: 'Nutcracker', price: 700, season: 'christmas', pv: 'linear-gradient(90deg,#c41e3a 0 40%,#ffd23a 40% 46%,#c41e3a 46% 54%,#ffd23a 54% 60%,#c41e3a 60%)' },
+  cupid: { name: 'Cupid', price: 450, season: 'valentine', pv: 'radial-gradient(circle,#ff2f6e 0 3px,transparent 3.5px) 0 0/12px 12px,#ffc2d9' },
+  rosegold: { name: 'Rose Gold', price: 650, season: 'valentine', pv: 'linear-gradient(135deg,#ffe2d6,#e8a090 45%,#ffd0c0 60%,#b8705e)' },
+  lovebug: { name: 'Lovebug', price: 500, season: 'valentine', pv: 'radial-gradient(circle,#111 0 3px,transparent 3.5px) 0 0/14px 14px,#e3172f' },
+  easteregg: { name: 'Easter Egg', price: 450, season: 'easter', pv: 'linear-gradient(180deg,#ffd6ec 0 25%,#d6f0ff 25% 50%,#fff3b0 50% 75%,#d9ffd6 75%)' },
+  chick: { name: 'Chick', price: 500, season: 'easter', pv: 'radial-gradient(circle at 40% 35%,#fff7b0,#ffd23a)' },
+  bloom: { name: 'Spring Bloom', price: 550, season: 'easter', pv: 'radial-gradient(circle,#ff8fc4 0 3px,transparent 4px) 0 0/14px 14px,radial-gradient(circle,#fff38a 0 2px,transparent 3px) 7px 7px/14px 14px,#9fe39a' },
+  hawaiian: { name: 'Hawaiian', price: 450, season: 'summer', pv: 'radial-gradient(circle,#ff6f91 0 4px,transparent 5px) 0 0/16px 16px,#1f8ad1' },
+  watermelon: { name: 'Watermelon', price: 500, season: 'summer', pv: 'linear-gradient(180deg,#ff5a6e 0 60%,#f4ffe8 60% 66%,#1f8a3a 66%)' },
+  beachball: { name: 'Beach Ball', price: 550, season: 'summer', pv: 'conic-gradient(#ff3b3b 0 25%,#fff 0 50%,#2f7dff 0 75%,#ffd23a 0)' },
+  lifeguard: { name: 'Lifeguard', price: 600, season: 'summer', pv: 'linear-gradient(90deg,transparent 42%,#fff 42% 58%,transparent 58%),linear-gradient(0deg,transparent 42%,#fff 42% 58%,transparent 58%),#e3172f' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -935,6 +1009,11 @@ const FINISHES = {
   zebra: { name: 'Zebra', price: 200, pv: 'repeating-linear-gradient(100deg,#f4f4f4 0 6px,#151515 6px 10px)' },
   tiger: { name: 'Tiger', price: 250, pv: 'repeating-linear-gradient(100deg,#ff9a2e 0 8px,#1a1008 8px 11px)' },
   matrix: { name: 'Matrix', price: 600, pv: 'repeating-linear-gradient(90deg,#03140a 0 5px,#2bff6a 5px 6px,#03140a 6px 10px)' },
+  spiderweb: { name: 'Spider Web', price: 400, season: 'halloween', pv: 'repeating-radial-gradient(circle at 50% 50%,#1a1a20 0 6px,#e8e8f0 6px 7px),#1a1a20' },
+  giftwrap: { name: 'Gift Wrap', price: 400, season: 'christmas', pv: 'linear-gradient(90deg,transparent 44%,#ffd23a 44% 56%,transparent 56%),linear-gradient(0deg,transparent 44%,#ffd23a 44% 56%,transparent 56%),#c41e3a' },
+  hearts: { name: 'Sweetheart', price: 400, season: 'valentine', pv: 'radial-gradient(circle,#fff 0 2px,transparent 3px) 0 0/10px 10px,#ff4f8b' },
+  pastelegg: { name: 'Pastel Egg', price: 400, season: 'easter', pv: 'repeating-linear-gradient(0deg,#ffd6ec 0 6px,#d6f0ff 6px 12px,#fff3b0 12px 18px)' },
+  tropical: { name: 'Tropical', price: 400, season: 'summer', pv: 'linear-gradient(135deg,#19c7b0,#ffcf6b 60%,#ff6f91)' },
   blackice: { name: 'Black Ice', price: 750, pv: 'conic-gradient(from 20deg at 30% 40%,#0b1830,#3f8fd6,#e6f7ff,#1e4f8a,#8fd3ff,#0b1830)' },
 };
 if (!SUITS[settings.skin]) settings.skin = 'standard';
@@ -956,6 +1035,11 @@ const HATS = {
   viking: { name: 'Viking Helmet', price: 700, pv: 'linear-gradient(180deg,#b8bdcc,#5a6070)' },
   halo: { name: 'Halo', price: 900, pv: 'radial-gradient(circle,transparent 36%,#ffe27a 38% 52%,transparent 54%),#141027' },
   crown: { name: 'Crown', price: 1200, pv: 'linear-gradient(180deg,#fff3c4,#e8a92e 60%,#9a6510)' },
+  witch: { name: 'Witch Hat', price: 350, season: 'halloween', pv: 'linear-gradient(180deg,#1a1024 0 60%,#7a3bd6 60% 72%,#1a1024 72%)' },
+  santa: { name: 'Santa Hat', price: 350, season: 'christmas', pv: 'linear-gradient(180deg,#d61f2c 0 70%,#fff 70%)' },
+  heartband: { name: 'Heart Headband', price: 300, season: 'valentine', pv: 'radial-gradient(circle at 30% 40%,#ff2f6e 0 16%,transparent 17%),radial-gradient(circle at 70% 40%,#ff2f6e 0 16%,transparent 17%),#ffc2d9' },
+  eggshell: { name: 'Eggshell', price: 300, season: 'easter', pv: 'linear-gradient(180deg,#fffdf4 0 60%,#d6f0ff 60%)' },
+  sunhat: { name: 'Sun Hat', price: 350, season: 'summer', pv: 'linear-gradient(180deg,#e8c88a 0 55%,#ff6f91 55% 66%,#e8c88a 66%)' },
   tigerears: { name: 'Tiger Ears', price: 0, bundle: 'tiger', pv: 'radial-gradient(circle at 30% 70%,#1a1008 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#1a1008 0 16%,transparent 17%),repeating-linear-gradient(100deg,#ff9a2e 0 9px,#1a1008 9px 13px)' },
   zebraears: { name: 'Zebra Ears', price: 0, bundle: 'zebra', pv: 'radial-gradient(circle at 30% 70%,#151515 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#151515 0 16%,transparent 17%),repeating-linear-gradient(100deg,#f4f4f4 0 7px,#151515 7px 12px)' },
   bearears: { name: 'Bear Ears', price: 0, bundle: 'bear', pv: 'radial-gradient(circle at 30% 70%,#4a2c16 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#4a2c16 0 16%,transparent 17%),radial-gradient(circle at 40% 35%,#8a5a34,#4a2c16)' },
@@ -979,11 +1063,25 @@ const EMOTES = {
   taunt: { name: 'Taunt', icon: '🤡', say: 'Ez', price: 450 },
   hotdog: { name: 'Hot Dog Spin', icon: '🌭', say: '', price: 600 },
 };
+const PETS = {
+  none: { name: 'No Pet', price: 0, icon: '✖️' },
+  dog: { name: 'Dog', price: 300, icon: '🐶' },
+  cat: { name: 'Cat', price: 300, icon: '🐱' },
+  monkey: { name: 'Monkey', price: 400, icon: '🐵' },
+  fox: { name: 'Fox', price: 450, icon: '🦊' },
+  panda: { name: 'Panda', price: 500, icon: '🐼' },
+  penguin: { name: 'Penguin', price: 500, icon: '🐧' },
+  tiger: { name: 'Tiger', price: 600, icon: '🐯' },
+  lion: { name: 'Lion', price: 700, icon: '🦁' },
+  robot: { name: 'Baby Robot', price: 800, icon: '🤖' },
+  dragon: { name: 'Baby Dragon', price: 1500, icon: '🐲' },
+};
 // bundled items (like Tiger Ears) come free with the suit they belong to
-const owns = (kind, id) => { const d = (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
+const owns = (kind, id) => { const d = (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : kind === 'pet' ? PETS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
 if (!owns('suit', settings.skin)) settings.skin = 'standard';
 if (!owns('finish', settings.finish)) settings.finish = 'factory';
 if (!HATS[settings.hat] || !owns('hat', settings.hat)) settings.hat = 'none';
+if (!PETS[settings.pet] || !owns('pet', settings.pet)) settings.pet = 'none';
 settings.lmgCam = !!store.get('lmgcam', false) && owns('addon', 'beckcam');
 const TEX = {};
 function canvasTex(name, draw, rep = 1) {
@@ -1100,6 +1198,50 @@ const veinTex = () => canvasTex('veins', x => {
   };
   for (let i = 0; i < 14; i++) branch(Math.random() * 256, Math.random() * 256, rand(0, 6.28), rand(14, 26), rand(2.5, 4));
 }, 1);
+// seasonal patterns
+const heartPath = (x, cx, cy, s) => { x.beginPath(); x.moveTo(cx, cy + s * 0.9); x.bezierCurveTo(cx - s * 1.4, cy - s * 0.1, cx - s * 0.6, cy - s * 1.1, cx, cy - s * 0.35); x.bezierCurveTo(cx + s * 0.6, cy - s * 1.1, cx + s * 1.4, cy - s * 0.1, cx, cy + s * 0.9); x.fill(); };
+const flower = (x, cx, cy, r, petal, mid) => { x.fillStyle = petal; for (let k = 0; k < 5; k++) { const a = k / 5 * 6.283; x.beginPath(); x.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, r * 0.8, 0, 7); x.fill(); } x.fillStyle = mid; x.beginPath(); x.arc(cx, cy, r * 0.6, 0, 7); x.fill(); };
+const pumpkinTex = () => canvasTex('pumpkin', x => { for (let i = 0; i < 16; i++) { const g = x.createLinearGradient(i * 16, 0, i * 16 + 16, 0); g.addColorStop(0, '#c45a0a'); g.addColorStop(0.5, '#ff8f24'); g.addColorStop(1, '#c45a0a'); x.fillStyle = g; x.fillRect(i * 16, 0, 16, 256); } });
+const pumpkinFace = () => canvasTex('pumpkinface', x => {
+  x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#fff'; x.shadowColor = '#fff'; x.shadowBlur = 6;
+  for (const cx of [64, 192]) {
+    for (const sx of [-1, 1]) { x.beginPath(); x.moveTo(cx + sx * 26, 112); x.lineTo(cx + sx * 8, 112); x.lineTo(cx + sx * 17, 92); x.fill(); }
+    x.beginPath(); x.moveTo(cx - 30, 130); for (let k = 0; k <= 6; k++) x.lineTo(cx - 30 + k * 10, 130 + (k % 2 ? 10 : 0)); x.lineTo(cx + 30, 150); x.quadraticCurveTo(cx, 170, cx - 30, 150); x.fill();
+  }
+});
+const skeletonTex = () => canvasTex('skeleton', x => {
+  x.fillStyle = '#121214'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#efece0';
+  for (const cx of [64, 192]) { x.fillRect(cx - 5, 40, 10, 200); for (let i = 0; i < 6; i++) { const y = 70 + i * 22; x.beginPath(); x.ellipse(cx, y, 44 - i * 3, 6, 0, 0, 7); x.fill(); } x.beginPath(); x.ellipse(cx, 230, 30, 14, 0, 0, 7); x.fill(); }
+  x.fillStyle = '#121214'; for (const cx of [64, 192]) for (let i = 0; i < 6; i++) { x.beginPath(); x.ellipse(cx, 70 + i * 22, 30 - i * 3, 3, 0, 0, 7); x.fill(); }
+});
+const vampireTex = () => canvasTex('vampire', x => { const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#2a0610'); g.addColorStop(0.35, '#0a0508'); g.addColorStop(1, '#050304'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); x.fillStyle = '#8a0a1e'; for (const cx of [64, 192]) { x.beginPath(); x.moveTo(cx - 40, 0); x.lineTo(cx, 90); x.lineTo(cx + 40, 0); x.fill(); } x.fillStyle = '#d9c27a'; for (const cx of [64, 192]) for (let i = 0; i < 3; i++) { x.beginPath(); x.arc(cx, 120 + i * 32, 5, 0, 7); x.fill(); } });
+const gingerTex = () => canvasTex('ginger', x => {
+  x.fillStyle = '#a8652e'; x.fillRect(0, 0, 256, 256); x.strokeStyle = '#fffaf2'; x.lineWidth = 5; x.lineJoin = 'round';
+  for (const y of [40, 216]) { x.beginPath(); for (let k = 0; k <= 16; k++) x.lineTo(k * 16, y + (k % 2 ? 10 : -10)); x.stroke(); }
+  const gum = ['#e2313f', '#1f9a3a', '#2f7dff', '#ffd23a']; for (const cx of [64, 192]) for (let i = 0; i < 3; i++) { x.fillStyle = gum[(i + cx) % 4]; x.beginPath(); x.arc(cx, 90 + i * 40, 11, 0, 7); x.fill(); }
+});
+const snowmanTex = () => canvasTex('snowman', x => { x.fillStyle = '#f6f9ff'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 300; i++) { x.fillStyle = 'rgba(160,190,230,.25)'; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); } x.fillStyle = '#161618'; for (const cx of [64, 192]) for (let i = 0; i < 3; i++) { x.beginPath(); x.arc(cx, 80 + i * 45, 11, 0, 7); x.fill(); } x.fillStyle = '#d61f2c'; x.fillRect(0, 0, 256, 34); x.fillStyle = '#1f9a3a'; for (let i = 0; i < 16; i++) x.fillRect(i * 16, 0, 8, 34); });
+const elfTex = () => canvasTex('elf', x => { x.fillStyle = '#1f9a3a'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#e2313f'; x.fillRect(0, 150, 256, 30); x.fillStyle = '#ffd23a'; for (const cx of [64, 192]) x.fillRect(cx - 14, 152, 28, 26); x.fillStyle = '#1f9a3a'; for (const cx of [64, 192]) x.fillRect(cx - 7, 159, 14, 12); x.fillStyle = '#fff'; x.beginPath(); x.moveTo(0, 256); for (let k = 0; k <= 16; k++) x.lineTo(k * 16, k % 2 ? 236 : 248); x.lineTo(256, 256); x.fill(); });
+const nutTex = () => canvasTex('nut', x => { x.fillStyle = '#c41e3a'; x.fillRect(0, 0, 256, 180); x.fillStyle = '#1d3a8a'; x.fillRect(0, 180, 256, 76); x.fillStyle = '#ffd23a'; for (const cx of [64, 192]) { x.fillRect(cx - 4, 0, 8, 180); for (let i = 0; i < 5; i++) x.fillRect(cx - 24, 30 + i * 30, 48, 5); } x.fillRect(0, 175, 256, 8); });
+const cupidTex = () => canvasTex('cupid', x => { x.fillStyle = '#ffc2d9'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 40; i++) { x.fillStyle = Math.random() < 0.5 ? '#ff2f6e' : '#ffffff'; heartPath(x, Math.random() * 256, Math.random() * 256, rand(6, 12)); } }, 2);
+const lovebugTex = () => canvasTex('lovebug', x => { x.fillStyle = '#e3172f'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#111'; for (const cx of [64, 192]) x.fillRect(cx - 3, 0, 6, 256); for (let i = 0; i < 18; i++) { x.beginPath(); x.arc(Math.random() * 256, Math.random() * 256, rand(9, 15), 0, 7); x.fill(); } });
+const easterTex = () => canvasTex('easter', x => {
+  const c = ['#ffd6ec', '#d6f0ff', '#fff3b0', '#d9ffd6', '#e6d6ff'];
+  for (let i = 0; i < 5; i++) { x.fillStyle = c[i]; x.fillRect(0, i * 52, 256, 52); }
+  x.strokeStyle = '#ff8fc4'; x.lineWidth = 4; for (let i = 1; i < 5; i++) { x.beginPath(); for (let k = 0; k <= 16; k++) x.lineTo(k * 16, i * 52 + (k % 2 ? 7 : -7)); x.stroke(); }
+  x.fillStyle = '#7fc8ff'; for (let i = 0; i < 24; i++) { x.beginPath(); x.arc(Math.random() * 256, Math.random() * 256, 4, 0, 7); x.fill(); }
+});
+const chickTex = () => furTex('chick', '#ffd23a', 'rgba(255,245,170,.7)', 'rgba(220,150,20,.35)');
+const bloomTex = () => canvasTex('bloom', x => { x.fillStyle = '#9fe39a'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 26; i++) flower(x, Math.random() * 256, Math.random() * 256, rand(5, 9), pick(['#ff8fc4', '#ffffff', '#b48cff', '#fff38a']), '#ffd23a'); }, 2);
+const hawaiiTex = () => canvasTex('hawaii', x => { x.fillStyle = '#1f8ad1'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#2fbf6a'; for (let i = 0; i < 18; i++) { x.save(); x.translate(Math.random() * 256, Math.random() * 256); x.rotate(rand(0, 6)); x.beginPath(); x.ellipse(0, 0, 22, 7, 0, 0, 7); x.fill(); x.restore(); } for (let i = 0; i < 14; i++) flower(x, Math.random() * 256, Math.random() * 256, rand(8, 12), pick(['#ff6f91', '#ffb347', '#ffffff']), '#ffd23a'); }, 2);
+const melonTex = () => canvasTex('melon', x => { x.fillStyle = '#ff5a6e'; x.fillRect(0, 0, 256, 150); x.fillStyle = '#f4ffe8'; x.fillRect(0, 150, 256, 16); x.fillStyle = '#2f9a3a'; x.fillRect(0, 166, 256, 90); x.fillStyle = '#1a5a22'; for (let i = 0; i < 16; i++) x.fillRect(i * 16 + 4, 166, 6, 90); x.fillStyle = '#1a1010'; for (let i = 0; i < 30; i++) { x.beginPath(); x.ellipse(Math.random() * 256, rand(20, 135), 3, 5, 0, 0, 7); x.fill(); } });
+const ballTex = () => canvasTex('beachball', x => { const c = ['#ff3b3b', '#ffffff', '#2f7dff', '#ffd23a', '#ffffff', '#2fbf6a']; for (let i = 0; i < 6; i++) { x.fillStyle = c[i]; x.fillRect(i * 256 / 6, 0, 256 / 6 + 1, 256); } });
+const guardTex = () => canvasTex('lifeguard', x => { x.fillStyle = '#e3172f'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#fff'; for (const cx of [64, 192]) { x.fillRect(cx - 9, 70, 18, 64); x.fillRect(cx - 32, 93, 64, 18); } x.fillRect(0, 0, 256, 10); });
+const webTex = () => canvasTex('web', x => { x.fillStyle = '#16161c'; x.fillRect(0, 0, 256, 256); x.strokeStyle = 'rgba(235,235,245,.85)'; x.lineWidth = 1.5; for (let k = 0; k < 10; k++) { const a = k / 10 * 6.283; x.beginPath(); x.moveTo(128, 128); x.lineTo(128 + Math.cos(a) * 190, 128 + Math.sin(a) * 190); x.stroke(); } for (let r = 16; r < 190; r += 18) { x.beginPath(); for (let k = 0; k <= 10; k++) { const a = k / 10 * 6.283; x.lineTo(128 + Math.cos(a) * r, 128 + Math.sin(a) * r); } x.stroke(); } });
+const giftTex = () => canvasTex('gift', x => { x.fillStyle = '#c41e3a'; x.fillRect(0, 0, 256, 256); x.fillStyle = 'rgba(255,255,255,.12)'; for (let i = 0; i < 40; i++) { x.beginPath(); x.arc(Math.random() * 256, Math.random() * 256, 4, 0, 7); x.fill(); } x.fillStyle = '#ffd23a'; x.fillRect(112, 0, 32, 256); x.fillRect(0, 112, 256, 32); });
+const heartsTex = () => canvasTex('heartsfin', x => { x.fillStyle = '#ff4f8b'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#ffffff'; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) heartPath(x, i * 64 + 32 + (j % 2) * 16, j * 64 + 32, 10); }, 2);
+const pastelEggTex = () => canvasTex('pasteleggfin', x => { const c = ['#ffd6ec', '#d6f0ff', '#fff3b0', '#d9ffd6']; for (let i = 0; i < 8; i++) { x.fillStyle = c[i % 4]; x.fillRect(0, i * 32, 256, 32); } }, 2);
+const tropicalTex = () => canvasTex('tropical', x => { const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, '#19c7b0'); g.addColorStop(0.6, '#ffcf6b'); g.addColorStop(1, '#ff6f91'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); x.fillStyle = 'rgba(20,110,60,.55)'; for (let i = 0; i < 12; i++) { x.save(); x.translate(Math.random() * 256, Math.random() * 256); x.rotate(rand(0, 6)); x.beginPath(); x.ellipse(0, 0, 30, 9, 0, 0, 7); x.fill(); x.restore(); } });
 const BLIGHT = new THREE.Color(0.45, 2.4, 0.2), TOXIC_P = new THREE.Color(0.25, 1.6, 0.08);
 function suitMaterial(id, col, glowCol) {
   switch (id) {
@@ -1128,6 +1270,24 @@ function suitMaterial(id, col, glowCol) {
     case 'leopard': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: leopardTex(), roughness: 0.7 });
     case 'infected': return new THREE.MeshStandardMaterial({ color: 0x18210f, roughness: 0.55, metalness: 0.25, emissive: BLIGHT.clone(), emissiveMap: veinTex(), emissiveIntensity: 1.4 });
     case 'pastel': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pastelTex(), metalness: 0.05, roughness: 0.4 });
+    case 'pumpkin': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pumpkinTex(), roughness: 0.6, emissive: 0xffa21f, emissiveMap: pumpkinFace(), emissiveIntensity: 2.2 });
+    case 'skeleton': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: skeletonTex(), roughness: 0.6, emissive: 0xffffff, emissiveMap: skeletonTex(), emissiveIntensity: 0.25 });
+    case 'ghost': return new THREE.MeshStandardMaterial({ color: 0xf4f8ff, roughness: 0.3, emissive: 0x9ad6ff, emissiveIntensity: 0.55, transparent: true, opacity: 0.62, depthWrite: false });
+    case 'vampire': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: vampireTex(), roughness: 0.35, metalness: 0.3 });
+    case 'gingerbread': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: gingerTex(), roughness: 0.85 });
+    case 'snowman': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: snowmanTex(), roughness: 0.95, emissive: 0x1a2440 });
+    case 'elf': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: elfTex(), roughness: 0.7 });
+    case 'nutcracker': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: nutTex(), roughness: 0.3, metalness: 0.2 });
+    case 'cupid': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: cupidTex(), roughness: 0.5 });
+    case 'rosegold': return new THREE.MeshStandardMaterial({ color: 0xe8a090, metalness: 1, roughness: 0.22 });
+    case 'lovebug': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: lovebugTex(), roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1 });
+    case 'easteregg': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: easterTex(), roughness: 0.35, clearcoat: 0.6 });
+    case 'chick': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: chickTex(), roughness: 0.95 });
+    case 'bloom': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: bloomTex(), roughness: 0.75 });
+    case 'hawaiian': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: hawaiiTex(), roughness: 0.7 });
+    case 'watermelon': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: melonTex(), roughness: 0.45 });
+    case 'beachball': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: ballTex(), roughness: 0.25, clearcoat: 1 });
+    case 'lifeguard': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: guardTex(), roughness: 0.6 });
     case 'zebra': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: zebraTex(), metalness: 0.05, roughness: 0.55 });
     case 'tiger': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: tigerTex(), metalness: 0.05, roughness: 0.55 });
     case 'matrix': return new THREE.MeshStandardMaterial({ color: 0x020a05, roughness: 0.35, metalness: 0.4, emissive: 0x2bff6a, emissiveMap: matrixTex(), emissiveIntensity: 2.2 });
@@ -1157,6 +1317,11 @@ function applyFinish(m1, m2, id) {
     case 'tiger': set(m1, 0xffffff, 0.2, 0.45); m1.map = tigerTex(); set(m2, 0x1a1008, 0.6, 0.3); break;
     case 'matrix': set(m1, 0x020a05, 0.5, 0.35); m1.emissive.set(0x2bff6a); m1.emissiveMap = matrixTex(); m1.emissiveIntensity = 1.6; set(m2, 0x0c2014, 0.6, 0.3); break;
     case 'blackice': set(m1, 0xffffff, 0.45, 0.16); m1.map = blackIceTex(); set(m2, 0x0b1830, 0.7, 0.2); break;
+    case 'spiderweb': set(m1, 0xffffff, 0.3, 0.5); m1.map = webTex(); set(m2, 0xff8a1f, 0.3, 0.4); break;
+    case 'giftwrap': set(m1, 0xffffff, 0.3, 0.4); m1.map = giftTex(); set(m2, 0xffd23a, 0.9, 0.2); break;
+    case 'hearts': set(m1, 0xffffff, 0.2, 0.35); m1.map = heartsTex(); set(m2, 0xffd0e0, 0.6, 0.2); break;
+    case 'pastelegg': set(m1, 0xffffff, 0.1, 0.4); m1.map = pastelEggTex(); set(m2, 0xfffdf4, 0.2, 0.4); break;
+    case 'tropical': set(m1, 0xffffff, 0.3, 0.35); m1.map = tropicalTex(); set(m2, 0x19c7b0, 0.6, 0.3); break;
     case 'void': set(m1, 0x050308, 0.6, 0.2); m1.emissive.set(0xb04bff); m1.emissiveMap = hexTex(); m1.emissiveIntensity = 1.6; set(m2, 0x1a1024, 0.6, 0.3); break;
     default: set(m1, 0x2b2840, 0.85, 0.3); set(m2, 0xd9d4ee, 0.6, 0.35);
   }
@@ -1183,7 +1348,7 @@ function boxGeo(w, h, d) {
 const stoneGeos = [], trimGeos = new Map(), snowGeos = [];
 function block(x, z, w, h, d, y = 0, trim = cyanGlow) {
   stoneGeos.push(boxGeo(w, h, d).translate(x, y + h / 2, z));
-  if (FROST) snowGeos.push(new THREE.BoxGeometry(w + 0.1, 0.1, d + 0.1).translate(x, y + h + 0.02, z));
+  if (TH.snowCaps) snowGeos.push(new THREE.BoxGeometry(w + 0.1, 0.1, d + 0.1).translate(x, y + h + 0.02, z));
   colliders.push({ min: new V3(x - w / 2, y, z - d / 2), max: new V3(x + w / 2, y + h, z + d / 2) });
   if (trim) {
     const t = 0.08, top = y + h;
@@ -1208,7 +1373,7 @@ function finalizeWorld() {
   const geo = new THREE.CircleGeometry(R * 0.93, 6, Math.PI / 2); geo.rotateX(-Math.PI / 2);
   const tiles = new THREE.InstancedMesh(geo, tileMat, list.length);
   tiles.receiveShadow = true;
-  const m4 = new THREE.Matrix4(), c = new THREE.Color(), base = new THREE.Color(FROST ? '#7c97c2' : '#3b355e'), hi = new THREE.Color(FROST ? '#c4d6f2' : '#5a5190'), ring = new THREE.Color(FROST ? '#5fd8ff' : '#7a6fb8');
+  const m4 = new THREE.Matrix4(), c = new THREE.Color(), base = new THREE.Color(TH.tiles[0]), hi = new THREE.Color(TH.tiles[1]), ring = new THREE.Color(TH.tiles[2]);
   list.forEach(([x, z], i) => {
     m4.makeTranslation(x, 0, z); tiles.setMatrixAt(i, m4);
     const d = Math.hypot(x, z);
@@ -1217,16 +1382,16 @@ function finalizeWorld() {
     tiles.setColorAt(i, c);
   });
   scene.add(tiles);
-  const under = new THREE.Mesh(new THREE.CircleGeometry(ARENA_R + 0.5, 72), FROST ? glow(0.45, 1.5, 2.2) : glow(0.15, 1.2, 1.45));
+  const under = new THREE.Mesh(new THREE.CircleGeometry(ARENA_R + 0.5, 72), glow(...TH.under));
   under.rotation.x = -Math.PI / 2; under.position.y = -0.14; scene.add(under);
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(ARENA_R + 0.4, 0.22, 8, 160), FROST ? iceGlow : roseGlow);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(ARENA_R + 0.4, 0.22, 8, 160), glow(...TH.rim));
   rim.rotation.x = Math.PI / 2; rim.position.y = -0.1; scene.add(rim);
   const cone = new THREE.ConeGeometry(ARENA_R + 1.2, 48, 30, 6); cone.rotateX(Math.PI);
   const p = cone.attributes.position, col = [];
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
     if (y < 23.5) p.setXYZ(i, x + 5 * hash(x, y, z) - 2.5, y + 3 * hash(z, x, y) - 1.5, z + 5 * hash(y, z, x) - 2.5);
-    const k = clamp((y + 24) / 48, 0, 1); if (FROST) col.push(0.28 + 0.4 * k, 0.4 + 0.4 * k, 0.62 + 0.32 * k); else col.push(0.09 + 0.12 * k, 0.07 + 0.08 * k, 0.16 + 0.12 * k);
+    const k = clamp((y + 24) / 48, 0, 1); const C = TH.cone; col.push(C[0] + C[3] * k, C[1] + C[4] * k, C[2] + C[5] * k);
   }
   cone.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); cone.computeVertexNormals();
   const under2 = new THREE.Mesh(cone, rockMat); under2.position.y = -25; scene.add(under2); decor.push(under2);
@@ -1245,6 +1410,157 @@ function crystal(x, y, z, s, color) {
   m.userData = { y, ph: Math.random() * 6 }; scene.add(m); crystals.push(m); return m;
 }
 const deg = THREE.MathUtils.degToRad;
+const animProps = [];
+// solid props: drawn with their own material, block bullets and bodies like walls do
+function solid(mesh, cx, cz, w, h, d, y0 = 0) {
+  mesh.castShadow = mesh.receiveShadow = true; scene.add(mesh); worldMeshes.push(mesh);
+  colliders.push({ min: new V3(cx - w / 2, y0, cz - d / 2), max: new V3(cx + w / 2, y0 + h, cz + d / 2) });
+  return mesh;
+}
+function deco(mesh, x, y, z) { mesh.position.set(x, y, z); mesh.castShadow = true; scene.add(mesh); return mesh; }
+const PM = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, ...o });
+const at = (r, a) => [Math.cos(deg(a)) * r, Math.sin(deg(a)) * r];
+function seasonalLayout(id) {
+  const tA = glow(...TH.rim), tB = glow(...TH.under);
+  // shared skeleton: centre piece, four corner terraces (the locker stands on the north-east one), cover on the axes, props on two outer rings
+  for (const a of [45, 135, 225, 315]) { const [x, z] = at(30, a); block(x, z, 10, 3, 10, 0, tA); }
+  const rnd = (() => { let q = 7; return () => (q = (q * 16807) % 2147483647) / 2147483647; })();
+  if (id === 'haunted') {
+    block(0, 0, 6, 9, 6, 0, tA); block(0, 0, 7.4, 0.6, 7.4, 9, tA);
+    const win = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.9, 1.5, 0.3) });
+    for (const [sx, sz, ry] of [[0, -3.02, 0], [0, 3.02, Math.PI], [-3.02, 0, Math.PI / 2], [3.02, 0, -Math.PI / 2]]) for (const y of [3, 6.2]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.5), win); w.rotation.y = ry; deco(w, sx, y, sz); }
+    const jack = bigPumpkin(2.6); deco(jack, 0, 11.6, 0); animProps.push(t => { jack.rotation.y = t * 0.3; });
+    const tomb = PM(0x8a8698, { roughness: 0.9 });
+    for (const a of [0, 90, 180, 270]) { const [cx, cz] = at(18, a), tx = -Math.sin(deg(a)), tz = Math.cos(deg(a)); for (const k of [-1, 0, 1]) { const x = cx + tx * k * 2.6, z = cz + tz * k * 2.6, g = tombstone(tomb); g.position.set(x, 0, z); g.rotation.y = deg(-a + 90); solid(g, x, z, 1.5, 1.9, 1.5); } }
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45);
+      if (k % 2 === 0) { const pk = bigPumpkin(1.2); pk.position.set(x, 1.1, z); pk.rotation.y = rnd() * 6; solid(pk, x, z, 2.3, 2.2, 2.3); }
+      else for (const o of [-1, 1]) { const g = tombstone(tomb); const xx = x + o * 1.2, zz = z - o * 0.8; g.position.set(xx, 0, zz); g.rotation.y = rnd() * 0.6; solid(g, xx, zz, 1.4, 1.9, 1.4); }
+    }
+    const bark = PM(0x2a2026, { roughness: 1 });
+    for (let k = 0; k < 6; k++) {
+      const [x, z] = at(52, k * 60 + 30), t = new THREE.Group();
+      t.add(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.7, 9, 7).translate(0, 4.5, 0), bark));
+      for (let b = 0; b < 5; b++) { const br = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.22, 3.4, 5).translate(0, 1.7, 0), bark); br.position.y = 4 + b * 1.1; br.rotation.set(rnd() * 0.6 - 0.3, rnd() * 6, 0.7 + rnd() * 0.5); t.add(br); }
+      t.position.set(x, 0, z); t.traverse(o => { o.castShadow = true; }); solid(t, x, z, 1.4, 9, 1.4);
+    }
+    // bats circling the tower
+    const batM = new THREE.MeshBasicMaterial({ color: 0x0a0610, side: THREE.DoubleSide }), batG = new THREE.BufferGeometry().setFromPoints([new V3(0, 0, 0), new V3(-0.7, 0.2, 0.2), new V3(-0.3, 0, -0.2), new V3(0, 0, 0), new V3(0.7, 0.2, 0.2), new V3(0.3, 0, -0.2)]);
+    for (let i = 0; i < 10; i++) { const b = new THREE.Mesh(batG, batM), r = 6 + rnd() * 6, h = 10 + rnd() * 6, sp = 0.5 + rnd() * 0.6, ph = rnd() * 6; scene.add(b); decor.push(b); animProps.push(t => { const a = t * sp + ph; b.position.set(Math.cos(a) * r, h + Math.sin(t * 3 + ph) * 0.6, Math.sin(a) * r); b.rotation.y = -a; b.scale.y = 0.6 + Math.abs(Math.sin(t * 14 + ph)); }); }
+  } else if (id === 'xmas') {
+    const trunk = PM(0x5a3418, { roughness: 1 }), needles = PM(0x1f6a3a, { roughness: 0.9, flatShading: true }), tree = new THREE.Group();
+    tree.add(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 3, 10).translate(0, 1.5, 0), trunk));
+    const tiers = [[4.6, 4.2, 4], [3.7, 3.8, 6.4], [2.8, 3.4, 8.6], [1.8, 3, 10.6]];
+    for (const [r, h, y] of tiers) tree.add(new THREE.Mesh(new THREE.ConeGeometry(r, h, 12).translate(0, y, 0), needles));
+    const balls = [0xe2313f, 0xffd23a, 0x2f7dff, 0xffffff].map(c => PM(c, { metalness: 0.7, roughness: 0.2 }));
+    for (const [r, h, y] of tiers) for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283 + y, rr = r * 0.62; const m = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), balls[i % 4]); m.position.set(Math.cos(a) * rr, y - h * 0.2, Math.sin(a) * rr); tree.add(m); }
+    const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.8, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.4, 0.5) })); star.position.y = 12.6; tree.add(star);
+    animProps.push(t => { star.rotation.y = t; });
+    tree.traverse(o => { o.castShadow = true; }); solid(tree, 0, 0, 4.2, 6, 4.2);
+    const wrap = [0xe2313f, 0x1f9a3a, 0x2f7dff, 0xffd23a].map(c => PM(c, { roughness: 0.45 })), ribbon = PM(0xffffff, { roughness: 0.3, metalness: 0.4 });
+    for (const a of [0, 90, 180, 270]) { const [cx, cz] = at(18, a), tx = -Math.sin(deg(a)), tz = Math.cos(deg(a)); [[-1.7, 1.8], [0.3, 1.2], [1.9, 2.2]].forEach(([o, sz], i) => { const x = cx + tx * o * 1.4, z = cz + tz * o * 1.4; solid(present(sz, wrap[(i + a / 90) % 4], ribbon, x, z), x, z, sz, sz, sz); }); }
+    const snow = PM(0xf6f9ff, { roughness: 1 }), coal = PM(0x111111);
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45);
+      if (k % 2 === 0) solid(candyCane(5, x, z), x, z, 0.9, 5, 0.9);
+      else { const g = new THREE.Group(); [[0.95, 0.9], [0.7, 2.25], [0.5, 3.25]].forEach(([r, y]) => { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), snow); b.position.y = y; g.add(b); }); for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), coal); e.position.set(sx * 0.17, 3.4, -0.43); g.add(e); } const nose = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.5, 8).rotateX(-Math.PI / 2), PM(0xff8a1f)); nose.position.set(0, 3.25, -0.65); g.add(nose); g.position.set(x, 0, z); g.rotation.y = Math.atan2(x, z); solid(g, x, z, 1.8, 3.6, 1.8); }
+    }
+    for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30); solid(candyCane(10, x, z), x, z, 1.2, 10, 1.2); }
+    lightString([0xff4d6a, 0x5ff2ff, 0xffd23a, 0x74ffb5]);
+  } else if (id === 'valentine') {
+    const marble = PM(0xf6eef2, { roughness: 0.3 }), water = new THREE.MeshStandardMaterial({ color: 0xff8fc4, roughness: 0.05, metalness: 0.3, transparent: true, opacity: 0.8 });
+    solid(new THREE.Mesh(new THREE.CylinderGeometry(4, 4.3, 1, 32).translate(0, 0.5, 0), marble), 0, 0, 6, 1, 6);
+    deco(new THREE.Mesh(new THREE.CylinderGeometry(3.7, 3.7, 0.1, 32), water), 0, 0.95, 0);
+    solid(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 5, 16).translate(0, 2.5, 0), marble), 0, 0, 1.6, 5, 1.6);
+    const heart = heartMesh(2.2, new THREE.MeshBasicMaterial({ color: new THREE.Color(1.9, 0.12, 0.5) })); deco(heart, 0, 8, 0); animProps.push(t => { heart.rotation.y = t * 0.8; heart.position.y = 8 + Math.sin(t * 1.5) * 0.4; });
+    const hedge = PM(0x2f7a3a, { roughness: 1 }), roses = [0xe3172f, 0xff6f9f, 0xffffff].map(c => PM(c, { roughness: 0.6 }));
+    for (const a of [0, 90, 180, 270]) { const [x, z] = at(18, a), along = Math.abs(Math.cos(deg(a))) < 0.5, w = along ? 7 : 1.4, d = along ? 1.4 : 7; const h = new THREE.Mesh(new THREE.BoxGeometry(w, 1.6, d).translate(x, 0.8, z), hedge); solid(h, x, z, w, 1.6, d); for (let i = 0; i < 10; i++) { const r = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), roses[i % 3]); deco(r, x + (along ? (i - 4.5) * 0.65 : rnd() * 0.8 - 0.4), 1.65, z + (along ? rnd() * 0.8 - 0.4 : (i - 4.5) * 0.65)); } }
+    const pinkGlow = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.9, 0.25, 0.8) });
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45), ry = Math.atan2(x, z) + Math.PI / 2;
+      if (k % 2 === 0) { const g = new THREE.Group(); for (const o of [-1.4, 1.4]) { const pl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.6, 0.5).translate(o, 1.8, 0), marble); g.add(pl); } const hm = heartMesh(1.3, pinkGlow); hm.position.y = 4.2; g.add(hm); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g); for (const o of [-1.4, 1.4]) { const px = x + Math.cos(ry) * o, pz = z - Math.sin(ry) * o; colliders.push({ min: new V3(px - 0.3, 0, pz - 0.3), max: new V3(px + 0.3, 3.6, pz + 0.3) }); } }
+      else { const b = new THREE.Mesh(new THREE.SphereGeometry(1.2, 14, 10), hedge); b.position.set(x, 1, z); b.scale.y = 0.8; solid(b, x, z, 2.2, 1.9, 2.2); for (let i = 0; i < 6; i++) deco(new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), roses[i % 3]), x + rnd() * 1.6 - 0.8, 1.6 + rnd() * 0.4, z + rnd() * 1.6 - 0.8); }
+    }
+    for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30); solid(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 8, 10).translate(x, 4, z), PM(0x2a2026, { metalness: 0.6 })), x, z, 0.6, 8, 0.6); const hm = heartMesh(1, pinkGlow); deco(hm, x, 8.6, z); animProps.push(t => { hm.rotation.y = t + k; }); }
+  } else if (id === 'easter') {
+    const egg = (r, mat, x, z, y = 0) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 18), mat); m.scale.y = 1.35; m.position.set(x, y + r * 1.3, z); return m; };
+    const eggMats = [easterTex(), pastelEggTex(), cupidTex(), bloomTex()].map(t => new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.35, clearcoat: 0.6 }));
+    solid(egg(2.6, eggMats[0], 0, 0), 0, 0, 4.2, 6.6, 4.2);
+    deco(new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.7, 10, 32).rotateX(Math.PI / 2), PM(0x9a6a3a, { roughness: 1 })), 0, 0.4, 0);
+    for (const a of [0, 90, 180, 270]) { const [cx, cz] = at(18, a), tx = -Math.sin(deg(a)), tz = Math.cos(deg(a)); for (const o of [-1, 1]) { const x = cx + tx * o * 2.2, z = cz + tz * o * 2.2; solid(egg(1, eggMats[(a / 90 + o + 2) % 4], x, z), x, z, 1.8, 2.7, 1.8); } }
+    const bush = PM(0x3f9a3a, { roughness: 1 }), petals = [0xff8fc4, 0xffffff, 0xb48cff, 0xfff38a].map(c => PM(c));
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45);
+      const b = new THREE.Mesh(new THREE.SphereGeometry(1.3, 14, 10), bush); b.scale.y = 0.75; b.position.set(x, 0.9, z); solid(b, x, z, 2.4, 1.9, 2.4);
+      for (let i = 0; i < 7; i++) deco(new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), petals[i % 4]), x + rnd() * 2 - 1, 1.5 + rnd() * 0.4, z + rnd() * 2 - 1);
+    }
+    const stem = PM(0x3f9a3a);
+    for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30); solid(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 9, 8).translate(x, 4.5, z), stem), x, z, 0.6, 9, 0.6); const cup = deco(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 0.4, 2.2, 6, 1, true), PM([0xff6f9f, 0xffd23a, 0xb48cff][k % 3], { side: THREE.DoubleSide })), x, 10, z); animProps.push(t => { cup.rotation.y = Math.sin(t * 0.5 + k) * 0.3; }); }
+    // little flowers scattered on the grass
+    const fl = new THREE.InstancedMesh(new THREE.SphereGeometry(0.12, 6, 4), new THREE.MeshStandardMaterial({ color: 0xffffff }), 260), m4 = new THREE.Matrix4(), c = new THREE.Color();
+    for (let i = 0; i < 260; i++) { const a = rnd() * 6.283, r = 8 + rnd() * 48; m4.makeTranslation(Math.cos(a) * r, 0.08, Math.sin(a) * r); fl.setMatrixAt(i, m4); fl.setColorAt(i, c.set([0xff8fc4, 0xffffff, 0xb48cff, 0xfff38a][i % 4])); }
+    scene.add(fl); decor.push(fl);
+  } else if (id === 'summer') {
+    block(0, 0, 8, 2.2, 8, 0, tA); block(0, 0, 4, 2, 4, 2.2, null);
+    const flagM = PM(0xff3b3b, { side: THREE.DoubleSide });
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) { block(sx * 3.2, sz * 3.2, 1.8, 5, 1.8, 0, null); deco(new THREE.Mesh(new THREE.ConeGeometry(1.3, 1.6, 4).rotateY(Math.PI / 4), PM(0xe8cf96)), sx * 3.2, 5.8, sz * 3.2); deco(new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5).translate(0.4, 0, 0), flagM), sx * 3.2, 7.1, sz * 3.2); }
+    const pole = PM(0xf4f4f4, { metalness: 0.5 }), canv = [0xff3b3b, 0x2f7dff, 0xffd23a, 0x19c7d0].map(c => PM(c, { side: THREE.DoubleSide }));
+    for (const a of [0, 90, 180, 270]) {
+      const [x, z] = at(18, a);
+      solid(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2, 8).translate(x, 1.6, z), pole), x, z, 0.3, 3.2, 0.3);
+      deco(new THREE.Mesh(new THREE.ConeGeometry(2.4, 0.9, 12, 1, true), canv[a / 90]), x, 3.2, z);
+      const chair = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 2), PM(0xffffff)); chair.position.set(x + 1.6, 0.3, z); solid(chair, x + 1.6, z, 1.2, 0.6, 2);
+    }
+    const trunkM = PM(0x9a6a3a, { roughness: 1 }), leafM = PM(0x2f9a4a, { side: THREE.DoubleSide, roughness: 0.8 });
+    const palm = (x, z, h) => { const g = new THREE.Group(); for (let i = 0; i < 6; i++) { const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.32 - i * 0.03, 0.38 - i * 0.03, h / 6, 8), trunkM); seg.position.set(Math.sin(i * 0.25) * 0.4, h / 12 + i * h / 6, 0); g.add(seg); } for (let i = 0; i < 7; i++) { const l = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.9, 4, 1).translate(1.7, 0, 0), leafM); l.position.set(0.9, h, 0); l.rotation.set(-0.5, i / 7 * 6.283, -0.3); g.add(l); } g.position.set(x, 0, z); g.traverse(o => { o.castShadow = true; }); solid(g, x, z, 0.9, h, 0.9); };
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45);
+      if (k % 2) palm(x, z, 6);
+      else { const board = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 2.6, 6, 12), PM([0xff6f91, 0x19c7d0, 0xffd23a, 0xffffff][k / 2])); board.scale.z = 0.25; board.position.set(x, 1.7, z); board.rotation.set(0, Math.atan2(x, z), 0.2); solid(board, x, z, 1.2, 3.2, 1.2); }
+    }
+    for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30); palm(x, z, 10); }
+  }
+  finalizeWorld();
+}
+function bigPumpkin(r) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), new THREE.MeshStandardMaterial({ color: 0xffffff, map: pumpkinTex(), roughness: 0.6, emissive: 0xffa21f, emissiveMap: pumpkinFace(), emissiveIntensity: 2.4 }));
+  body.scale.y = 0.82; g.add(body);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.08, r * 0.12, r * 0.4, 6), PM(0x3a6a2a)); stem.position.y = r * 0.9; g.add(stem);
+  return g;
+}
+function tombstone(mat) {
+  const g = new THREE.Group();
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.3, 0.35).translate(0, 0.65, 0), mat); g.add(slab);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.35, 16, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(Math.PI / 2), mat); top.position.y = 1.3; top.rotation.y = Math.PI / 2; g.add(top);
+  const cross = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.05), new THREE.MeshBasicMaterial({ color: 0x2a2630 })); cross.position.set(0, 1.05, -0.19); g.add(cross);
+  g.traverse(o => { o.castShadow = true; });
+  return g;
+}
+function present(sz, mat, ribbon, x, z) {
+  const g = new THREE.Group(); g.add(new THREE.Mesh(new THREE.BoxGeometry(sz, sz, sz).translate(0, sz / 2, 0), mat));
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(sz + 0.04, sz + 0.02, sz * 0.18).translate(0, sz / 2, 0), ribbon));
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(sz * 0.18, sz + 0.02, sz + 0.04).translate(0, sz / 2, 0), ribbon));
+  const bow = new THREE.Mesh(new THREE.TorusGeometry(sz * 0.18, sz * 0.06, 6, 14), ribbon); bow.position.y = sz + sz * 0.12; g.add(bow);
+  g.position.set(x, 0, z); g.rotation.y = (x * 7 + z) % 1; g.traverse(o => { o.castShadow = true; }); return g;
+}
+const caneTex = () => canvasTex('cane', x => { x.fillStyle = '#fff'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#e2313f'; for (let i = -8; i < 16; i++) { x.beginPath(); x.moveTo(i * 32, 0); x.lineTo(i * 32 + 16, 0); x.lineTo(i * 32 + 16 + 256, 256); x.lineTo(i * 32 + 256, 256); x.fill(); } });
+function candyCane(h, x, z) {
+  const m = new THREE.MeshStandardMaterial({ map: caneTex(), roughness: 0.3 }), g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, h, 14, 1).translate(0, h / 2, 0), m));
+  const hook = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.35, 10, 18, Math.PI), m); hook.position.set(0.8, h, 0); g.add(hook);
+  g.position.set(x, 0, z); g.rotation.y = Math.atan2(x, z); g.traverse(o => { o.castShadow = true; }); return g;
+}
+function heartMesh(s, mat) {
+  const sh = new THREE.Shape(); sh.moveTo(0, -0.9); sh.bezierCurveTo(-1.4, 0.1, -0.6, 1.1, 0, 0.35); sh.bezierCurveTo(0.6, 1.1, 1.4, 0.1, 0, -0.9);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 3 }); g.translate(0, 0, -0.15);
+  const m = new THREE.Mesh(g, mat); m.scale.setScalar(s); return m;
+}
+function lightString(cols) {
+  const n = 120, im = new THREE.InstancedMesh(new THREE.SphereGeometry(0.12, 6, 4), new THREE.MeshBasicMaterial(), n), m4 = new THREE.Matrix4(), c = new THREE.Color();
+  for (let i = 0; i < n; i++) { const a = i / n * 6.283, r = ARENA_R - 0.6; m4.makeTranslation(Math.cos(a) * r, 0.35 + Math.abs(Math.sin(i * 0.5)) * 0.3, Math.sin(a) * r); im.setMatrixAt(i, m4); im.setColorAt(i, c.set(cols[i % cols.length]).multiplyScalar(2.2)); }
+  scene.add(im); decor.push(im);
+}
 if (FROST) {
   // Frostfall: an ice keep in the middle, stair-cut daises on the diagonals, pillar gates on the axes, igloo bunkers and ice spires on the rim
   block(0, 0, 13, 1.2, 13, 0, iceGlow);
@@ -1284,6 +1600,8 @@ if (FROST) {
   finalizeWorld();
   crystal(0, 10.6, 0, 1.9, 0x9feaff);
   for (let k = 0; k < 3; k++) crystal(Math.cos(k * 2.1) * 3.2, 9.4, Math.sin(k * 2.1) * 3.2, 0.55, 0x7dffc8);
+} else if (MAP_INFO[settings.map].season) {
+  seasonalLayout(settings.map);
 } else {
 block(0, 0, 6, 8, 6, 0, roseGlow);
 for (const a of [45, 135, 225, 315]) { const r = THREE.MathUtils.degToRad(a); block(Math.cos(r) * 30, Math.sin(r) * 30, 10, 3, 10, 0, roseGlow); }
@@ -1325,9 +1643,9 @@ function island(r) {
   for (let i = 0; i < p.count; i++) {
     let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
     const j = 1 + (hash(Math.round(x * 10), Math.round(y * 10), Math.round(z * 10)) - 0.5) * 0.35;
-    x *= j; z *= j; y = y > 0 ? y * (FROST ? 0.5 + hash(i, 3, 7) * 0.5 : 0.22) : y * 1.25 * j;
+    x *= j; z *= j; y = y > 0 ? y * (TH.isle[2] > 0.5 ? 0.5 + hash(i, 3, 7) * 0.5 : TH.isle[2]) : y * 1.25 * j;
     p.setXYZ(i, x, y, z);
-    if (y > 0.05 * r) { if (FROST) col.push(0.86, 0.92, 1.0); else col.push(0.42, 0.36, 0.62); } else if (FROST) col.push(0.3, 0.5, 0.78); else col.push(0.12, 0.09, 0.2);
+    col.push(...(y > 0.05 * r ? TH.isle[0] : TH.isle[1]));
   }
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
   return new THREE.Mesh(g, rockMat);
@@ -1338,7 +1656,7 @@ for (let i = 0; i < 16; i++) {
   const m = island(r); m.position.set(Math.cos(a) * d, rand(-30, 45), Math.sin(a) * d); m.rotation.y = rand(0, 6);
   m.userData = { y: m.position.y, ph: rand(0, 6) };
   scene.add(m); islands.push(m); decor.push(m);
-  if (Math.random() < 0.6) { const c = crystal(m.position.x, m.position.y + r * 0.6, m.position.z, r * 0.25, FROST ? (Math.random() < .5 ? 0x9feaff : 0x7dffc8) : Math.random() < .5 ? 0x5ff2ff : 0xff4fa3); c.userData.y = m.position.y + r * 0.5; }
+  if (Math.random() < 0.6) { const c = crystal(m.position.x, m.position.y + r * 0.6, m.position.z, r * 0.25, pick(TH.isle[3])); c.userData.y = m.position.y + r * 0.5; }
 }
 const clouds = [];
 {
@@ -1349,7 +1667,7 @@ const clouds = [];
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
   for (let i = 0; i < 48; i++) {
     const a = rand(0, Math.PI * 2), d = rand(45, 520);
-    const mat = new THREE.SpriteMaterial({ map: tex, color: FROST ? new THREE.Color().setHSL(rand(0.55, 0.62), 0.35, rand(0.8, 0.92)) : new THREE.Color().setHSL(rand(0.88, 0.98), 0.45, rand(0.72, 0.86)), transparent: true, opacity: rand(0.35, 0.6), depthWrite: false });
+    const mat = new THREE.SpriteMaterial({ map: tex, color: new THREE.Color().setHSL(rand(TH.cloud[0], TH.cloud[1]), TH.cloud[2], rand(TH.cloud[3], TH.cloud[4])), transparent: true, opacity: rand(0.35, 0.6), depthWrite: false });
     const s = new THREE.Sprite(mat); const sz = rand(70, 150);
     s.scale.set(sz, sz * 0.45, 1); s.position.set(Math.cos(a) * d, rand(-55, -28), Math.sin(a) * d);
     s.userData = { a, d, sp: rand(0.002, 0.006) };
@@ -1357,11 +1675,11 @@ const clouds = [];
   }
 }
 const dust = (() => {
-  const n = FROST ? 1400 : 500, pos = new Float32Array(n * 3);
+  const n = TH.fx === 'dust' ? 500 : 1400, pos = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { const a = rand(0, 7), d = Math.sqrt(Math.random()) * 70; pos[i * 3] = Math.cos(a) * d; pos[i * 3 + 1] = rand(0.5, 26); pos[i * 3 + 2] = Math.sin(a) * d; }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const p = new THREE.Points(g, FROST ? new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true, opacity: 0.85, depthWrite: false })
-    : new THREE.PointsMaterial({ color: new THREE.Color(2.2, 1.6, 1.2), size: 0.11, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const p = new THREE.Points(g, TH.fx === 'snow' || TH.fx === 'petals' ? new THREE.PointsMaterial({ color: TH.fxColor, size: TH.fx === 'petals' ? 0.2 : 0.15, transparent: true, opacity: 0.85, depthWrite: false })
+    : new THREE.PointsMaterial({ color: TH.fx === 'embers' ? new THREE.Color(TH.fxColor).multiplyScalar(2.5) : TH.fxColor ? new THREE.Color(TH.fxColor).multiplyScalar(1.6) : new THREE.Color(2.2, 1.6, 1.2), size: TH.fx === 'embers' ? 0.14 : 0.11, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false }));
   scene.add(p); decor.push(p); return p;
 })();
 
@@ -1378,10 +1696,21 @@ const auroraMat = new THREE.ShaderMaterial({
       gl_FragColor = vec4(col * v * (0.45 + 0.55 * bands) * edge * 0.9, 1.0);
     }`,
 });
-if (FROST) for (const [r, y, a0, span, h] of [[900, 240, -0.4, 1.9, 170], [1100, 300, 1.9, 1.6, 210], [800, 200, 3.6, 1.3, 140]]) {
+if (TH.aurora) for (const [r, y, a0, span, h] of [[900, 240, -0.4, 1.9, 170], [1100, 300, 1.9, 1.6, 210], [800, 200, 3.6, 1.3, 140]]) {
   const g = new THREE.PlaneGeometry(1, 1, 160, 1), pp = g.attributes.position;
   for (let i = 0; i < pp.count; i++) { const u = pp.getX(i) + 0.5, v = pp.getY(i) + 0.5, a = a0 + u * span, rr = r + Math.sin(u * 7) * 60; pp.setXYZ(i, Math.cos(a) * rr, y + v * h, Math.sin(a) * rr); }
   const m = new THREE.Mesh(g, auroraMat); m.frustumCulled = false; scene.add(m); decor.push(m);
+}
+
+if (TH.moon) {
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 24), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.8, 1.7, 1.3), fog: false }));
+  moon.position.set(-420, 330, -900); scene.add(moon); decor.push(moon);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTex('soft', x => { const g = x.createRadialGradient(128, 128, 8, 128, 128, 128); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.5, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); }), color: new THREE.Color(1.2, 0.9, 0.6), transparent: true, opacity: 0.5, depthWrite: false, fog: false }));
+  halo.position.copy(moon.position); halo.scale.setScalar(420); scene.add(halo); decor.push(halo);
+}
+if (TH.ocean) {
+  const sea = new THREE.Mesh(new THREE.CircleGeometry(2400, 64), new THREE.MeshStandardMaterial({ color: 0x1aa8c8, roughness: 0.08, metalness: 0.3 }));
+  sea.rotation.x = -Math.PI / 2; sea.position.y = -45; scene.add(sea);
 }
 
 // CTF bases + flags
@@ -2149,6 +2478,7 @@ function addEars(hat, cfg, R, M) {
     }
   }
 }
+function flowerHat(put, M, R) { const p = M(0xffffff); for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; put(new THREE.SphereGeometry(R * 0.08, 8, 6), p, R * 0.72 + Math.cos(a) * R * 0.1, R * 0.12 + Math.sin(a) * R * 0.1, -R * 0.3); } put(new THREE.SphereGeometry(R * 0.07, 8, 6), M(0xffd23a), R * 0.72, R * 0.12, -R * 0.34); }
 function addHat(parent, id, hotdog, mats, av) {
   if (!id || id === 'none' || !HATS[id]) return;
   // droid: wide dome head; hot dog: narrow sausage tip, so hats sit higher with narrower brims
@@ -2242,6 +2572,47 @@ function addHat(parent, id, hotdog, mats, av) {
       put(cyl(R * 0.8, R * 0.8, R * 0.12, true), M(0xffd23a, { side: THREE.DoubleSide, metalness: 0.6, roughness: 0.3 }), 0, R * 0.08);
       break;
     }
+    case 'witch': {
+      const k = M(0x1a1024, { roughness: 0.8 });
+      put(cyl(R * 1.35 * bk, R * 1.35 * bk, 0.025), k, 0, 0.01);
+      const cone = put(new THREE.ConeGeometry(R * 0.72, R * 1.9, 20), k, -R * 0.1, R * 0.95); cone.rotation.z = 0.25;
+      put(cyl(R * 0.74, R * 0.74, R * 0.16, true), M(0x7a3bd6, { side: THREE.DoubleSide }), 0, R * 0.1);
+      put(new THREE.BoxGeometry(R * 0.2, R * 0.16, R * 0.06), M(0xffd23a, { metalness: 0.8, roughness: 0.3 }), 0, R * 0.1, -R * 0.75);
+      break;
+    }
+    case 'santa': {
+      const red = M(0xd61f2c, { roughness: 0.85 }), white = M(0xffffff, { roughness: 1 });
+      const cone = put(new THREE.ConeGeometry(R * 0.82, R * 1.5, 22), red, R * 0.12, R * 0.7); cone.rotation.z = -0.5;
+      put(new THREE.TorusGeometry(R * 0.86, R * 0.15, 10, 28), white, 0, R * 0.02, 0, Math.PI / 2);
+      put(new THREE.SphereGeometry(R * 0.2, 12, 10), white, R * 0.72, R * 1.15);
+      break;
+    }
+    case 'heartband': {
+      const band = M(0xffc2d9, { roughness: 0.5 }), red = M(0xff2f6e, { roughness: 0.3, emissive: 0x5a0a20 });
+      put(new THREE.TorusGeometry(R * 0.98, R * 0.05, 8, 32, Math.PI), band, 0, -R * 0.15, 0, 0, Math.PI / 2, 0);
+      for (const sx of [-1, 1]) {
+        put(new THREE.CylinderGeometry(R * 0.025, R * 0.025, R * 0.6, 6), band, sx * R * 0.4, R * 0.95, 0, 0, 0, -sx * 0.4);
+        for (const hx of [-1, 1]) put(new THREE.SphereGeometry(R * 0.11, 10, 8), red, sx * R * 0.55 + hx * R * 0.08, R * 1.32, 0);
+        const tip = put(new THREE.ConeGeometry(R * 0.15, R * 0.2, 10), red, sx * R * 0.55, R * 1.2, 0); tip.rotation.x = Math.PI;
+      }
+      break;
+    }
+    case 'eggshell': {
+      const shell = M(0xfffdf4, { roughness: 0.6, side: THREE.DoubleSide });
+      const cap = put(half(R * 0.9), shell, 0, -R * 0.02); cap.scale.y = 0.85;
+      for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; put(new THREE.ConeGeometry(R * 0.11, R * 0.22, 4), shell, Math.sin(a) * R * 0.86, -R * 0.08, Math.cos(a) * R * 0.86, Math.PI, 0, 0); }
+      put(new THREE.SphereGeometry(R * 0.07, 8, 6), M(0x7fc8ff), R * 0.3, R * 0.6, -R * 0.5);
+      put(new THREE.SphereGeometry(R * 0.06, 8, 6), M(0xff8fc4), -R * 0.35, R * 0.5, -R * 0.55);
+      break;
+    }
+    case 'sunhat': {
+      const straw = M(0xe8c88a, { roughness: 0.95, side: THREE.DoubleSide });
+      const brim = put(cyl(R * 1.55 * bk, R * 1.6 * bk, 0.02), straw, 0, 0); brim.rotation.x = 0.06;
+      const dome = put(half(R * 0.78), straw, 0, 0.0); dome.scale.y = 0.75;
+      put(cyl(R * 0.8, R * 0.8, R * 0.14, true), M(0xff6f91, { side: THREE.DoubleSide }), 0, R * 0.08);
+      flowerHat(put, M, R);
+      break;
+    }
     case 'viking': {
       const steel = M(0xb8bdcc, { metalness: 0.9, roughness: 0.35 });
       const helm = put(half(R * 1.05), steel, 0, -R * 0.12); helm.scale.y = 0.85;
@@ -2252,7 +2623,86 @@ function addHat(parent, id, hotdog, mats, av) {
     }
   }
 }
-function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none') {
+// ---------- pets: small companions built from simple shapes ----------
+function makePet(id, mats) {
+  const g = new THREE.Group(), M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.75, ...o }); mats.push(m); return m; };
+  const add = (geo, m, x, y, z, parent = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o; };
+  const S = (r) => new THREE.SphereGeometry(r, 16, 12), C = (r, l) => new THREE.CapsuleGeometry(r, l, 4, 8), K = (r, h) => new THREE.ConeGeometry(r, h, 10);
+  const black = M(0x111111, { roughness: 0.3 }), white = M(0xffffff, { roughness: 0.2 });
+  const info = { fly: false, tail: null, head: null };
+  const eyes = (head, y, z, sep = 0.07, size = 0.032) => { for (const sx of [-1, 1]) { add(S(size), black, sx * sep, y, z, head); add(S(size * 0.35), white, sx * sep + 0.01, y + 0.012, z - size * 0.8, head); } };
+  if (id === 'robot') {
+    info.fly = true;
+    const metal = M(0xd9dde8, { metalness: 0.7, roughness: 0.3 }), glowM = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.2, 2.8) }); mats.push(glowM);
+    add(new THREE.BoxGeometry(0.3, 0.26, 0.26), metal, 0, 0.3, 0);
+    const head = new THREE.Group(); head.position.set(0, 0.55, -0.02); g.add(head); info.head = head;
+    add(new THREE.BoxGeometry(0.3, 0.22, 0.24), metal, 0, 0, 0, head);
+    add(new THREE.BoxGeometry(0.24, 0.12, 0.01), M(0x0a0f1a, { roughness: 0.1 }), 0, 0, -0.125, head);
+    for (const sx of [-1, 1]) add(new THREE.BoxGeometry(0.05, 0.05, 0.01), glowM, sx * 0.06, 0, -0.132, head);
+    add(new THREE.CylinderGeometry(0.008, 0.008, 0.14, 6), metal, 0, 0.18, 0, head); add(S(0.035), glowM, 0, 0.26, 0, head);
+    for (const sx of [-1, 1]) add(C(0.035, 0.1), metal, sx * 0.19, 0.3, 0);
+    add(new THREE.ConeGeometry(0.08, 0.12, 12).rotateX(Math.PI), glowM, 0, 0.12, 0);
+    return Object.assign(g.userData, info), g;
+  }
+  if (id === 'penguin') {
+    const body = M(0x1a1c24), belly = M(0xf6f6f6), orange = M(0xffa31f);
+    add(C(0.16, 0.22), body, 0, 0.3, 0).scale.set(1, 1, 0.9); add(S(0.13), belly, 0, 0.27, -0.06).scale.set(1, 1.5, 0.7);
+    const head = new THREE.Group(); head.position.set(0, 0.56, 0); g.add(head); info.head = head;
+    add(S(0.13), body, 0, 0, 0, head); eyes(head, 0.03, -0.11, 0.05, 0.025);
+    add(K(0.035, 0.09).rotateX(-Math.PI / 2), orange, 0, -0.02, -0.15, head);
+    for (const sx of [-1, 1]) { add(new THREE.BoxGeometry(0.08, 0.02, 0.12), orange, sx * 0.07, 0.01, -0.05); const f = add(C(0.03, 0.14), body, sx * 0.18, 0.32, 0); f.rotation.z = sx * 0.4; }
+    return Object.assign(g.userData, info), g;
+  }
+  // four-legged pets (and a sitting monkey)
+  const P = {
+    dog: { fur: M(0xc98a4a), belly: M(0xf3dcb8), ears: 'floppy', tail: 'thin' },
+    cat: { fur: M(0x8a8f99), belly: M(0xe9e6e1), ears: 'pointy', tail: 'long' },
+    fox: { fur: M(0xffffff, { map: foxTex() }), belly: M(0xfbf3ea), ears: 'pointy', tail: 'bushy', tip: M(0xfbf3ea) },
+    tiger: { fur: M(0xffffff, { map: tigerTex() }), belly: M(0xf3e9dc), ears: 'round', tail: 'long' },
+    lion: { fur: M(0xd9a24a), belly: M(0xf0d29a), ears: 'round', tail: 'tuft', mane: M(0x8a4a1a, { roughness: 1 }) },
+    panda: { fur: M(0xffffff, { map: pandaTex() }), belly: M(0xf6f6f6), ears: 'round', earM: black, tail: 'stub', patches: true },
+    monkey: { fur: M(0x7a4a26), belly: M(0xe8c49a), ears: 'monkey', tail: 'curl', face: true },
+    dragon: { fur: M(0x3fbf5a, { roughness: 0.45 }), belly: M(0xf0e08a), ears: 'horns', tail: 'spiky', wings: true },
+  }[id] || { fur: M(0xc98a4a), belly: M(0xf3dcb8), ears: 'floppy', tail: 'thin' };
+  if (P.wings) info.fly = true;
+  const body = add(S(0.2), P.fur, 0, 0.3, 0); body.scale.set(0.95, 0.85, 1.3);
+  add(S(0.15), P.belly, 0, 0.25, -0.05).scale.set(0.8, 0.7, 1.1);
+  info.legs = [];
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const l = add(C(0.05, 0.14), P.fur, sx * 0.11, 0.12, sz * 0.16); info.legs.push(l); }
+  const head = new THREE.Group(); head.position.set(0, 0.5, -0.27); g.add(head); info.head = head;
+  add(S(0.16), P.fur, 0, 0, 0, head);
+  add(S(0.08), P.belly, 0, -0.04, -0.12, head).scale.set(1.1, 0.8, 1);
+  add(S(0.028), black, 0, -0.01, -0.2, head);
+  eyes(head, 0.05, -0.12);
+  if (P.patches) for (const sx of [-1, 1]) add(S(0.045), black, sx * 0.07, 0.05, -0.11, head).scale.set(1, 1.3, 0.6);
+  if (P.face) add(S(0.12), P.belly, 0, 0.0, -0.06, head).scale.set(1, 1, 0.8);
+  const earM = P.earM || P.fur;
+  for (const sx of [-1, 1]) {
+    if (P.ears === 'pointy') { const e = add(K(0.06, 0.14), earM, sx * 0.09, 0.15, 0, head); e.rotation.z = -sx * 0.25; }
+    else if (P.ears === 'floppy') { const e = add(C(0.04, 0.12), earM, sx * 0.15, 0.02, 0.02, head); e.rotation.z = sx * 0.3; }
+    else if (P.ears === 'round') add(S(0.05), earM, sx * 0.11, 0.13, 0.02, head).scale.z = 0.5;
+    else if (P.ears === 'monkey') add(S(0.06), P.belly, sx * 0.17, 0.02, 0, head).scale.z = 0.4;
+    else if (P.ears === 'horns') { const e = add(K(0.03, 0.14), M(0xf0e08a), sx * 0.07, 0.15, 0.04, head); e.rotation.x = 0.4; }
+  }
+  if (P.mane) { const mane = add(new THREE.TorusGeometry(0.15, 0.07, 8, 18), P.mane, 0, 0.01, 0.03, head); for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; add(S(0.06), P.mane, Math.cos(a) * 0.16, Math.sin(a) * 0.16, 0.05, head); } mane.scale.set(1, 1, 0.6); }
+  const tail = new THREE.Group(); tail.position.set(0, 0.36, 0.25); g.add(tail); info.tail = tail;
+  if (P.tail === 'bushy') { const t = add(K(0.09, 0.32), P.fur, 0, 0.12, 0.08, tail); t.rotation.x = -0.9; add(S(0.05), P.tip, 0, 0.24, 0.2, tail); }
+  else if (P.tail === 'stub') add(S(0.05), P.fur, 0, 0, 0.02, tail);
+  else if (P.tail === 'curl') { const t = add(new THREE.TorusGeometry(0.1, 0.02, 6, 16, Math.PI * 1.5), P.fur, 0, 0.12, 0.08, tail); t.rotation.y = Math.PI / 2; }
+  else { const t = add(C(0.025, P.tail === 'long' ? 0.28 : 0.2), P.fur, 0, 0.1, 0.06, tail); t.rotation.x = -0.7; if (P.tail === 'tuft') add(S(0.045), P.mane, 0, 0.21, 0.15, tail); if (P.tail === 'spiky') for (let k = 0; k < 3; k++) add(K(0.03, 0.07), P.belly, 0, 0.05 + k * 0.07, 0.04 + k * 0.05, tail); }
+  if (P.wings) { info.wings = []; for (const sx of [-1, 1]) { const w = new THREE.Group(); w.position.set(sx * 0.12, 0.42, 0.02); g.add(w); const m = add(new THREE.ConeGeometry(0.16, 0.32, 3), M(0x2a8a40, { side: THREE.DoubleSide }), sx * 0.16, 0, 0, w); m.rotation.z = sx * Math.PI / 2; m.scale.z = 0.15; info.wings.push(w); } }
+  return Object.assign(g.userData, info), g;
+}
+function animatePet(pet, t, moving) {
+  const u = pet.userData;
+  if (u.fly) pet.position.y = (pet.userData.baseY ?? 0) + 0.9 + Math.sin(t * 2.2) * 0.1;
+  else pet.position.y = (pet.userData.baseY ?? 0) + (moving ? Math.abs(Math.sin(t * 9)) * 0.08 : 0);
+  if (u.tail) u.tail.rotation.y = Math.sin(t * (moving ? 12 : 4)) * 0.5;
+  if (u.head) u.head.rotation.z = Math.sin(t * 1.3) * 0.12;
+  if (u.legs) u.legs.forEach((l, i) => { l.rotation.x = moving ? Math.sin(t * 12 + (i % 2) * Math.PI) * 0.5 : 0; });
+  if (u.wings) u.wings.forEach((w, i) => { w.rotation.z = (i ? -1 : 1) * Math.sin(t * 10) * 0.5; });
+}
+function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none', pet = '') {
   const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
   const vis = new THREE.MeshBasicMaterial({ color: look.gl });
@@ -2279,7 +2729,8 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   const blight = skin === 'infected';
   if (!blight) addHat(head, hat, hotdog, extraMats, av);
   av.userData.extraMats = extraMats;
-  let blightRing = null;
+  let blightRing = null, petG = null;
+  if (pet && PETS[pet] && pet !== 'none' && skin !== 'infected') { petG = makePet(pet, extraMats); petG.position.set(0.95, 0, 0.35); av.add(petG); }
   if (blight) {
     // bone spikes, glowing crown, claws and a toxic halo so the infected read clearly from far away
     const toxic = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.22, 1.5, 0.06) });
@@ -2321,7 +2772,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     av.userData.gearMat = gl;
   }
   scene.add(av);
-  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing };
+  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing, pet: petG };
 }
 function bubbleSprite(text) {
   const c = document.createElement('canvas'); c.width = 320; c.height = 96; const x = c.getContext('2d');
@@ -2362,6 +2813,7 @@ function emotePose(a) {
 }
 function avatarFX(a) {
   if (a.av.userData.prop) a.av.userData.prop.rotation.y += 0.3;
+  if (a.pet) animatePet(a.pet, time + a.phase * 9, a.vel ? Math.hypot(a.vel.x, a.vel.z) > 1.5 : false);
   if (a.rig) {
     const t = time * 2.2 + a.phase * 6, P = emotePose(a);
     a.rig.position.y = (a.down ? -0.75 : Math.sin(t) * 0.07) + P.hop;
@@ -2386,15 +2838,15 @@ function disposeAvatar(a) { dropBubble(a); scene.remove(a.av); for (const m of a
 // ================= locker: showcase avatar + shop =================
 const SHOW = new V3(21.2, 3, 21.2), UP = new V3(0, 1, 0), camHelper = new THREE.PerspectiveCamera();
 let showcase = null, showYaw = -0.6, menuTab = 'play';
-const preview = { suit: null, finish: null, addon: null, hat: null };
+const preview = { suit: null, finish: null, addon: null, hat: null, pet: null };
 function buildShowcase() {
   if (showcase) disposeAvatar(showcase);
   // on a profile page the showcase wears that player's look
   const pv = menuTab === 'prof' && profView && profView.p ? profView.p : null;
   const h = pv ? ((+pv.h || 0) % 360) : settings.hue;
   const look = { col: new THREE.Color().setHSL(h / 360, 0.65, 0.55), gl: new THREE.Color().setHSL(h / 360, 1, 0.6).multiplyScalar(2.6), css: `hsl(${h},100%,72%)` };
-  if (pv) showcase = makeAvatar(look, pv.n || '', false, SUITS[pv.sk] ? pv.sk : 'standard', FINISHES[pv.fn] ? pv.fn : 'factory', CLASSES[pv.cl] ? pv.cl : '', HATS[pv.ht] ? pv.ht : 'none');
-  else showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, isCoopMode(settings.mode) ? settings.cls : '', preview.hat || settings.hat);
+  if (pv) showcase = makeAvatar(look, pv.n || '', false, SUITS[pv.sk] ? pv.sk : 'standard', FINISHES[pv.fn] ? pv.fn : 'factory', CLASSES[pv.cl] ? pv.cl : '', HATS[pv.ht] ? pv.ht : 'none', PETS[pv.pt] ? pv.pt : '');
+  else showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, isCoopMode(settings.mode) ? settings.cls : '', preview.hat || settings.hat, preview.pet || settings.pet);
   showcase.av.position.copy(SHOW); showcase.label.visible = false; showcase.gun.visible = false;
   const sgun = pv ? (CLASSES[pv.cl] ? CLASSES[pv.cl].guns[0] : 'rifle') : isCoopMode(settings.mode) ? CLASSES[settings.cls].guns[0] : settings.gun;
   const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.scale.setScalar(1.35); g.position.set(0, -0.16, -0.32); showcase.arms[1].add(g);
@@ -2409,12 +2861,13 @@ function equip(kind, id) {
     if (curW === 'lmg') setWeapon('lmg', true);
     preview.addon = null; buildShowcase(); renderShop(); return;
   }
-  if (kind === 'suit') { settings.skin = id; store.set('skin', id); } else if (kind === 'hat') { settings.hat = id; store.set('hat', id); } else { settings.finish = id; store.set('finish', id); }
+  if (kind === 'suit') { settings.skin = id; store.set('skin', id); } else if (kind === 'hat') { settings.hat = id; store.set('hat', id); } else if (kind === 'pet') { settings.pet = id; store.set('pet', id); } else { settings.finish = id; store.set('finish', id); }
   preview[kind] = null; refreshPreview(); renderShop();
 }
 function shopClick(kind, id, def) {
   if (owns(kind, id)) return equip(kind, id);
   if (def.bundle) { toast(`${def.name} come free with the ${SUITS[def.bundle].name} suit.`); return; }
+  if (def.season && def.season !== SEASON) { toast(`${def.name} is a ${SEASONS[def.season].name} item. It comes back next ${SEASONS[def.season].name}.`); return; }
   if (wallet.coins < def.price) { toast(`You need ${(def.price - wallet.coins).toLocaleString()} more coins. Earn them in Squad Waves.`); return; }
   wallet.coins -= def.price; wallet.owned.push(kind + ':' + id); saveWallet(); queueCreatorCut(def.price);
   initAudio(); sfx.pickup();
@@ -2422,40 +2875,41 @@ function shopClick(kind, id, def) {
   toast(bonus ? `Unlocked ${def.name} + ${bonus.name}` : `Unlocked ${def.name}`);
   equip(kind, id); renderMenu();
 }
+function shopItem(kind, id, def, cur, el) {
+  const own = owns(kind, id), eq = cur === id, closed = def.season && def.season !== SEASON && !own;
+  const b = document.createElement('button');
+  b.className = 'item' + (eq ? ' eq' : own ? ' owned' : '') + (!own && (def.bundle || closed || wallet.coins < def.price) ? ' poor' : '');
+  b.style.setProperty('--pv', def.pv || (kind === 'pet' || kind === 'emote' ? 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))' : `linear-gradient(135deg,hsl(${settings.hue},75%,66%),hsl(${settings.hue},60%,36%))`));
+  b.style.setProperty('--hc', `hsl(${settings.hue},100%,60%)`);
+  const pv = document.createElement('div'); pv.className = 'pv' + (def.icon ? ' em' : ''); if (def.icon) pv.textContent = def.icon;
+  const nm = document.createElement('b'); nm.textContent = def.name;
+  const sm = document.createElement('small'); if (!own && !closed && !def.bundle) sm.className = 'coin';
+  sm.textContent = eq ? 'EQUIPPED' : own ? (kind === 'emote' ? (def.price ? 'OWNED · PREVIEW' : 'FREE · PREVIEW') : 'OWNED · EQUIP') : closed ? `${SEASONS[def.season].name.toUpperCase()} ONLY` : def.bundle ? `WITH ${SUITS[def.bundle].name.toUpperCase()} SUIT` : def.price.toLocaleString();
+  b.append(pv, nm, sm);
+  if (def.season) { const t = document.createElement('span'); t.className = 'tagS'; t.textContent = `${SEASONS[def.season].icon} ${kind.toUpperCase()}`; b.insertBefore(t, nm); }
+  if (kind !== 'emote') {
+    b.addEventListener('mouseenter', () => { preview[kind] = id; refreshPreview(); });
+    b.addEventListener('mouseleave', () => { preview[kind] = null; refreshPreview(); });
+  }
+  b.addEventListener('click', () => shopClick(kind, id, def));
+  el.appendChild(b);
+}
 function renderShop() {
   $('coinBig').textContent = wallet.coins.toLocaleString();
-  for (const [kind, defs, box, cur] of [['suit', SUITS, 'suitItems', settings.skin], ['hat', HATS, 'hatItems', settings.hat], ['finish', FINISHES, 'finishItems', settings.finish]]) {
-    const el = $(box); el.textContent = '';
-    for (const [id, def] of Object.entries(defs)) {
-      const own = owns(kind, id), eq = cur === id;
-      const b = document.createElement('button');
-      b.className = 'item' + (eq ? ' eq' : own ? ' owned' : '') + (!own && (def.bundle || wallet.coins < def.price) ? ' poor' : '');
-      b.style.setProperty('--pv', def.pv || `linear-gradient(135deg,hsl(${settings.hue},75%,66%),hsl(${settings.hue},60%,36%))`);
-      b.style.setProperty('--hc', `hsl(${settings.hue},100%,60%)`);
-      const pv = document.createElement('div'); pv.className = 'pv';
-      const nm = document.createElement('b'); nm.textContent = def.name;
-      const sm = document.createElement('small'); if (!own) sm.className = 'coin';
-      sm.textContent = eq ? 'EQUIPPED' : own ? 'OWNED · EQUIP' : def.bundle ? `WITH ${SUITS[def.bundle].name.toUpperCase()} SUIT` : def.price.toLocaleString();
-      if (def.bundle && !own) sm.className = '';
-      b.append(pv, nm, sm);
-      b.addEventListener('mouseenter', () => { preview[kind] = id; refreshPreview(); });
-      b.addEventListener('mouseleave', () => { preview[kind] = null; refreshPreview(); });
-      b.addEventListener('click', () => shopClick(kind, id, def));
-      el.appendChild(b);
-    }
+  // this season's limited items sit in their own box at the top; owned seasonal items also show in the normal lists
+  const sb = $('seasonBox'); sb.hidden = !SEASON;
+  if (SEASON) {
+    const S = SEASONS[SEASON], left = seasonDaysLeft();
+    sb.style.setProperty('--sc', S.css);
+    $('seasonTitle').textContent = `${S.icon} ${S.name.toUpperCase()} SHOP`;
+    $('seasonLeft').textContent = `Leaves in ${left} day${left === 1 ? '' : 's'} · yours forever once bought`;
+    const el = $('seasonItems'); el.textContent = '';
+    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish]])
+      for (const [id, def] of Object.entries(defs)) if (def.season === SEASON) shopItem(kind, id, def, cur, el);
   }
-  const ei = $('emoteItems'); ei.textContent = '';
-  for (const [id, def] of Object.entries(EMOTES)) {
-    const own = owns('emote', id), b = document.createElement('button');
-    b.className = 'item' + (own ? ' owned' : '') + (!own && wallet.coins < def.price ? ' poor' : '');
-    b.style.setProperty('--pv', 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))');
-    const pv = document.createElement('div'); pv.className = 'pv em'; pv.textContent = def.icon;
-    const nm = document.createElement('b'); nm.textContent = def.name;
-    const sm = document.createElement('small'); if (!own) sm.className = 'coin';
-    sm.textContent = own ? (def.price ? 'OWNED · PREVIEW' : 'FREE · PREVIEW') : def.price.toLocaleString();
-    b.append(pv, nm, sm);
-    b.addEventListener('click', () => shopClick('emote', id, def));
-    ei.appendChild(b);
+  for (const [kind, defs, box, cur] of [['suit', SUITS, 'suitItems', settings.skin], ['hat', HATS, 'hatItems', settings.hat], ['finish', FINISHES, 'finishItems', settings.finish], ['pet', PETS, 'petItems', settings.pet], ['emote', EMOTES, 'emoteItems', '']]) {
+    const el = $(box); el.textContent = '';
+    for (const [id, def] of Object.entries(defs)) if (!def.season || (def.season !== SEASON && owns(kind, id))) shopItem(kind, id, def, cur, el);
   }
   // add-ons stack on top of the chosen finish
   for (const [id, def] of Object.entries(ADDONS)) {
@@ -4233,11 +4687,12 @@ function updatePeers(dt, list) {
     const thr = teamMode() && team === myTeam;
     const blighted = mode === 'infect' && team === 1;
     const nm = String(d.n || 'Pilot').replace(/[\u0000-\u001f]/g, '').slice(0, 14) || 'Pilot';
+    const pt = PETS[d.pt] ? String(d.pt) : '';
     const sk = blighted ? 'infected' : SUITS[d.sk] ? d.sk : 'standard', fn = FINISHES[d.fn] ? d.fn : 'factory', cl = CLASSES[d.cl] ? d.cl : '', ht = blighted ? 'none' : HATS[d.ht] ? d.ht : 'none';
-    if (o && (o.team !== team || o.thr !== thr || o.name !== nm || o.sk !== sk || o.fn !== fn || o.cl !== cl || o.ht !== ht || o.hue !== hue)) { disposeAvatar(o); peers.delete(p.id); o = null; }
+    if (o && (o.team !== team || o.thr !== thr || o.pt !== pt || o.name !== nm || o.sk !== sk || o.fn !== fn || o.cl !== cl || o.ht !== ht || o.hue !== hue)) { disposeAvatar(o); peers.delete(p.id); o = null; }
     if (!o) {
-      const a = makeAvatar(avatarLook(team, hue), nm, thr, sk, fn, cl, ht);
-      o = Object.assign(a, { id: p.id, name: nm, team, thr, sk, fn, cl, ht, hue, abSeen: Array.isArray(d.ab) && d.ab.length ? Math.max(...d.ab.map(x => +x[0] || 0)) : 0, pos: new V3(d.x, d.y, d.z), vel: new V3(), yaw: +d.yw || 0, dmgSeen: null, shSeen: Array.isArray(d.sh) ? d.sh[0] : 0, rkSeen: Array.isArray(d.rk) ? d.rk[0] : 0, gnSeen: Array.isArray(d.gn) ? d.gn[0] : 0, ctSeen: Array.isArray(d.ct) ? d.ct[0] : 0, kbSeen: Array.isArray(d.kb) ? d.kb[0] : 0, emSeen: Array.isArray(d.em) ? d.em[0] : 0 });
+      const a = makeAvatar(avatarLook(team, hue), nm, thr, sk, fn, cl, ht, pt);
+      o = Object.assign(a, { id: p.id, name: nm, team, thr, pt, sk, fn, cl, ht, hue, abSeen: Array.isArray(d.ab) && d.ab.length ? Math.max(...d.ab.map(x => +x[0] || 0)) : 0, pos: new V3(d.x, d.y, d.z), vel: new V3(), yaw: +d.yw || 0, dmgSeen: null, shSeen: Array.isArray(d.sh) ? d.sh[0] : 0, rkSeen: Array.isArray(d.rk) ? d.rk[0] : 0, gnSeen: Array.isArray(d.gn) ? d.gn[0] : 0, ctSeen: Array.isArray(d.ct) ? d.ct[0] : 0, kbSeen: Array.isArray(d.kb) ? d.kb[0] : 0, emSeen: Array.isArray(d.em) ? d.em[0] : 0 });
       o.body.userData.peer = p.id; peers.set(p.id, o); updateNetLabel();
     }
     o.d = d;
@@ -4289,7 +4744,7 @@ let presT = 0;
 function buildPresence() {
   const p = player.pos;
   const o = {
-    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
+    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet !== 'none' ? settings.pet : '', cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
     st: state === 'menu' ? 'm' : state === 'dead' ? 'x' : 'p', al: player.alive ? 1 : 0,
     x: r2(p.x), y: r2(p.y), z: r2(p.z), yw: r2(player.yaw), wp: WIDS.indexOf(curW), lv: ggLv, f: frags, d: deaths, s: score,
     dn: player.downed ? 1 : 0, rp: reviveTarget && reviveT > 0 ? [reviveTarget, r2(reviveT)] : null,
@@ -4785,7 +5240,7 @@ const social = () => !!(conn && conn.send && conn.connected());
 const netSend = o => { if (!social()) return false; conn.send(o); return true; };
 const menuOpenNow = () => state === 'menu' || (state === 'paused' && !$('menu').hidden);
 function myProfile() {
-  return { n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, cl: settings.cls, since: stats.since,
+  return { n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet, cl: settings.cls, since: stats.since,
     st: { k: stats.k, d: stats.d, w: stats.w, bk: stats.bk, inf: stats.inf, gp: stats.gp, pt: Math.round(stats.pt), ch: stats.ch, bw: best.wave, bs: best.score, br: bestBoss.wave } };
 }
 function sendProf() { const p = myProfile(), j = JSON.stringify(p); if (j !== lastProfSent && netSend({ t: 'prof', p })) lastProfSent = j; }
@@ -4959,6 +5414,28 @@ addEventListener('keydown', e => {
 });
 renderBadge();
 
+// your own pet trots along beside you (others see it on your avatar)
+let myPet = null, myPetId = '';
+function updateMyPet(dt) {
+  const want = state !== 'menu' && settings.pet !== 'none' && !amInfected() ? settings.pet : '';
+  if (want !== myPetId) {
+    if (myPet) { scene.remove(myPet); for (const m of myPet.userData.mats) m.dispose(); myPet = null; }
+    myPetId = want;
+    if (want) { const mats = []; myPet = makePet(want, mats); myPet.userData.mats = mats; myPet.position.copy(player.pos); scene.add(myPet); }
+  }
+  if (!myPet) return;
+  myPet.visible = player.alive;
+  const sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
+  const tx = player.pos.x + cy * 1.1 + sy * 0.8, tz = player.pos.z - sy * 1.1 + cy * 0.8;
+  const k = 1 - Math.exp(-6 * dt), px = myPet.position.x, pz = myPet.position.z;
+  myPet.position.x += (tx - px) * k; myPet.position.z += (tz - pz) * k;
+  if (Math.hypot(tx - myPet.position.x, tz - myPet.position.z) > 12) myPet.position.set(tx, player.pos.y, tz);
+  myPet.userData.baseY = damp(myPet.userData.baseY ?? player.pos.y, player.pos.y, 10, dt);
+  const sp = Math.hypot(myPet.position.x - px, myPet.position.z - pz) / Math.max(dt, 1e-3);
+  if (sp > 0.6) { const want2 = Math.atan2(px - myPet.position.x, pz - myPet.position.z); myPet.rotation.y += Math.atan2(Math.sin(want2 - myPet.rotation.y), Math.cos(want2 - myPet.rotation.y)) * k; }
+  animatePet(myPet, time, sp > 1.5);
+}
+
 // ================= main loop =================
 let hiddenDrawT = 0, last = performance.now(), boardT = 0, labelT = 0, fpsN = 0, fpsT = performance.now();
 function rafLoop(now) { requestAnimationFrame(rafLoop); if (!document.hidden) frame(now); }
@@ -4970,14 +5447,18 @@ function frame(now) {
   for (const c of crystals) { c.rotation.y += dt * 0.6; c.position.y = c.userData.y + Math.sin(time * 1.3 + c.userData.ph) * 0.35; }
   for (const m of islands) m.position.y = m.userData.y + Math.sin(time * 0.3 + m.userData.ph) * 1.5;
   for (const c of clouds) { c.userData.a += c.userData.sp * dt; c.position.x = Math.cos(c.userData.a) * c.userData.d; c.position.z = Math.sin(c.userData.a) * c.userData.d; }
-  if (FROST) {
-    auroraMat.uniforms.uTime.value = time % 1000;
-    if (dust.visible) {
-      const a = dust.geometry.attributes.position.array;
-      for (let i = 0; i < a.length; i += 3) { a[i + 1] -= dt * (1.6 + (i % 7) * 0.12); a[i] += Math.sin(time * 0.7 + i) * dt * 0.4; if (a[i + 1] < 0) a[i + 1] += 26; }
-      dust.geometry.attributes.position.needsUpdate = true;
+  if (TH.aurora) auroraMat.uniforms.uTime.value = time % 1000;
+  if (TH.fx !== 'dust' && dust.visible) {
+    // snow and petals fall and drift; embers rise
+    const a = dust.geometry.attributes.position.array, up = TH.fx === 'embers', fall = TH.fx === 'petals' ? 0.9 : 1.6;
+    for (let i = 0; i < a.length; i += 3) {
+      if (up) { a[i + 1] += dt * (0.8 + (i % 7) * 0.15); if (a[i + 1] > 26) a[i + 1] -= 25.5; }
+      else { a[i + 1] -= dt * (fall + (i % 7) * 0.12); if (a[i + 1] < 0) a[i + 1] += 26; }
+      a[i] += Math.sin(time * (up ? 1.4 : 0.7) + i) * dt * (TH.fx === 'petals' ? 0.9 : 0.4);
     }
+    dust.geometry.attributes.position.needsUpdate = true;
   } else { dust.rotation.y += dt * 0.01; dust.position.y = Math.sin(time * 0.4) * 0.5; }
+  for (const f of animProps) f(time, dt);
   for (const pd of pads) pd.rings.forEach((r, i) => { const k = (time * 0.8 + i / 3) % 1; r.position.y = 0.15 + k * 2.2; r.scale.setScalar(1 - k * 0.35); r.material.opacity = (1 - k) * 0.9; });
 
   const list = netTick();
@@ -4989,7 +5470,7 @@ function frame(now) {
   if (state === 'playing') { updatePlayer(dt); stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
   updateOrbs(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
-  updateWeapon(dt); updateFlags(dt);
+  updateWeapon(dt); updateFlags(dt); updateMyPet(dt);
   sendPresence(dt);
   updateFX(dt);
   labelT -= dt; if (labelT <= 0) { labelT = 1; updateNetLabel(); if (menuOpenNow()) renderParty(); }

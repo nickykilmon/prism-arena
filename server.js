@@ -65,7 +65,7 @@ function cleanProfile(p) {
   const num = v => Math.max(0, Math.min(1e9, Math.floor(+v || 0)));
   const str = (v, n) => String(v || '').replace(/[\u0000-\u001f]/g, '').slice(0, n);
   const st = p.st && typeof p.st === 'object' ? p.st : {};
-  return { n: str(p.n, 14) || 'Pilot', h: num(p.h) % 360, sk: str(p.sk, 16), fn: str(p.fn, 16), ht: str(p.ht, 16), cl: str(p.cl, 12),
+  return { n: str(p.n, 14) || 'Pilot', h: num(p.h) % 360, sk: str(p.sk, 16), fn: str(p.fn, 16), ht: str(p.ht, 16), pt: str(p.pt, 12), cl: str(p.cl, 12),
     st: Object.fromEntries(STAT_KEYS.map(k => [k, num(st[k])])), since: Math.max(0, Math.min(Date.now(), Math.floor(+p.since || 0))) };
 }
 const seen = new Map();  // player ID -> { name, last, room } for the /players lookup page
