@@ -274,7 +274,7 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
 #elist button kbd{font-size:10px;padding:0 5px}
 #elist button:hover{border-color:var(--cyan)}
 .pv.em{display:flex;align-items:center;justify-content:center;font-size:26px}
-#seasonBox{border:1px solid var(--sc,#ff8a2a);border-radius:8px;padding:10px;background:linear-gradient(180deg,color-mix(in srgb,var(--sc,#ff8a2a) 14%,transparent),transparent)}
+.seasonbox{border:1px solid var(--sc,#ff8a2a);border-radius:8px;padding:10px;background:linear-gradient(180deg,color-mix(in srgb,var(--sc,#ff8a2a) 14%,transparent),transparent)}
 .seasonhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px;font-family:var(--display)}
 .seasonhead b{letter-spacing:.16em;font-size:13px;color:var(--sc,#ff8a2a)}
 .seasonhead span{font-size:12px;color:var(--dim);letter-spacing:.06em}
@@ -414,7 +414,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="crow"><input id="ccode" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Creator code"><button class="ghost" id="capply">APPLY</button></div>
         <small id="cmsg">Creators get 10% of the coins you spend, on top of your purchase.</small>
       </div>
-      <div id="seasonBox" hidden><div class="seasonhead"><b id="seasonTitle"></b><span id="seasonLeft"></span></div><div class="items" id="seasonItems"></div></div>
+      <div id="seasonBoxes" class="pane" style="gap:12px"></div>
       <div class="sect" style="margin-bottom:8px">Suits</div>
       <div class="items" id="suitItems"></div>
       <div class="sect" style="margin-bottom:8px">Hats</div>
@@ -613,17 +613,22 @@ const SEASONS = {
   valentine: { name: "Valentine's", icon: '💘', from: [2, 1], to: [2, 20], css: '#ff6fb5' },
   easter: { name: 'Easter', icon: '🥚', from: [3, 20], to: [4, 30], css: '#b6ff8a' },
   summer: { name: 'Summer', icon: '🏖️', from: [6, 15], to: [8, 31], css: '#5ff2ff' },
+  thanksgiving: { name: 'Thanksgiving', icon: '🦃', from: [11, 8], to: [11, 30], css: '#e0892b' },
+  blackhistory: { name: 'Black History Month', icon: '✊🏿', from: [2, 1], to: [2, 29], css: '#ffc83a' },
+  pride: { name: 'Pride Month', icon: '🏳️‍🌈', from: [6, 1], to: [6, 30], css: '#c58cff' },
 };
-function seasonOn(d = new Date()) {
+// several seasons can overlap (February has Valentine's and Black History Month; June has Pride and the start of Summer)
+function seasonsOn(d = new Date()) {
   const md = (d.getMonth() + 1) * 100 + d.getDate();
-  for (const [k, v] of Object.entries(SEASONS)) { const a = v.from[0] * 100 + v.from[1], b = v.to[0] * 100 + v.to[1]; if (a <= b ? md >= a && md <= b : md >= a || md <= b) return k; }
-  return null;
+  return Object.entries(SEASONS).filter(([, v]) => { const a = v.from[0] * 100 + v.from[1], b = v.to[0] * 100 + v.to[1]; return a <= b ? md >= a && md <= b : md >= a || md <= b; }).map(([k]) => k);
 }
 // localStorage prism.seasonTest previews another season (for testing)
-const SEASON = (() => { const t = store.get('seasonTest', null); return SEASONS[t] ? t : seasonOn(); })();
-function seasonDaysLeft() {
-  if (!SEASON) return 0;
-  const v = SEASONS[SEASON], now = new Date();
+const SEASONS_ON = (() => { const t = store.get('seasonTest', null); return SEASONS[t] ? [t] : seasonsOn(); })();
+const SEASON = SEASONS_ON[0] || null;
+const seasonActive = k => SEASONS_ON.includes(k);
+function seasonDaysLeft(k = SEASON) {
+  if (!k) return 0;
+  const v = SEASONS[k], now = new Date();
   let end = new Date(now.getFullYear(), v.to[0] - 1, v.to[1], 23, 59, 59);
   if (end < now) end = new Date(now.getFullYear() + 1, v.to[0] - 1, v.to[1], 23, 59, 59);
   return Math.max(1, Math.ceil((end - now) / 86400000));
@@ -649,7 +654,7 @@ const settings = {
 const MODES = ['waves', 'boss', 'ffa', 'gungame', 'ctf', 'infect'];
 if (!MODES.includes(settings.mode)) settings.mode = 'waves';
 if (!LOADOUT.includes(settings.gun)) settings.gun = 'rifle';
-const MAPS = { prism: 'Prism Spire', frost: 'Frostfall', haunted: 'Haunted Hollow', xmas: 'Candy Cane Village', valentine: 'Heart Gardens', easter: 'Egg Meadow', summer: 'Splash Isle' };
+const MAPS = { prism: 'Prism Spire', frost: 'Frostfall', haunted: 'Haunted Hollow', harvest: 'Harvest Farm', xmas: 'Candy Cane Village', heritage: 'Heritage Square', valentine: 'Heart Gardens', easter: 'Egg Meadow', pride: 'Pride Parade', summer: 'Splash Isle' };
 // seasonal maps only show up during their season
 const MAP_INFO = {
   prism: { blurb: 'Floating crystal arena at sunset.', mp: 'linear-gradient(160deg,#ffcf9a,#ff8fc4 35%,#b48cff 60%,#3b355e)' },
@@ -658,9 +663,12 @@ const MAP_INFO = {
   xmas: { season: 'christmas', blurb: 'Gingerbread houses around a giant tree.', mp: 'radial-gradient(circle at 50% 35%,#ffd23a 0 6%,transparent 7%),linear-gradient(180deg,#24305a,#7a8ac8 50%,#f4f8ff)' },
   valentine: { season: 'valentine', blurb: 'Rose gardens and a heart fountain.', mp: 'radial-gradient(circle at 50% 55%,#ff2f6e 0 12%,transparent 13%),linear-gradient(180deg,#ff9ac0,#ffd6e6 60%,#f2a6c4)' },
   easter: { season: 'easter', blurb: 'A spring meadow full of giant eggs.', mp: 'radial-gradient(ellipse at 50% 70%,#ffd6ec 0 14%,transparent 15%),linear-gradient(180deg,#8fd0ff,#cfeaff 50%,#7fc85a 51%)' },
+  harvest: { season: 'thanksgiving', blurb: 'A red barn, hay bales and autumn trees.', mp: 'radial-gradient(circle at 70% 30%,#ffd28a 0 8%,transparent 9%),linear-gradient(180deg,#ffb060,#e07a2a 50%,#8a5a2a 51%,#c89a4a)' },
+  heritage: { season: 'blackhistory', blurb: 'Kente banners, a monument flame and baobab trees.', mp: 'linear-gradient(180deg,#c41e1e 0 30%,#111 30% 60%,#1f8a3a 60%),radial-gradient(circle,#ffc83a,#ffc83a)' },
+  pride: { season: 'pride', blurb: 'Rainbow arch, flags and falling confetti.', mp: 'linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
   summer: { season: 'summer', blurb: 'Sandcastles, palm trees and open sea.', mp: 'linear-gradient(180deg,#5fc8ff,#bfeaff 50%,#19c7d0 51%,#f6e0aa 75%)' },
 };
-const mapOpen = id => !!MAPS[id] && (!MAP_INFO[id].season || MAP_INFO[id].season === SEASON);
+const mapOpen = id => !!MAPS[id] && (!MAP_INFO[id].season || seasonActive(MAP_INFO[id].season));
 if (!mapOpen(settings.map)) settings.map = 'prism';
 const FROST = settings.map === 'frost';
 const THEMES = {
@@ -670,6 +678,9 @@ const THEMES = {
   xmas: { exp: 0.6, fog: [0xb8c6e0, 110], sun: [8, 120], sky: [2, 1.6, 0.003, 0.88], hemi: [0xdde8ff, 0x3a2a40, 1.0], sunC: [0xffc89a, 2.2], stone: [0xb0784a, 0.8, 0.05, 0xc08a5a], tileRM: [0.6, 0.05], tiles: ['#c9d6ea', '#f4f8ff', '#e2313f'], under: [1.6, 0.3, 0.4], rim: [2.9, 0.4, 0.5], cone: [0.3, 0.38, 0.55, 0.5, 0.45, 0.4], isle: [[0.9, 0.94, 1.0], [0.35, 0.45, 0.6], 0.45, [0xff4d6a, 0x2fbf6a]], cloud: [0.58, 0.62, 0.2, 0.85, 0.95], fx: 'snow', fxColor: 0xffffff, snowCaps: true, aurora: true },
   valentine: { exp: 0.58, fog: [0xe8a6c0, 120], sun: [5, 220], sky: [9, 3.6, 0.007, 0.93], hemi: [0xffd6e6, 0x5a2440, 0.95], sunC: [0xffb0c0, 2.4], stone: [0xf2dce6, 0.4, 0.1, 0xf6e4ec], tileRM: [0.3, 0.2], tiles: ['#c85a8a', '#f2a6c4', '#ff2f6e'], under: [2.6, 0.6, 1.4], rim: [2.9, 0.4, 1.0], cone: [0.35, 0.15, 0.25, 0.4, 0.3, 0.3], isle: [[0.95, 0.75, 0.85], [0.4, 0.15, 0.25], 0.25, [0xff2f6e, 0xffffff]], cloud: [0.92, 0.98, 0.6, 0.8, 0.9], fx: 'petals', fxColor: 0xff6f9f },
   easter: { exp: 0.48, fog: [0xa8d4ff, 220], sun: [40, 160], sky: [2, 1.2, 0.003, 0.8], hemi: [0xfff6e0, 0x4a6a3a, 0.75], sunC: [0xfff2d6, 2.2], stone: [0xfff0d6, 0.6, 0.05, 0xfff4e2], tileRM: [0.85, 0], tiles: ['#4f9e3c', '#86cc5e', '#ffd6ec'], under: [0.6, 1.6, 0.6], rim: [2.6, 1.6, 2.4], cone: [0.3, 0.2, 0.1, 0.2, 0.45, 0.15], isle: [[0.45, 0.8, 0.35], [0.35, 0.25, 0.15], 0.3, [0xffb6dc, 0xb6e0ff]], cloud: [0, 1, 0, 0.92, 1], fx: 'petals', fxColor: 0xffd6ec },
+  harvest: { exp: 0.56, fog: [0xd9a066, 140], sun: [8, 230], sky: [6, 2.4, 0.005, 0.9], hemi: [0xffd6a0, 0x3a2416, 0.95], sunC: [0xffb060, 2.6], stone: [0x9a6a42, 0.85, 0.05, 0xa87a52], tileRM: [0.85, 0], tiles: ['#5a4020', '#8a6a32', '#ff9a2a'], under: [1.8, 0.8, 0.2], rim: [2.9, 1.2, 0.3], cone: [0.3, 0.2, 0.1, 0.3, 0.2, 0.1], isle: [[0.85, 0.55, 0.2], [0.3, 0.2, 0.1], 0.25, [0xff8a2a, 0xffd23a]], cloud: [0.06, 0.1, 0.5, 0.75, 0.88], fx: 'petals', fxColor: 0xd9622b },
+  heritage: { exp: 0.56, fog: [0xd98a4a, 140], sun: [9, 240], sky: [6, 2.6, 0.005, 0.9], hemi: [0xffd6a0, 0x2a1810, 0.95], sunC: [0xffb870, 2.6], stone: [0xc9a46a, 0.7, 0.1, 0xd4b07a], tileRM: [0.6, 0.15], tiles: ['#3a2418', '#5a3a22', '#ffc83a'], under: [1.0, 0.65, 0.08], rim: [0.25, 1.8, 0.45], cone: [0.25, 0.15, 0.08, 0.35, 0.25, 0.12], isle: [[0.75, 0.55, 0.3], [0.25, 0.15, 0.08], 0.25, [0xffc83a, 0x2fbf6a]], cloud: [0.05, 0.1, 0.5, 0.75, 0.88], fx: 'dust', fxColor: 0x806020 },
+  pride: { exp: 0.54, fog: [0xd6b8ff, 150], sun: [20, 200], sky: [3, 2.2, 0.004, 0.88], hemi: [0xffe6ff, 0x3a2a5a, 1.0], sunC: [0xfff0f8, 2.6], stone: [0xf4f0ff, 0.5, 0.1, 0xf8f4ff], tileRM: [0.35, 0.2], tiles: ['#ffffff', '#ffffff', '#ffffff'], rainbowTiles: true, under: [0.7, 0.5, 0.9], rim: [2.6, 2.6, 2.6], cone: [0.3, 0.2, 0.4, 0.4, 0.3, 0.4], isle: [[0.9, 0.85, 1.0], [0.3, 0.2, 0.4], 0.25, [0xff4f6e, 0x5ff2ff]], cloud: [0.75, 0.95, 0.5, 0.8, 0.92], fx: 'confetti' },
   summer: { exp: 0.48, fog: [0x8fd0ff, 230], sun: [50, 200], sky: [2.5, 1, 0.003, 0.8], hemi: [0xfff2d0, 0x3a7a8a, 0.8], sunC: [0xfff0c8, 2.4], stone: [0xe8cf96, 0.85, 0.02, 0xf0dcb0], tileRM: [0.9, 0], tiles: ['#dcbd7e', '#f6e0aa', '#19c7d0'], under: [0.2, 1.8, 2.4], rim: [0.3, 2.6, 2.9], cone: [0.55, 0.45, 0.3, 0.35, 0.3, 0.2], isle: [[0.95, 0.85, 0.6], [0.45, 0.38, 0.28], 0.25, [0x19c7d0, 0xff6f91]], cloud: [0, 1, 0, 0.94, 1], fx: 'dust', fxColor: 0x6a5a40, ocean: true },
 };
 const TH = THEMES[settings.map] || THEMES.prism;
@@ -988,6 +999,13 @@ const SUITS = {
   watermelon: { name: 'Watermelon', price: 500, season: 'summer', pv: 'linear-gradient(180deg,#ff5a6e 0 60%,#f4ffe8 60% 66%,#1f8a3a 66%)' },
   beachball: { name: 'Beach Ball', price: 550, season: 'summer', pv: 'conic-gradient(#ff3b3b 0 25%,#fff 0 50%,#2f7dff 0 75%,#ffd23a 0)' },
   lifeguard: { name: 'Lifeguard', price: 600, season: 'summer', pv: 'linear-gradient(90deg,transparent 42%,#fff 42% 58%,transparent 58%),linear-gradient(0deg,transparent 42%,#fff 42% 58%,transparent 58%),#e3172f' },
+  pilgrim: { name: 'Pilgrim', price: 450, season: 'thanksgiving', pv: 'linear-gradient(180deg,#f4f0e6 0 22%,#16141a 22% 70%,#d9b44a 70% 76%,#16141a 76%)' },
+  gobbler: { name: 'Gobbler', price: 500, season: 'thanksgiving', pv: 'radial-gradient(circle at 50% 120%,#d94a1f 0 30%,#e8a33a 30% 45%,#8a5a2a 45% 60%,#5a3418 60%)' },
+  harvest: { name: 'Harvest', price: 550, season: 'thanksgiving', pv: 'radial-gradient(circle at 25% 30%,#d9302a 0 10%,transparent 11%),radial-gradient(circle at 70% 65%,#ffb02a 0 12%,transparent 13%),#8a4a1a' },
+  kente: { name: 'Kente', price: 500, season: 'blackhistory', pv: 'repeating-linear-gradient(90deg,#ffc83a 0 8px,#1f8a3a 8px 12px,#ffc83a 12px 20px,#c41e1e 20px 24px,#111 24px 28px)' },
+  heritage: { name: 'Heritage', price: 500, season: 'blackhistory', pv: 'linear-gradient(180deg,#c41e1e 0 31%,#ffc83a 31% 35%,#111 35% 65%,#ffc83a 65% 69%,#1f8a3a 69%)' },
+  pride: { name: 'Pride', price: 450, season: 'pride', pv: 'linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
+  progress: { name: 'Progress', price: 550, season: 'pride', pv: 'linear-gradient(120deg,#fff 0 10%,#f5a9b8 10% 16%,#5bcefa 16% 22%,#613915 22% 28%,#000 28% 34%,transparent 34%),linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -1014,6 +1032,9 @@ const FINISHES = {
   hearts: { name: 'Sweetheart', price: 400, season: 'valentine', pv: 'radial-gradient(circle,#fff 0 2px,transparent 3px) 0 0/10px 10px,#ff4f8b' },
   pastelegg: { name: 'Pastel Egg', price: 400, season: 'easter', pv: 'repeating-linear-gradient(0deg,#ffd6ec 0 6px,#d6f0ff 6px 12px,#fff3b0 12px 18px)' },
   tropical: { name: 'Tropical', price: 400, season: 'summer', pv: 'linear-gradient(135deg,#19c7b0,#ffcf6b 60%,#ff6f91)' },
+  autumn: { name: 'Autumn Leaves', price: 400, season: 'thanksgiving', pv: 'radial-gradient(circle at 30% 40%,#d9302a 0 14%,transparent 15%),radial-gradient(circle at 70% 60%,#ffb02a 0 14%,transparent 15%),#5a3418' },
+  kentefin: { name: 'Kente', price: 400, season: 'blackhistory', pv: 'repeating-linear-gradient(90deg,#ffc83a 0 6px,#1f8a3a 6px 9px,#c41e1e 9px 12px,#111 12px 15px)' },
+  pridefin: { name: 'Pride Stripes', price: 400, season: 'pride', pv: 'linear-gradient(90deg,#e40303,#ff8c00,#ffed00,#008026,#004dff,#750787)' },
   blackice: { name: 'Black Ice', price: 750, pv: 'conic-gradient(from 20deg at 30% 40%,#0b1830,#3f8fd6,#e6f7ff,#1e4f8a,#8fd3ff,#0b1830)' },
 };
 if (!SUITS[settings.skin]) settings.skin = 'standard';
@@ -1040,6 +1061,9 @@ const HATS = {
   heartband: { name: 'Heart Headband', price: 300, season: 'valentine', pv: 'radial-gradient(circle at 30% 40%,#ff2f6e 0 16%,transparent 17%),radial-gradient(circle at 70% 40%,#ff2f6e 0 16%,transparent 17%),#ffc2d9' },
   eggshell: { name: 'Eggshell', price: 300, season: 'easter', pv: 'linear-gradient(180deg,#fffdf4 0 60%,#d6f0ff 60%)' },
   sunhat: { name: 'Sun Hat', price: 350, season: 'summer', pv: 'linear-gradient(180deg,#e8c88a 0 55%,#ff6f91 55% 66%,#e8c88a 66%)' },
+  pilgrimhat: { name: 'Pilgrim Hat', price: 350, season: 'thanksgiving', pv: 'linear-gradient(180deg,#16141a 0 55%,#d9b44a 55% 68%,#16141a 68%)' },
+  kentecap: { name: 'Kente Cap', price: 300, season: 'blackhistory', pv: 'repeating-linear-gradient(90deg,#ffc83a 0 8px,#1f8a3a 8px 12px,#c41e1e 12px 16px,#111 16px 20px)' },
+  rainbowbucket: { name: 'Rainbow Bucket Hat', price: 300, season: 'pride', pv: 'linear-gradient(180deg,#e40303,#ff8c00,#ffed00,#008026,#004dff,#750787)' },
   tigerears: { name: 'Tiger Ears', price: 0, bundle: 'tiger', pv: 'radial-gradient(circle at 30% 70%,#1a1008 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#1a1008 0 16%,transparent 17%),repeating-linear-gradient(100deg,#ff9a2e 0 9px,#1a1008 9px 13px)' },
   zebraears: { name: 'Zebra Ears', price: 0, bundle: 'zebra', pv: 'radial-gradient(circle at 30% 70%,#151515 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#151515 0 16%,transparent 17%),repeating-linear-gradient(100deg,#f4f4f4 0 7px,#151515 7px 12px)' },
   bearears: { name: 'Bear Ears', price: 0, bundle: 'bear', pv: 'radial-gradient(circle at 30% 70%,#4a2c16 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#4a2c16 0 16%,transparent 17%),radial-gradient(circle at 40% 35%,#8a5a34,#4a2c16)' },
@@ -1075,6 +1099,14 @@ const PETS = {
   lion: { name: 'Lion', price: 700, icon: '🦁' },
   robot: { name: 'Baby Robot', price: 800, icon: '🤖' },
   dragon: { name: 'Baby Dragon', price: 1500, icon: '🐲' },
+  spooky: { name: 'Mini Ghost', price: 600, icon: '👻', season: 'halloween' },
+  santa: { name: 'Mini Santa', price: 600, icon: '🎅', season: 'christmas' },
+  lovebird: { name: 'Lovebird', price: 500, icon: '🐦', season: 'valentine' },
+  bunnypet: { name: 'Easter Bunny', price: 500, icon: '🐰', season: 'easter' },
+  crab: { name: 'Crab', price: 500, icon: '🦀', season: 'summer' },
+  turkey: { name: 'Turkey', price: 600, icon: '🦃', season: 'thanksgiving' },
+  phoenix: { name: 'Golden Phoenix', price: 900, icon: '🔥', season: 'blackhistory' },
+  unicorn: { name: 'Rainbow Unicorn', price: 900, icon: '🦄', season: 'pride' },
 };
 // bundled items (like Tiger Ears) come free with the suit they belong to
 const owns = (kind, id) => { const d = (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : kind === 'pet' ? PETS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
@@ -1242,6 +1274,27 @@ const giftTex = () => canvasTex('gift', x => { x.fillStyle = '#c41e3a'; x.fillRe
 const heartsTex = () => canvasTex('heartsfin', x => { x.fillStyle = '#ff4f8b'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#ffffff'; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) heartPath(x, i * 64 + 32 + (j % 2) * 16, j * 64 + 32, 10); }, 2);
 const pastelEggTex = () => canvasTex('pasteleggfin', x => { const c = ['#ffd6ec', '#d6f0ff', '#fff3b0', '#d9ffd6']; for (let i = 0; i < 8; i++) { x.fillStyle = c[i % 4]; x.fillRect(0, i * 32, 256, 32); } }, 2);
 const tropicalTex = () => canvasTex('tropical', x => { const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, '#19c7b0'); g.addColorStop(0.6, '#ffcf6b'); g.addColorStop(1, '#ff6f91'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); x.fillStyle = 'rgba(20,110,60,.55)'; for (let i = 0; i < 12; i++) { x.save(); x.translate(Math.random() * 256, Math.random() * 256); x.rotate(rand(0, 6)); x.beginPath(); x.ellipse(0, 0, 30, 9, 0, 0, 7); x.fill(); x.restore(); } });
+const PRIDE6 = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#004dff', '#750787'];
+const prideTex = () => canvasTex('pride', x => { PRIDE6.forEach((c, i) => { x.fillStyle = c; x.fillRect(0, i * 256 / 6, 256, 256 / 6 + 1); }); });
+const progressTex = () => canvasTex('progress', x => {
+  PRIDE6.forEach((c, i) => { x.fillStyle = c; x.fillRect(0, i * 256 / 6, 256, 256 / 6 + 1); });
+  for (const cx of [0, 128]) ['#000000', '#613915', '#5bcefa', '#f5a9b8', '#ffffff'].forEach((c, i) => { const o = (4 - i) * 14; x.fillStyle = c; x.beginPath(); x.moveTo(cx, 0); x.lineTo(cx + 34 + o, 0); x.lineTo(cx + 74 + o, 128); x.lineTo(cx + 34 + o, 256); x.lineTo(cx, 256); x.fill(); });
+});
+const kenteTex = () => canvasTex('kente', x => {
+  const c = ['#ffc83a', '#1f8a3a', '#c41e1e', '#111111'];
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+    const X = i * 32, Y = j * 32, base = c[(i + j) % 2 ? 0 : (i + 2 * j) % 4];
+    x.fillStyle = base; x.fillRect(X, Y, 32, 32);
+    if ((i + j) % 2) { for (let k = 0; k < 4; k++) { x.fillStyle = c[(k + i) % 4]; x.fillRect(X, Y + k * 8 + 2, 32, 3); } }
+    else { x.fillStyle = c[(i + 1) % 4]; x.fillRect(X + 13, Y, 6, 32); x.fillStyle = c[(j + 3) % 4]; x.fillRect(X, Y + 13, 32, 6); }
+  }
+}, 2);
+const heritageTex = () => canvasTex('heritage', x => { [['#c41e1e', 0, 80], ['#111111', 80, 96], ['#1f8a3a', 176, 80]].forEach(([c, y, h]) => { x.fillStyle = c; x.fillRect(0, y, 256, h); }); x.fillStyle = '#ffc83a'; x.fillRect(0, 76, 256, 8); x.fillRect(0, 172, 256, 8); for (let i = 0; i < 16; i++) { x.beginPath(); x.moveTo(i * 16, 128); x.lineTo(i * 16 + 8, 112); x.lineTo(i * 16 + 16, 128); x.lineTo(i * 16 + 8, 144); x.fill(); } });
+const pilgrimTex = () => canvasTex('pilgrim', x => { x.fillStyle = '#16141a'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#f4f0e6'; x.fillRect(0, 0, 256, 56); x.fillStyle = '#3a2a1a'; x.fillRect(0, 170, 256, 22); x.fillStyle = '#d9b44a'; for (const cx of [64, 192]) { x.fillRect(cx - 14, 168, 28, 26); x.fillStyle = '#3a2a1a'; x.fillRect(cx - 7, 175, 14, 12); x.fillStyle = '#d9b44a'; } });
+const gobblerTex = () => canvasTex('gobbler', x => { x.fillStyle = '#5a3418'; x.fillRect(0, 0, 256, 256); const c = ['#8a5a2a', '#e8a33a', '#d94a1f', '#5a3418']; for (let j = 0; j < 12; j++) for (let i = 0; i < 12; i++) { x.fillStyle = c[(i + j) % 4]; x.beginPath(); x.ellipse(i * 22 + (j % 2) * 11, j * 22, 11, 14, 0, 0, Math.PI); x.fill(); } }, 2);
+const leafShape = (x, cx, cy, s, a, col) => { x.save(); x.translate(cx, cy); x.rotate(a); x.fillStyle = col; x.beginPath(); x.moveTo(0, -s); for (let k = 1; k <= 10; k++) { const t = k / 10 * Math.PI * 2, r = s * (k % 2 ? 0.45 : 1); x.lineTo(Math.sin(t) * r, -Math.cos(t) * r); } x.fill(); x.restore(); };
+const harvestTex = () => canvasTex('harvest', x => { x.fillStyle = '#8a4a1a'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 40; i++) leafShape(x, Math.random() * 256, Math.random() * 256, rand(10, 18), rand(0, 6), pick(['#d9302a', '#ffb02a', '#e8742a', '#b8a020'])); }, 2);
+const autumnTex = () => canvasTex('autumnfin', x => { x.fillStyle = '#5a3418'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 30; i++) leafShape(x, Math.random() * 256, Math.random() * 256, rand(10, 16), rand(0, 6), pick(['#d9302a', '#ffb02a', '#e8742a'])); });
 const BLIGHT = new THREE.Color(0.45, 2.4, 0.2), TOXIC_P = new THREE.Color(0.25, 1.6, 0.08);
 function suitMaterial(id, col, glowCol) {
   switch (id) {
@@ -1270,6 +1323,13 @@ function suitMaterial(id, col, glowCol) {
     case 'leopard': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: leopardTex(), roughness: 0.7 });
     case 'infected': return new THREE.MeshStandardMaterial({ color: 0x18210f, roughness: 0.55, metalness: 0.25, emissive: BLIGHT.clone(), emissiveMap: veinTex(), emissiveIntensity: 1.4 });
     case 'pastel': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pastelTex(), metalness: 0.05, roughness: 0.4 });
+    case 'pilgrim': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pilgrimTex(), roughness: 0.7 });
+    case 'gobbler': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: gobblerTex(), roughness: 0.8 });
+    case 'harvest': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: harvestTex(), roughness: 0.75 });
+    case 'kente': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: kenteTex(), roughness: 0.7 });
+    case 'heritage': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: heritageTex(), roughness: 0.55, metalness: 0.1 });
+    case 'pride': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: prideTex(), roughness: 0.4 });
+    case 'progress': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: progressTex(), roughness: 0.4 });
     case 'pumpkin': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pumpkinTex(), roughness: 0.6, emissive: 0xffa21f, emissiveMap: pumpkinFace(), emissiveIntensity: 2.2 });
     case 'skeleton': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: skeletonTex(), roughness: 0.6, emissive: 0xffffff, emissiveMap: skeletonTex(), emissiveIntensity: 0.25 });
     case 'ghost': return new THREE.MeshStandardMaterial({ color: 0xf4f8ff, roughness: 0.3, emissive: 0x9ad6ff, emissiveIntensity: 0.55, transparent: true, opacity: 0.62, depthWrite: false });
@@ -1317,6 +1377,9 @@ function applyFinish(m1, m2, id) {
     case 'tiger': set(m1, 0xffffff, 0.2, 0.45); m1.map = tigerTex(); set(m2, 0x1a1008, 0.6, 0.3); break;
     case 'matrix': set(m1, 0x020a05, 0.5, 0.35); m1.emissive.set(0x2bff6a); m1.emissiveMap = matrixTex(); m1.emissiveIntensity = 1.6; set(m2, 0x0c2014, 0.6, 0.3); break;
     case 'blackice': set(m1, 0xffffff, 0.45, 0.16); m1.map = blackIceTex(); set(m2, 0x0b1830, 0.7, 0.2); break;
+    case 'autumn': set(m1, 0xffffff, 0.2, 0.6); m1.map = autumnTex(); set(m2, 0xd9b44a, 0.7, 0.3); break;
+    case 'kentefin': set(m1, 0xffffff, 0.2, 0.5); m1.map = kenteTex(); set(m2, 0xffc83a, 0.9, 0.2); break;
+    case 'pridefin': set(m1, 0xffffff, 0.2, 0.35); m1.map = prideTex(); set(m2, 0xffffff, 0.6, 0.25); break;
     case 'spiderweb': set(m1, 0xffffff, 0.3, 0.5); m1.map = webTex(); set(m2, 0xff8a1f, 0.3, 0.4); break;
     case 'giftwrap': set(m1, 0xffffff, 0.3, 0.4); m1.map = giftTex(); set(m2, 0xffd23a, 0.9, 0.2); break;
     case 'hearts': set(m1, 0xffffff, 0.2, 0.35); m1.map = heartsTex(); set(m2, 0xffd0e0, 0.6, 0.2); break;
@@ -1378,6 +1441,7 @@ function finalizeWorld() {
     m4.makeTranslation(x, 0, z); tiles.setMatrixAt(i, m4);
     const d = Math.hypot(x, z);
     if (Math.abs(d - 12) < 1.2 || Math.abs(d - 41) < 1.2) c.copy(ring);
+    else if (TH.rainbowTiles) c.setHSL(((Math.atan2(z, x) / 6.283 + 1) % 1) * 0.85, 0.9, 0.36 + Math.random() * 0.08);
     else c.copy(base).lerp(hi, Math.random() * 0.5 + (Math.random() < 0.05 ? 0.5 : 0));
     tiles.setColorAt(i, c);
   });
@@ -1519,12 +1583,75 @@ function seasonalLayout(id) {
       else { const board = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 2.6, 6, 12), PM([0xff6f91, 0x19c7d0, 0xffd23a, 0xffffff][k / 2])); board.scale.z = 0.25; board.position.set(x, 1.7, z); board.rotation.set(0, Math.atan2(x, z), 0.2); solid(board, x, z, 1.2, 3.2, 1.2); }
     }
     for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30); palm(x, z, 10); }
+  } else if (id === 'harvest') {
+    // red barn in the middle
+    const barnM = PM(0xa8261e, { roughness: 0.85 }), trimW = PM(0xf4f0e6), roofM = PM(0x4a3a30, { roughness: 0.9, side: THREE.DoubleSide });
+    const barn = new THREE.Group(); barn.add(new THREE.Mesh(new THREE.BoxGeometry(7, 5, 6).translate(0, 2.5, 0), barnM));
+    for (const sx of [-1, 1]) { const r = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 6.6).rotateX(-Math.PI / 2).rotateZ(-sx * 0.6), roofM); r.position.set(sx * 1.75, 6.2, 0); barn.add(r); }
+    const gable = new THREE.Shape(); gable.moveTo(-3.5, 0); gable.lineTo(3.5, 0); gable.lineTo(0, 2.4); gable.lineTo(-3.5, 0);
+    for (const sz of [-3, 3]) { const gm = new THREE.Mesh(new THREE.ShapeGeometry(gable), barnM); gm.position.set(0, 5, sz); gm.material.side = THREE.DoubleSide; barn.add(gm); }
+    for (const sz of [-3.02, 3.02]) { const door = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 3.2), trimW); door.position.set(0, 1.6, sz); door.rotation.y = sz < 0 ? Math.PI : 0; barn.add(door); const x1 = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.18, 0.05), barnM); x1.position.set(0, 1.6, sz + Math.sign(sz) * 0.03); x1.rotation.z = 0.85; barn.add(x1); const x2 = x1.clone(); x2.rotation.z = -0.85; barn.add(x2); }
+    barn.traverse(o => { o.castShadow = true; }); solid(barn, 0, 0, 7, 7, 6);
+    const hay = new THREE.MeshStandardMaterial({ color: 0xe0b85a, roughness: 1 });
+    for (const a of [0, 90, 180, 270]) { const [cx, cz] = at(18, a), along = Math.abs(Math.cos(deg(a))) < 0.5; for (const o of [-1.2, 1.2]) { const x = cx + (along ? o : 0), z = cz + (along ? 0 : o); const b = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 2, 16).rotateZ(Math.PI / 2), hay); b.position.set(x, 0.85, z); b.rotation.y = along ? 0 : Math.PI / 2; solid(b, x, z, along ? 2 : 1.7, 1.7, along ? 1.7 : 2); } const top = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 2, 16).rotateZ(Math.PI / 2), hay); top.position.set(cx, 2.4, cz); top.rotation.y = along ? 0 : Math.PI / 2; solid(top, cx, cz, along ? 2 : 1.7, 1.7, along ? 1.7 : 2, 1.55); }
+    const cloth = [0x3a6ad6, 0xc41e3a, 0x6a8a2a].map(c => PM(c)), straw = PM(0xe0b85a, { roughness: 1 });
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45);
+      if (k % 2 === 0) for (const [ox, oz, r] of [[0, 0, 1.1], [1.3, 0.6, 0.7], [-1.1, 0.9, 0.6]]) { const pk = bigPumpkin(r, false); pk.position.set(x + ox, r * 0.85, z + oz); solid(pk, x + ox, z + oz, r * 2, r * 1.7, r * 2); }
+      else {
+        const s = new THREE.Group(), pole = PM(0x6a4a2a);
+        s.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.4, 6).translate(0, 1.7, 0), pole), new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2, 6).rotateZ(Math.PI / 2).translate(0, 2.5, 0), pole));
+        s.add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.1, 0.45).translate(0, 2.2, 0), cloth[k % 3]), new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10).translate(0, 3.1, 0), PM(0xe8c88a)));
+        const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.05, 16).translate(0, 3.35, 0), straw), crown = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.35, 12).translate(0, 3.5, 0), straw); s.add(hat, crown);
+        s.position.set(x, 0, z); s.rotation.y = Math.atan2(x, z); s.traverse(o => { o.castShadow = true; }); solid(s, x, z, 0.5, 3.4, 0.5);
+      }
+    }
+    const bark = PM(0x4a2e1a, { roughness: 1 }), leafCols = [0xd9302a, 0xffb02a, 0xe8742a, 0xb8a020].map(c => PM(c, { roughness: 0.9, flatShading: true }));
+    for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30), t = new THREE.Group(); t.add(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 6, 8).translate(0, 3, 0), bark)); for (let i = 0; i < 6; i++) { const f = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6 + rnd() * 0.8, 0), leafCols[(i + k) % 4]); f.position.set(rnd() * 3 - 1.5, 6.5 + rnd() * 2, rnd() * 3 - 1.5); t.add(f); } t.position.set(x, 0, z); t.traverse(o => { o.castShadow = true; }); solid(t, x, z, 1.2, 6, 1.2); }
+    const corn = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.05, 0.07, 2.4, 5).translate(0, 1.2, 0), PM(0xb8b04a), 140), m4 = new THREE.Matrix4();
+    for (let i = 0; i < 140; i++) { const a = rnd() * 6.283, r = 47 + rnd() * 9; m4.makeTranslation(Math.cos(a) * r, 0, Math.sin(a) * r); corn.setMatrixAt(i, m4); }
+    scene.add(corn); decor.push(corn);
+  } else if (id === 'heritage') {
+    // central monument with an eternal flame, kente banners around it
+    block(0, 0, 4.5, 1.2, 4.5, 0, tA); block(0, 0, 2.6, 9, 2.6, 1.2, tA);
+    const flame = new THREE.Group(), fl1 = new THREE.Mesh(new THREE.ConeGeometry(0.8, 2.4, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.2, 0.2) })), fl2 = new THREE.Mesh(new THREE.ConeGeometry(0.45, 1.6, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.4, 0.8) }));
+    fl2.position.y = -0.2; flame.add(fl1, fl2); deco(flame, 0, 11.4, 0); deco(new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.8, 0.5, 16), PM(0xffc83a, { metalness: 0.9, roughness: 0.25 })), 0, 10.45, 0);
+    animProps.push(t => { flame.scale.set(1 + Math.sin(t * 9) * 0.06, 1 + Math.sin(t * 13) * 0.12, 1 + Math.cos(t * 9) * 0.06); flame.rotation.y = t; });
+    const kM = new THREE.MeshStandardMaterial({ map: kenteTex(), roughness: 0.8, side: THREE.DoubleSide }), poleM = PM(0xffc83a, { metalness: 0.8, roughness: 0.3 });
+    for (const a of [45, 135, 225, 315]) { const [x, z] = at(5, a); solid(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 7, 8).translate(x, 3.5, z), poleM), x, z, 0.3, 7, 0.3); const b = deco(new THREE.Mesh(new THREE.PlaneGeometry(1.4, 3.6, 1, 6), kM), x, 5, z); b.rotation.y = deg(-a + 90); animProps.push(t => { b.rotation.z = Math.sin(t * 1.3 + a) * 0.06; }); }
+    // mural walls on the axes
+    const mural = new THREE.MeshStandardMaterial({ map: heritageTex(), roughness: 0.7 });
+    for (const a of [0, 90, 180, 270]) { const [x, z] = at(18, a), along = Math.abs(Math.cos(deg(a))) < 0.5, w = along ? 6.5 : 0.8, d = along ? 0.8 : 6.5; solid(new THREE.Mesh(new THREE.BoxGeometry(w, 2.8, d).translate(x, 1.4, z), mural), x, z, w, 2.8, d); }
+    const drumM = PM(0x7a4a26, { roughness: 0.7 }), skinM = PM(0xf0dcb0, { roughness: 0.9 });
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45);
+      if (k % 2 === 0) { const st = new THREE.Group(); for (const [ox, oz] of [[-1.3, -1.3], [1.3, -1.3], [-1.3, 1.3], [1.3, 1.3]]) st.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3, 6).translate(ox, 1.5, oz), poleM)); const top = new THREE.Mesh(new THREE.ConeGeometry(2.4, 1, 4, 1, true).rotateY(Math.PI / 4).translate(0, 3.4, 0), kM); st.add(top); const table = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.9, 1.2).translate(0, 0.45, 0), drumM); st.add(table); st.position.set(x, 0, z); st.traverse(o => { o.castShadow = true; }); solid(st, x, z, 2.4, 0.9, 1.2); for (const [ox, oz] of [[-1.3, -1.3], [1.3, -1.3], [-1.3, 1.3], [1.3, 1.3]]) colliders.push({ min: new V3(x + ox - 0.1, 0, z + oz - 0.1), max: new V3(x + ox + 0.1, 3, z + oz + 0.1) }); }
+      else for (const [ox, oz, h] of [[0, 0, 1.6], [1, 0.7, 1.2], [-0.9, 0.8, 1]]) { const dr = new THREE.Group(); dr.add(new THREE.Mesh(new THREE.CylinderGeometry(0.42 * h, 0.22 * h, h * 0.6, 14).translate(0, h * 0.7, 0), drumM), new THREE.Mesh(new THREE.CylinderGeometry(0.2 * h, 0.3 * h, h * 0.4, 14).translate(0, h * 0.2, 0), drumM), new THREE.Mesh(new THREE.CylinderGeometry(0.43 * h, 0.43 * h, 0.04, 14).translate(0, h, 0), skinM)); dr.position.set(x + ox, 0, z + oz); dr.traverse(o => { o.castShadow = true; }); solid(dr, x + ox, z + oz, 0.8 * h, h, 0.8 * h); }
+    }
+    // baobab trees on the rim: thick trunk, flat spreading crown
+    const bark = PM(0x8a6a4a, { roughness: 1 }), crown = PM(0x3a7a2a, { roughness: 0.9, flatShading: true });
+    for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30), t = new THREE.Group(); t.add(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.5, 8, 10).translate(0, 4, 0), bark)); for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283, br = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.3, 2.4, 6).translate(0, 1.2, 0), bark); br.position.set(Math.cos(a) * 0.5, 7.6, Math.sin(a) * 0.5); br.rotation.set(Math.sin(a) * 0.8, 0, -Math.cos(a) * 0.8); t.add(br); const c = new THREE.Mesh(new THREE.SphereGeometry(1.3, 10, 6), crown); c.scale.y = 0.45; c.position.set(Math.cos(a) * 2, 9.6, Math.sin(a) * 2); t.add(c); } t.position.set(x, 0, z); t.traverse(o => { o.castShadow = true; }); solid(t, x, z, 2.6, 8, 2.6); }
+  } else if (id === 'pride') {
+    // rainbow arch over a stage
+    solid(new THREE.Mesh(new THREE.BoxGeometry(9, 1, 6).translate(0, 0.5, 0), PM(0xf4f0ff, { roughness: 0.4 })), 0, 0, 9, 1, 6);
+    PRIDE6.forEach((c, i) => { const r = 7 - i * 0.55, arc = new THREE.Mesh(new THREE.TorusGeometry(r, 0.28, 8, 48, Math.PI), new THREE.MeshStandardMaterial({ color: c, roughness: 0.4, emissive: c, emissiveIntensity: 0.35 })); deco(arc, 0, 1, 0); arc.castShadow = true; });
+    for (const sx of [-1, 1]) colliders.push({ min: new V3(sx * 7.2 - 0.6, 0, -0.4), max: new V3(sx * 7.2 + 0.6, 4, 0.4) });
+    const flagM = new THREE.MeshStandardMaterial({ map: prideTex(), roughness: 0.6, side: THREE.DoubleSide }), progM = new THREE.MeshStandardMaterial({ map: progressTex(), roughness: 0.6, side: THREE.DoubleSide }), poleM = PM(0xf4f4f8, { metalness: 0.6, roughness: 0.3 });
+    const flag = (x, z, h, w, m) => { solid(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, h, 8).translate(x, h / 2, z), poleM), x, z, 0.3, h, 0.3); const fg = new THREE.PlaneGeometry(w, w * 0.62, 10, 1).translate(w / 2, 0, 0), f = deco(new THREE.Mesh(fg, m), x, h - w * 0.36, z); const base = fg.attributes.position.array.slice(); animProps.push(t => { const pp = fg.attributes.position; for (let i = 0; i < pp.count; i++) { const u = base[i * 3]; pp.setZ(i, Math.sin(u * 2 - t * 4 + x) * u * 0.12); } pp.needsUpdate = true; }); return f; };
+    const balloon = PRIDE6.map(c => PM(c, { roughness: 0.2, metalness: 0.1 }));
+    for (const a of [0, 90, 180, 270]) { const [x, z] = at(18, a), along = Math.abs(Math.cos(deg(a))) < 0.5, w = along ? 6 : 1, d = along ? 1 : 6; solid(new THREE.Mesh(new THREE.BoxGeometry(w, 1.4, d).translate(x, 0.7, z), balloon[a / 90]), x, z, w, 1.4, d); flag(x + (along ? 3.2 : 0), z + (along ? 0 : 3.2), 6, 2.4, a % 180 ? flagM : progM); for (let i = 0; i < 6; i++) { const bl = deco(new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 10), balloon[i]), x - (along ? 2.4 : 0) + Math.cos(i) * 0.5, 2.6 + i * 0.15, z - (along ? 0 : 2.4) + Math.sin(i) * 0.5); bl.scale.y = 1.2; animProps.push(t => { bl.position.y = 2.6 + i * 0.15 + Math.sin(t * 1.5 + i) * 0.15; }); } }
+    for (let k = 0; k < 8; k++) {
+      const [x, z] = at(39, 22.5 + k * 45);
+      if (k % 2 === 0) { const g = new THREE.Group(); PRIDE6.forEach((c, i) => { const arc = new THREE.Mesh(new THREE.TorusGeometry(2 - i * 0.18, 0.09, 6, 24, Math.PI), balloon[i]); g.add(arc); }); g.position.set(x, 0, z); g.rotation.y = Math.atan2(x, z) + Math.PI / 2; scene.add(g); for (const o of [-1.8, 1.8]) { const ry = g.rotation.y, px = x + Math.cos(ry) * o, pz = z - Math.sin(ry) * o; colliders.push({ min: new V3(px - 0.3, 0, pz - 0.3), max: new V3(px + 0.3, 1.2, pz + 0.3) }); } }
+      else { const c = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.2, 2.2).translate(x, 1.1, z), balloon[k % 6]); c.rotation.y = 0; solid(c, x, z, 2.2, 2.2, 2.2); }
+    }
+    for (let k = 0; k < 6; k++) { const [x, z] = at(52, k * 60 + 30); flag(x, z, 11, 4, k % 2 ? flagM : progM); }
   }
   finalizeWorld();
 }
-function bigPumpkin(r) {
+function bigPumpkin(r, face = true) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), new THREE.MeshStandardMaterial({ color: 0xffffff, map: pumpkinTex(), roughness: 0.6, emissive: 0xffa21f, emissiveMap: pumpkinFace(), emissiveIntensity: 2.4 }));
+  const body = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), face ? new THREE.MeshStandardMaterial({ color: 0xffffff, map: pumpkinTex(), roughness: 0.6, emissive: 0xffa21f, emissiveMap: pumpkinFace(), emissiveIntensity: 2.4 }) : new THREE.MeshStandardMaterial({ color: 0xffffff, map: pumpkinTex(), roughness: 0.6 }));
   body.scale.y = 0.82; g.add(body);
   const stem = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.08, r * 0.12, r * 0.4, 6), PM(0x3a6a2a)); stem.position.y = r * 0.9; g.add(stem);
   return g;
@@ -1678,7 +1805,9 @@ const dust = (() => {
   const n = TH.fx === 'dust' ? 500 : 1400, pos = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { const a = rand(0, 7), d = Math.sqrt(Math.random()) * 70; pos[i * 3] = Math.cos(a) * d; pos[i * 3 + 1] = rand(0.5, 26); pos[i * 3 + 2] = Math.sin(a) * d; }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const p = new THREE.Points(g, TH.fx === 'snow' || TH.fx === 'petals' ? new THREE.PointsMaterial({ color: TH.fxColor, size: TH.fx === 'petals' ? 0.2 : 0.15, transparent: true, opacity: 0.85, depthWrite: false })
+  if (TH.fx === 'confetti') { const cols = []; const c = new THREE.Color(); for (let i = 0; i < n; i++) { c.set(PRIDE6[i % 6]); cols.push(c.r, c.g, c.b); } g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); }
+  const p = new THREE.Points(g, TH.fx === 'confetti' ? new THREE.PointsMaterial({ vertexColors: true, size: 0.2, transparent: true, opacity: 0.95, depthWrite: false })
+    : TH.fx === 'snow' || TH.fx === 'petals' ? new THREE.PointsMaterial({ color: TH.fxColor, size: TH.fx === 'petals' ? 0.2 : 0.15, transparent: true, opacity: 0.85, depthWrite: false })
     : new THREE.PointsMaterial({ color: TH.fx === 'embers' ? new THREE.Color(TH.fxColor).multiplyScalar(2.5) : TH.fxColor ? new THREE.Color(TH.fxColor).multiplyScalar(1.6) : new THREE.Color(2.2, 1.6, 1.2), size: TH.fx === 'embers' ? 0.14 : 0.11, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false }));
   scene.add(p); decor.push(p); return p;
 })();
@@ -2613,6 +2742,24 @@ function addHat(parent, id, hotdog, mats, av) {
       flowerHat(put, M, R);
       break;
     }
+    case 'pilgrimhat': {
+      const k = M(0x16141a, { roughness: 0.8 });
+      put(cyl(R * 1.25 * bk, R * 1.25 * bk, 0.025), k, 0, 0.01); put(cyl(R * 0.62, R * 0.78, R * 1.1), k, 0, R * 0.56);
+      put(cyl(R * 0.8, R * 0.8, R * 0.2, true), M(0x3a2a1a, { side: THREE.DoubleSide }), 0, R * 0.14);
+      const b = put(new THREE.BoxGeometry(R * 0.32, R * 0.24, R * 0.05), M(0xd9b44a, { metalness: 0.8, roughness: 0.3 }), 0, R * 0.14, -R * 0.8); b.add(new THREE.Mesh(new THREE.BoxGeometry(R * 0.16, R * 0.1, R * 0.06), k));
+      break;
+    }
+    case 'kentecap': {
+      const kc = M(0xffffff, { map: kenteTex(), roughness: 0.8, side: THREE.DoubleSide });
+      const cap = put(half(R * 1.0), kc, 0, -R * 0.1); cap.scale.y = 0.6;
+      put(cyl(R * 1.0, R * 1.0, R * 0.14, true), M(0xffc83a, { side: THREE.DoubleSide }), 0, -R * 0.04);
+      break;
+    }
+    case 'rainbowbucket': {
+      const pm = M(0xffffff, { map: prideTex(), roughness: 0.9, side: THREE.DoubleSide });
+      put(cyl(R * 0.8, R * 0.88, R * 0.5), pm, 0, R * 0.25); put(cyl(R * 0.88, R * 1.28 * bk, R * 0.24, true), pm, 0, -R * 0.06);
+      break;
+    }
     case 'viking': {
       const steel = M(0xb8bdcc, { metalness: 0.9, roughness: 0.35 });
       const helm = put(half(R * 1.05), steel, 0, -R * 0.12); helm.scale.y = 0.85;
@@ -2653,6 +2800,58 @@ function makePet(id, mats) {
     for (const sx of [-1, 1]) { add(new THREE.BoxGeometry(0.08, 0.02, 0.12), orange, sx * 0.07, 0.01, -0.05); const f = add(C(0.03, 0.14), body, sx * 0.18, 0.32, 0); f.rotation.z = sx * 0.4; }
     return Object.assign(g.userData, info), g;
   }
+  if (id === 'spooky') {
+    info.fly = true;
+    const ghost = M(0xf4f8ff, { emissive: 0x9ad6ff, emissiveIntensity: 0.5, transparent: true, opacity: 0.75 });
+    const head = new THREE.Group(); head.position.y = 0.42; g.add(head); info.head = head;
+    add(S(0.2), ghost, 0, 0, 0, head); add(new THREE.ConeGeometry(0.2, 0.34, 16, 1, true), ghost, 0, -0.18, 0, head);
+    for (const sx of [-1, 1]) add(S(0.04), black, sx * 0.07, 0.03, -0.17, head).scale.set(1, 1.5, 0.6);
+    add(S(0.035), black, 0, -0.07, -0.18, head).scale.set(1.2, 1, 0.6);
+    for (const sx of [-1, 1]) { const a = add(C(0.035, 0.1), ghost, sx * 0.2, -0.05, 0, head); a.rotation.z = sx * 0.9; }
+    return Object.assign(g.userData, info), g;
+  }
+  if (id === 'santa') {
+    const red = M(0xd61f2c), wht = M(0xffffff, { roughness: 1 }), skin = M(0xf2c7a0), belt = M(0x111111);
+    add(C(0.15, 0.18), red, 0, 0.27, 0); add(new THREE.CylinderGeometry(0.155, 0.155, 0.05, 16), belt, 0, 0.25, 0);
+    add(new THREE.BoxGeometry(0.06, 0.05, 0.02), M(0xffd23a, { metalness: 0.8 }), 0, 0.25, -0.155);
+    for (const sx of [-1, 1]) { add(C(0.045, 0.06), belt, sx * 0.07, 0.05, 0); const a = add(C(0.04, 0.1), red, sx * 0.17, 0.32, 0); a.rotation.z = sx * 0.5; }
+    const head = new THREE.Group(); head.position.y = 0.55; g.add(head); info.head = head;
+    add(S(0.12), skin, 0, 0, 0, head); add(S(0.11), wht, 0, -0.07, -0.05, head).scale.set(1.1, 1, 0.8);
+    eyes(head, 0.03, -0.1, 0.045, 0.02); add(S(0.025), M(0xff8a8a), 0, -0.005, -0.12, head);
+    const hat = add(new THREE.ConeGeometry(0.12, 0.22, 14), red, 0.02, 0.15, 0, head); hat.rotation.z = -0.4;
+    add(new THREE.TorusGeometry(0.115, 0.03, 8, 16).rotateX(Math.PI / 2), wht, 0, 0.07, 0, head); add(S(0.04), wht, 0.1, 0.24, 0, head);
+    return Object.assign(g.userData, info), g;
+  }
+  if (id === 'lovebird' || id === 'phoenix' || id === 'turkey') {
+    const fire = id === 'phoenix', tk = id === 'turkey';
+    if (!tk) info.fly = true;
+    const bodyM = tk ? M(0x5a3418) : fire ? M(0xffb020, { emissive: 0xff6a00, emissiveIntensity: 0.6 }) : M(0xff6f9f);
+    const wingM = tk ? M(0x8a5a2a) : fire ? M(0xff5a1a, { emissive: 0xff3a00, emissiveIntensity: 0.8, side: THREE.DoubleSide }) : M(0x7ad66a, { side: THREE.DoubleSide });
+    add(S(tk ? 0.2 : 0.15), bodyM, 0, tk ? 0.3 : 0.25, 0).scale.set(1, 1, 1.2);
+    const head = new THREE.Group(); head.position.set(0, tk ? 0.5 : 0.4, -0.14); g.add(head); info.head = head;
+    add(S(tk ? 0.09 : 0.1), tk ? M(0x8a6a5a) : bodyM, 0, 0, 0, head); eyes(head, 0.02, -0.08, 0.05, 0.02);
+    add(new THREE.ConeGeometry(0.03, 0.08, 8).rotateX(-Math.PI / 2), M(0xffa31f), 0, -0.01, -0.12, head);
+    if (tk) add(C(0.02, 0.06), M(0xd61f2c), 0.02, -0.06, -0.09, head);
+    info.wings = [];
+    for (const sx of [-1, 1]) { const w = new THREE.Group(); w.position.set(sx * 0.14, tk ? 0.32 : 0.28, 0); g.add(w); const m = add(S(0.1), wingM, sx * 0.06, 0, 0, w); m.scale.set(0.3, 0.8, 1.4); info.wings.push(w); }
+    const tail = new THREE.Group(); tail.position.set(0, tk ? 0.36 : 0.26, 0.2); g.add(tail); info.tail = tail;
+    if (tk) { const fan = [0x5a3418, 0xe8a33a, 0xd94a1f, 0x8a5a2a, 0xffd23a]; for (let k = 0; k < 9; k++) { const a = (k / 8 - 0.5) * 2.4, f = add(S(0.09), M(fan[k % 5]), Math.sin(a) * 0.22, 0.12 + Math.cos(a) * 0.22, 0.02, tail); f.scale.set(0.5, 1.6, 0.2); f.rotation.z = -a; } for (const sx of [-1, 1]) add(C(0.02, 0.12), M(0xffa31f), sx * 0.07, 0.08, 0); }
+    else for (let k = 0; k < (fire ? 5 : 3); k++) { const f = add(new THREE.ConeGeometry(0.04, fire ? 0.4 : 0.22, 6), fire ? M([0xffd23a, 0xff8a1f, 0xff3a1a][k % 3], { emissive: 0xff5a00, emissiveIntensity: 0.9 }) : M(0x2f8ad6), (k - (fire ? 2 : 1)) * 0.04, 0, 0.14, tail); f.rotation.x = 1.9; }
+    if (fire) { const crest = add(new THREE.ConeGeometry(0.03, 0.14, 6), M(0xffd23a, { emissive: 0xffa000 }), 0, 0.12, 0.02, head); crest.rotation.x = -0.4; }
+    return Object.assign(g.userData, info), g;
+  }
+  if (id === 'crab') {
+    const shell = M(0xe8402a, { roughness: 0.45 });
+    add(S(0.17), shell, 0, 0.16, 0).scale.set(1.4, 0.6, 1);
+    const head = new THREE.Group(); head.position.set(0, 0.24, -0.1); g.add(head); info.head = head;
+    for (const sx of [-1, 1]) { add(new THREE.CylinderGeometry(0.012, 0.012, 0.1, 6), shell, sx * 0.05, 0.03, 0, head); add(S(0.03), white, sx * 0.05, 0.09, 0, head); add(S(0.015), black, sx * 0.05, 0.09, -0.025, head); }
+    info.legs = [];
+    for (const sx of [-1, 1]) {
+      const claw = add(S(0.07), shell, sx * 0.3, 0.2, -0.12); claw.scale.set(1, 0.7, 1.3);
+      for (let k = 0; k < 3; k++) { const l = add(C(0.015, 0.14), shell, sx * (0.22 + k * 0.01), 0.08, -0.05 + k * 0.08); l.rotation.z = sx * 1.1; info.legs.push(l); }
+    }
+    return Object.assign(g.userData, info), g;
+  }
   // four-legged pets (and a sitting monkey)
   const P = {
     dog: { fur: M(0xc98a4a), belly: M(0xf3dcb8), ears: 'floppy', tail: 'thin' },
@@ -2663,6 +2862,8 @@ function makePet(id, mats) {
     panda: { fur: M(0xffffff, { map: pandaTex() }), belly: M(0xf6f6f6), ears: 'round', earM: black, tail: 'stub', patches: true },
     monkey: { fur: M(0x7a4a26), belly: M(0xe8c49a), ears: 'monkey', tail: 'curl', face: true },
     dragon: { fur: M(0x3fbf5a, { roughness: 0.45 }), belly: M(0xf0e08a), ears: 'horns', tail: 'spiky', wings: true },
+    bunnypet: { fur: M(0xf6f2ee, { roughness: 0.95 }), belly: M(0xffffff), ears: 'bunny', tail: 'stub', earM: M(0xf6f2ee) },
+    unicorn: { fur: M(0xffffff, { roughness: 0.5 }), belly: M(0xf6f0ff), ears: 'pointy', tail: 'rainbow', horn: true, rainbow: true },
   }[id] || { fur: M(0xc98a4a), belly: M(0xf3dcb8), ears: 'floppy', tail: 'thin' };
   if (P.wings) info.fly = true;
   const body = add(S(0.2), P.fur, 0, 0.3, 0); body.scale.set(0.95, 0.85, 1.3);
@@ -2682,12 +2883,16 @@ function makePet(id, mats) {
     else if (P.ears === 'floppy') { const e = add(C(0.04, 0.12), earM, sx * 0.15, 0.02, 0.02, head); e.rotation.z = sx * 0.3; }
     else if (P.ears === 'round') add(S(0.05), earM, sx * 0.11, 0.13, 0.02, head).scale.z = 0.5;
     else if (P.ears === 'monkey') add(S(0.06), P.belly, sx * 0.17, 0.02, 0, head).scale.z = 0.4;
+    else if (P.ears === 'bunny') { const e = add(C(0.04, 0.2), earM, sx * 0.06, 0.22, 0.02, head); e.rotation.z = -sx * 0.15; add(C(0.022, 0.15), M(0xf2a6b8), sx * 0.06, 0.22, -0.015, head).rotation.z = -sx * 0.15; }
     else if (P.ears === 'horns') { const e = add(K(0.03, 0.14), M(0xf0e08a), sx * 0.07, 0.15, 0.04, head); e.rotation.x = 0.4; }
   }
+  if (P.horn) { const h = add(new THREE.ConeGeometry(0.035, 0.2, 10), M(0xffd23a, { metalness: 0.8, roughness: 0.2 }), 0, 0.18, -0.08, head); h.rotation.x = -0.4; }
+  if (P.rainbow) PRIDE6.forEach((c, k) => add(S(0.045), M(c), 0, 0.1 - k * 0.05, 0.12 + k * 0.012, head));
   if (P.mane) { const mane = add(new THREE.TorusGeometry(0.15, 0.07, 8, 18), P.mane, 0, 0.01, 0.03, head); for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; add(S(0.06), P.mane, Math.cos(a) * 0.16, Math.sin(a) * 0.16, 0.05, head); } mane.scale.set(1, 1, 0.6); }
   const tail = new THREE.Group(); tail.position.set(0, 0.36, 0.25); g.add(tail); info.tail = tail;
   if (P.tail === 'bushy') { const t = add(K(0.09, 0.32), P.fur, 0, 0.12, 0.08, tail); t.rotation.x = -0.9; add(S(0.05), P.tip, 0, 0.24, 0.2, tail); }
   else if (P.tail === 'stub') add(S(0.05), P.fur, 0, 0, 0.02, tail);
+  else if (P.tail === 'rainbow') PRIDE6.forEach((c, k) => { const t = add(C(0.02, 0.22), M(c), (k - 2.5) * 0.018, 0.08, 0.06, tail); t.rotation.x = -0.6; });
   else if (P.tail === 'curl') { const t = add(new THREE.TorusGeometry(0.1, 0.02, 6, 16, Math.PI * 1.5), P.fur, 0, 0.12, 0.08, tail); t.rotation.y = Math.PI / 2; }
   else { const t = add(C(0.025, P.tail === 'long' ? 0.28 : 0.2), P.fur, 0, 0.1, 0.06, tail); t.rotation.x = -0.7; if (P.tail === 'tuft') add(S(0.045), P.mane, 0, 0.21, 0.15, tail); if (P.tail === 'spiky') for (let k = 0; k < 3; k++) add(K(0.03, 0.07), P.belly, 0, 0.05 + k * 0.07, 0.04 + k * 0.05, tail); }
   if (P.wings) { info.wings = []; for (const sx of [-1, 1]) { const w = new THREE.Group(); w.position.set(sx * 0.12, 0.42, 0.02); g.add(w); const m = add(new THREE.ConeGeometry(0.16, 0.32, 3), M(0x2a8a40, { side: THREE.DoubleSide }), sx * 0.16, 0, 0, w); m.rotation.z = sx * Math.PI / 2; m.scale.z = 0.15; info.wings.push(w); } }
@@ -2867,7 +3072,7 @@ function equip(kind, id) {
 function shopClick(kind, id, def) {
   if (owns(kind, id)) return equip(kind, id);
   if (def.bundle) { toast(`${def.name} come free with the ${SUITS[def.bundle].name} suit.`); return; }
-  if (def.season && def.season !== SEASON) { toast(`${def.name} is a ${SEASONS[def.season].name} item. It comes back next ${SEASONS[def.season].name}.`); return; }
+  if (def.season && !seasonActive(def.season)) { toast(`${def.name} is a ${SEASONS[def.season].name} item. It comes back next ${SEASONS[def.season].name}.`); return; }
   if (wallet.coins < def.price) { toast(`You need ${(def.price - wallet.coins).toLocaleString()} more coins. Earn them in Squad Waves.`); return; }
   wallet.coins -= def.price; wallet.owned.push(kind + ':' + id); saveWallet(); queueCreatorCut(def.price);
   initAudio(); sfx.pickup();
@@ -2876,7 +3081,7 @@ function shopClick(kind, id, def) {
   equip(kind, id); renderMenu();
 }
 function shopItem(kind, id, def, cur, el) {
-  const own = owns(kind, id), eq = cur === id, closed = def.season && def.season !== SEASON && !own;
+  const own = owns(kind, id), eq = cur === id, closed = def.season && !seasonActive(def.season) && !own;
   const b = document.createElement('button');
   b.className = 'item' + (eq ? ' eq' : own ? ' owned' : '') + (!own && (def.bundle || closed || wallet.coins < def.price) ? ' poor' : '');
   b.style.setProperty('--pv', def.pv || (kind === 'pet' || kind === 'emote' ? 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))' : `linear-gradient(135deg,hsl(${settings.hue},75%,66%),hsl(${settings.hue},60%,36%))`));
@@ -2897,19 +3102,17 @@ function shopItem(kind, id, def, cur, el) {
 function renderShop() {
   $('coinBig').textContent = wallet.coins.toLocaleString();
   // this season's limited items sit in their own box at the top; owned seasonal items also show in the normal lists
-  const sb = $('seasonBox'); sb.hidden = !SEASON;
-  if (SEASON) {
-    const S = SEASONS[SEASON], left = seasonDaysLeft();
-    sb.style.setProperty('--sc', S.css);
-    $('seasonTitle').textContent = `${S.icon} ${S.name.toUpperCase()} SHOP`;
-    $('seasonLeft').textContent = `Leaves in ${left} day${left === 1 ? '' : 's'} · yours forever once bought`;
-    const el = $('seasonItems'); el.textContent = '';
-    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish]])
-      for (const [id, def] of Object.entries(defs)) if (def.season === SEASON) shopItem(kind, id, def, cur, el);
+  const boxes = $('seasonBoxes'); boxes.textContent = '';
+  for (const k of SEASONS_ON) {
+    const S = SEASONS[k], left = seasonDaysLeft(k), box = document.createElement('div'); box.className = 'seasonbox'; box.style.setProperty('--sc', S.css);
+    box.innerHTML = `<div class="seasonhead"><b>${S.icon} ${S.name.toUpperCase()} SHOP</b><span>Leaves in ${left} day${left === 1 ? '' : 's'} · yours forever once bought</span></div>`;
+    const el = document.createElement('div'); el.className = 'items'; box.appendChild(el); boxes.appendChild(box);
+    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet]])
+      for (const [id, def] of Object.entries(defs)) if (def.season === k) shopItem(kind, id, def, cur, el);
   }
   for (const [kind, defs, box, cur] of [['suit', SUITS, 'suitItems', settings.skin], ['hat', HATS, 'hatItems', settings.hat], ['finish', FINISHES, 'finishItems', settings.finish], ['pet', PETS, 'petItems', settings.pet], ['emote', EMOTES, 'emoteItems', '']]) {
     const el = $(box); el.textContent = '';
-    for (const [id, def] of Object.entries(defs)) if (!def.season || (def.season !== SEASON && owns(kind, id))) shopItem(kind, id, def, cur, el);
+    for (const [id, def] of Object.entries(defs)) if (!def.season || (!seasonActive(def.season) && owns(kind, id))) shopItem(kind, id, def, cur, el);
   }
   // add-ons stack on top of the chosen finish
   for (const [id, def] of Object.entries(ADDONS)) {
@@ -5450,11 +5653,11 @@ function frame(now) {
   if (TH.aurora) auroraMat.uniforms.uTime.value = time % 1000;
   if (TH.fx !== 'dust' && dust.visible) {
     // snow and petals fall and drift; embers rise
-    const a = dust.geometry.attributes.position.array, up = TH.fx === 'embers', fall = TH.fx === 'petals' ? 0.9 : 1.6;
+    const a = dust.geometry.attributes.position.array, up = TH.fx === 'embers', fall = TH.fx === 'petals' || TH.fx === 'confetti' ? 0.9 : 1.6;
     for (let i = 0; i < a.length; i += 3) {
       if (up) { a[i + 1] += dt * (0.8 + (i % 7) * 0.15); if (a[i + 1] > 26) a[i + 1] -= 25.5; }
       else { a[i + 1] -= dt * (fall + (i % 7) * 0.12); if (a[i + 1] < 0) a[i + 1] += 26; }
-      a[i] += Math.sin(time * (up ? 1.4 : 0.7) + i) * dt * (TH.fx === 'petals' ? 0.9 : 0.4);
+      a[i] += Math.sin(time * (up ? 1.4 : 0.7) + i) * dt * (TH.fx === 'petals' || TH.fx === 'confetti' ? 0.9 : 0.4);
     }
     dust.geometry.attributes.position.needsUpdate = true;
   } else { dust.rotation.y += dt * 0.01; dust.position.y = Math.sin(time * 0.4) * 0.5; }
