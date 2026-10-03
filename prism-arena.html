@@ -719,8 +719,11 @@ const HATS = {
   viking: { name: 'Viking Helmet', price: 700, pv: 'linear-gradient(180deg,#b8bdcc,#5a6070)' },
   halo: { name: 'Halo', price: 900, pv: 'radial-gradient(circle,transparent 36%,#ffe27a 38% 52%,transparent 54%),#141027' },
   crown: { name: 'Crown', price: 1200, pv: 'linear-gradient(180deg,#fff3c4,#e8a92e 60%,#9a6510)' },
+  tigerears: { name: 'Tiger Ears', price: 0, bundle: 'tiger', pv: 'radial-gradient(circle at 30% 70%,#1a1008 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#1a1008 0 16%,transparent 17%),repeating-linear-gradient(100deg,#ff9a2e 0 9px,#1a1008 9px 13px)' },
+  zebraears: { name: 'Zebra Ears', price: 0, bundle: 'zebra', pv: 'radial-gradient(circle at 30% 70%,#151515 0 16%,transparent 17%),radial-gradient(circle at 70% 70%,#151515 0 16%,transparent 17%),repeating-linear-gradient(100deg,#f4f4f4 0 7px,#151515 7px 12px)' },
 };
-const owns = (kind, id) => (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : FINISHES)[id]?.price === 0 || wallet.owned.includes(kind + ':' + id);
+// bundled items (like Tiger Ears) come free with the suit they belong to
+const owns = (kind, id) => { const d = (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
 if (!owns('suit', settings.skin)) settings.skin = 'standard';
 if (!owns('finish', settings.finish)) settings.finish = 'factory';
 if (!HATS[settings.hat] || !owns('hat', settings.hat)) settings.hat = 'none';
@@ -1774,8 +1777,8 @@ function addHat(parent, id, hotdog, mats, av) {
       const bill = put(new THREE.CylinderGeometry(R * 0.78 * bk, R * 0.78 * bk, 0.022, 24, 1, false, Math.PI / 2, Math.PI), red, 0, -R * 0.07, -R * 0.52);
       bill.scale.z = 0.9; bill.rotation.x = 0.1;
       put(new THREE.SphereGeometry(R * 0.07, 8, 6), red, 0, R * 0.62);
-      const textMat = new THREE.MeshStandardMaterial({ map: capTextTexture('MAGA', '#d61f2c', '#ffffff'), roughness: 0.8 }); mats.push(textMat);
-      put(new THREE.PlaneGeometry(R * 0.82, R * 0.3), textMat, 0, R * 0.26, -R * 0.9, -0.42);
+      const textMat = new THREE.MeshStandardMaterial({ map: capTextTexture('MAGA', '#d61f2c', '#ffffff'), roughness: 0.8, side: THREE.DoubleSide }); mats.push(textMat);
+      put(new THREE.PlaneGeometry(R * 0.86, R * 0.32), textMat, 0, R * 0.26, -R * 0.92, 0.42, Math.PI, 0);
       break;
     }
     case 'crown': {
@@ -1812,6 +1815,18 @@ function addHat(parent, id, hotdog, mats, av) {
       put(cyl(R * 1.3 * bk, R * 1.3 * bk, 0.025), purple, 0, 0.01);
       const cone = put(new THREE.ConeGeometry(R * 0.78, R * 2.0, 24), purple, 0, R * 1.0); cone.rotation.z = 0.18; cone.position.x = -R * 0.12;
       put(cyl(R * 0.8, R * 0.8, R * 0.12, true), M(0xffd23a, { side: THREE.DoubleSide, metalness: 0.6, roughness: 0.3 }), 0, R * 0.08);
+      break;
+    }
+    case 'tigerears': case 'zebraears': {
+      const tiger = id === 'tigerears';
+      const outer = M(0xffffff, { map: tiger ? tigerTex() : zebraTex(), roughness: 0.8 }), inner = M(tiger ? 0xf3e9dc : 0xf2a6b8, { roughness: 0.9 });
+      const tip = M(tiger ? 0x1a1008 : 0x151515, { roughness: 0.9 });
+      for (const sx of [-1, 1]) {
+        const ear = new THREE.Group(); ear.position.set(sx * R * 0.55, R * 0.4, 0); ear.rotation.z = -sx * 0.38; hat.add(ear);
+        const o = new THREE.Mesh(new THREE.ConeGeometry(R * 0.34, R * 0.6, 16), outer); o.scale.z = 0.45; o.castShadow = true; ear.add(o);
+        const i = new THREE.Mesh(new THREE.ConeGeometry(R * 0.2, R * 0.4, 16), inner); i.scale.z = 0.3; i.position.set(0, -R * 0.04, -R * 0.09); ear.add(i);
+        const t = new THREE.Mesh(new THREE.ConeGeometry(R * 0.13, R * 0.2, 12), tip); t.scale.z = 0.5; t.position.y = R * 0.21; ear.add(t);
+      }
       break;
     }
     case 'viking': {
@@ -1916,9 +1931,12 @@ function equip(kind, id) {
 }
 function shopClick(kind, id, def) {
   if (owns(kind, id)) return equip(kind, id);
+  if (def.bundle) { toast(`${def.name} come free with the ${SUITS[def.bundle].name} suit.`); return; }
   if (wallet.coins < def.price) { toast(`You need ${(def.price - wallet.coins).toLocaleString()} more coins. Earn them in Squad Waves.`); return; }
   wallet.coins -= def.price; wallet.owned.push(kind + ':' + id); saveWallet(); queueCreatorCut(def.price);
-  initAudio(); sfx.pickup(); toast(`Unlocked ${def.name}`);
+  initAudio(); sfx.pickup();
+  const bonus = kind === 'suit' && Object.values(HATS).find(h => h.bundle === id);
+  toast(bonus ? `Unlocked ${def.name} + ${bonus.name}` : `Unlocked ${def.name}`);
   equip(kind, id); renderMenu();
 }
 function renderShop() {
@@ -1928,13 +1946,14 @@ function renderShop() {
     for (const [id, def] of Object.entries(defs)) {
       const own = owns(kind, id), eq = cur === id;
       const b = document.createElement('button');
-      b.className = 'item' + (eq ? ' eq' : own ? ' owned' : '') + (!own && wallet.coins < def.price ? ' poor' : '');
+      b.className = 'item' + (eq ? ' eq' : own ? ' owned' : '') + (!own && (def.bundle || wallet.coins < def.price) ? ' poor' : '');
       b.style.setProperty('--pv', def.pv || `linear-gradient(135deg,hsl(${settings.hue},75%,66%),hsl(${settings.hue},60%,36%))`);
       b.style.setProperty('--hc', `hsl(${settings.hue},100%,60%)`);
       const pv = document.createElement('div'); pv.className = 'pv';
       const nm = document.createElement('b'); nm.textContent = def.name;
       const sm = document.createElement('small'); if (!own) sm.className = 'coin';
-      sm.textContent = eq ? 'EQUIPPED' : own ? 'OWNED · EQUIP' : def.price.toLocaleString();
+      sm.textContent = eq ? 'EQUIPPED' : own ? 'OWNED · EQUIP' : def.bundle ? `WITH ${SUITS[def.bundle].name.toUpperCase()} SUIT` : def.price.toLocaleString();
+      if (def.bundle && !own) sm.className = '';
       b.append(pv, nm, sm);
       b.addEventListener('mouseenter', () => { preview[kind] = id; refreshPreview(); });
       b.addEventListener('mouseleave', () => { preview[kind] = null; refreshPreview(); });
