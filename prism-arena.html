@@ -1,4 +1,5 @@
 <title>Prism Arena</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%235ff2ff%27/%3E%3Cstop offset=%271%27 stop-color=%27%23ff4fa3%27/%3E%3C/linearGradient%3E%3Cfilter id=%27f%27 x=%27-50%25%27 y=%27-50%25%27 width=%27200%25%27 height=%27200%25%27%3E%3CfeGaussianBlur stdDeviation=%272.4%27/%3E%3C/filter%3E%3C/defs%3E%3Crect width=%2764%27 height=%2764%27 rx=%2715%27 fill=%27%23120d26%27/%3E%3Crect x=%272%27 y=%272%27 width=%2760%27 height=%2760%27 rx=%2713%27 fill=%27none%27 stroke=%27%232a2450%27 stroke-width=%272%27/%3E%3Cpath d=%27M23 50V15h12a10.5 10.5 0 0 1 0 21H23%27 fill=%27none%27 stroke=%27url%28%23g%29%27 stroke-width=%278%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 filter=%27url%28%23f%29%27 opacity=%27.9%27/%3E%3Cpath d=%27M23 50V15h12a10.5 10.5 0 0 1 0 21H23%27 fill=%27none%27 stroke=%27url%28%23g%29%27 stroke-width=%275.5%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M23 50V15h12a10.5 10.5 0 0 1 0 21H23%27 fill=%27none%27 stroke=%27%23fff%27 stroke-opacity=%27.75%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Oxanium:wght@500;700;800&display=swap">
@@ -150,6 +151,20 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .shophead .coin::before{width:20px;height:20px}
 .shophead p{margin:0;font-size:13px;color:var(--dim);max-width:34ch;line-height:1.45}
 .items{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#shopPane{gap:12px}
+#shopPane .items{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-behavior:smooth;gap:8px;padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:rgba(150,225,255,.35) transparent;cursor:grab}
+#shopPane .items.drag{cursor:grabbing;scroll-behavior:auto;scroll-snap-type:none}
+#shopPane .items::-webkit-scrollbar{height:6px}#shopPane .items::-webkit-scrollbar-thumb{background:rgba(150,225,255,.3);border-radius:3px}
+#shopPane .item{flex:0 0 116px;scroll-snap-align:start}
+#shopPane .item .pv{height:64px}
+.srh{display:flex;justify-content:space-between;align-items:center;margin-bottom:-4px}
+.srh .sect{margin:0}
+.srh span.n{font-family:var(--display);font-size:11px;color:var(--dim);letter-spacing:.1em;margin-left:6px}
+.arrows{display:flex;gap:4px}
+.arrows button{width:26px;height:22px;border-radius:4px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:pointer;font-size:11px;line-height:1}
+.arrows button:hover{border-color:var(--cyan)}
+.shoptop{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.shoptop .creator{flex:1;min-width:220px}
 .item{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;min-width:0}
 .item .pv{height:46px;border-radius:4px;background:var(--pv)}
 .item b{font-family:var(--display);font-size:12px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -426,22 +441,23 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     <div class="mp"><b>Multiplayer:</b> friends who pick the same mode and room code join your match. Bots fill the empty slots, so every mode works solo too.</div>
     </div>
     <div class="pane" id="shopPane" hidden>
-      <div class="shophead"><span class="coin" id="coinBig">0</span><p>Earn coins by destroying drones in Squad Waves. Clearing a wave pays a bonus.</p></div>
-      <div class="creator">
-        <label for="ccode">Support a creator</label>
-        <div class="crow"><input id="ccode" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Creator code"><button class="ghost" id="capply">APPLY</button></div>
-        <small id="cmsg">Creators get 10% of the coins you spend, on top of your purchase.</small>
+      <div class="shoptop">
+        <div class="shophead"><span class="coin" id="coinBig">0</span></div>
+        <div class="creator">
+          <div class="crow"><input id="ccode" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Creator code"><button class="ghost" id="capply">APPLY</button></div>
+          <small id="cmsg">Creators get 10% of the coins you spend, on top of your purchase.</small>
+        </div>
       </div>
       <div id="seasonBoxes" class="pane" style="gap:12px"></div>
-      <div class="sect" style="margin-bottom:8px">Suits</div>
+      <div class="srh"><span class="sect">Suits<span class="n" id="nsuitItems"></span></span><span class="arrows" data-for="suitItems"></span></div>
       <div class="items" id="suitItems"></div>
-      <div class="sect" style="margin-bottom:8px">Hats</div>
+      <div class="srh"><span class="sect">Hats<span class="n" id="nhatItems"></span></span><span class="arrows" data-for="hatItems"></span></div>
       <div class="items" id="hatItems"></div>
-      <div class="sect" style="margin-bottom:8px">Pets <span style="letter-spacing:.08em;text-transform:none">· they follow you around</span></div>
+      <div class="srh"><span class="sect">Pets<span class="n" id="npetItems"></span></span><span class="arrows" data-for="petItems"></span></div>
       <div class="items" id="petItems"></div>
-      <div class="sect" style="margin-bottom:8px">Emotes <span style="letter-spacing:.08em;text-transform:none">· press H in a match</span></div>
+      <div class="srh"><span class="sect">Emotes · press H in a match<span class="n" id="nemoteItems"></span></span><span class="arrows" data-for="emoteItems"></span></div>
       <div class="items" id="emoteItems"></div>
-      <div class="sect" style="margin-bottom:8px">Gun finishes</div>
+      <div class="srh"><span class="sect">Gun finishes<span class="n" id="nfinishItems"></span></span><span class="arrows" data-for="finishItems"></span></div>
       <div class="items" id="finishItems"></div>
       <div class="sect" style="margin-bottom:8px">Color</div>
       <div class="swatches" id="swatches2"></div>
@@ -3176,7 +3192,29 @@ function shopItem(kind, id, def, cur, el) {
   b.addEventListener('click', () => shopClick(kind, id, def));
   el.appendChild(b);
 }
+// shop rows scroll sideways: arrow buttons, drag with the mouse, or shift + wheel
+let shopDrag = null, shopDragged = false;
+addEventListener('pointermove', e => { const d = shopDrag; if (!d) return; const dx = e.clientX - d.x; if (Math.abs(dx) > 6) { shopDragged = true; d.el.classList.add('drag'); } if (shopDragged) d.el.scrollLeft = d.left - dx; });
+addEventListener('pointerup', () => { if (shopDrag) { shopDrag.el.classList.remove('drag'); shopDrag = null; } });
+function setupShopRows() {
+  for (const el of document.querySelectorAll('#shopPane .items')) {
+    if (el.dataset.rowReady) continue; el.dataset.rowReady = 1;
+    el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; shopDrag = { el, x: e.clientX, left: el.scrollLeft }; shopDragged = false; });
+    el.addEventListener('click', e => { if (shopDragged) { e.stopPropagation(); e.preventDefault(); shopDragged = false; } }, true);
+  }
+  for (const a of document.querySelectorAll('#shopPane .arrows')) {
+    if (a.dataset.ready) continue; a.dataset.ready = 1;
+    for (const [lbl, dir] of [['◀', -1], ['▶', 1]]) { const b = document.createElement('button'); b.textContent = lbl; b.setAttribute('aria-label', dir < 0 ? 'Scroll left' : 'Scroll right'); b.addEventListener('click', () => { const row = $(a.dataset.for); row.scrollBy({ left: dir * row.clientWidth * 0.85 }); }); a.appendChild(b); }
+  }
+}
 function renderShop() {
+  const keep = {}; for (const el of document.querySelectorAll('#shopPane .items')) if (el.id) keep[el.id] = el.scrollLeft;
+  renderShopInner();
+  for (const id of ['suitItems', 'hatItems', 'petItems', 'emoteItems', 'finishItems']) { const n = $('n' + id); if (n) n.textContent = String($(id).children.length); }
+  setupShopRows();
+  for (const el of document.querySelectorAll('#shopPane .items')) if (el.id && keep[el.id]) { el.style.scrollBehavior = 'auto'; el.scrollLeft = keep[el.id]; el.style.scrollBehavior = ''; }
+}
+function renderShopInner() {
   $('coinBig').textContent = wallet.coins.toLocaleString();
   // this season's limited items sit in their own box at the top; owned seasonal items also show in the normal lists
   const boxes = $('seasonBoxes'); boxes.textContent = '';
