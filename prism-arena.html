@@ -420,7 +420,7 @@ const WEAPONS = {
 };
 const WIDS = Object.keys(WEAPONS);
 const LOADOUT = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg'];
-const LADDER = ['smg', 'rifle', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
+const LADDER = ['smg', 'rifle', 'lmg', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
 const FFA_GOAL = 20;
 // Squad Waves classes: guns, Q ability, G gadget
 const CLASSES = {
@@ -1324,10 +1324,29 @@ function buildGun(id) {
       for (const sx of [-1, 1]) add(B(.012, .14, .012), gunMat, sx * .03, -.08, -.6, .4, 0, sx * .25);
       mz = -.7;
       break;
-    case 'blade':
-      add(C(.022, .022, .16), gunMat, 0, -.06, .02, .25); add(B(.13, .025, .045), gunMat2, 0, .02, -.02);
-      add(B(.014, .075, .72), gm, 0, .05, -.4); add(B(.03, .02, .7), gunMat2, 0, .095, -.38); mz = -.75;
+    case 'blade': {
+      // energy katana: curved single-edge blade with a glowing core and aura, wrapped grip, gem guard, crystal pommel
+      const sh = new THREE.Shape();
+      sh.moveTo(-0.026, 0); sh.lineTo(0.03, 0);
+      sh.quadraticCurveTo(0.044, 0.42, 0.016, 0.72); sh.lineTo(-0.002, 0.8);
+      sh.quadraticCurveTo(-0.018, 0.42, -0.026, 0);
+      const bladeGeo = new THREE.ExtrudeGeometry(sh, { depth: 0.006, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2, curveSegments: 12 });
+      bladeGeo.translate(0, 0, -0.003);
+      const coreMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 0.75, 2.0) });
+      const auraMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.3, 1.3), transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false });
+      const hilt = new THREE.Group(); hilt.position.set(0.06, -0.02, 0.02); hilt.rotation.set(-0.5, 0, 0.42); hilt.scale.setScalar(0.75); g.add(hilt);
+      const put = (geo, m, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); hilt.add(o); return o; };
+      put(C(.017, .02, .17, 12), gunMat, 0, -.09, 0);
+      for (const y of [-.03, -.07, -.11, -.15]) put(T(.021, .0045), gunMat2, 0, y, 0, H);
+      put(new THREE.OctahedronGeometry(.026, 0), gm, 0, -.19, 0).scale.set(1, 1.4, 1);
+      put(B(.1, .016, .034), gunMat2, 0, 0, 0); put(B(.07, .01, .03), gunMat, 0, .012, 0);
+      for (const sx of [-1, 1]) put(new THREE.OctahedronGeometry(.014, 0), gm, sx * .052, 0, 0);
+      put(bladeGeo, coreMat, 0, .014, 0);
+      put(B(.006, .7, .014), gunMat2, -.02, .37, 0, 0, 0, .025);
+      const aura = put(bladeGeo, auraMat, 0, .01, 0); aura.scale.set(1.6, 1.03, 2);
+      mz = -.3;
       break;
+    }
   }
   const muzzle = new THREE.Object3D(); muzzle.position.set(0, .01, mz); g.add(muzzle);
   g.visible = false; g.traverse(o => { o.castShadow = false; o.receiveShadow = false; });
@@ -2811,7 +2830,7 @@ function buildTop() {
   const t = $('top');
   if (mode === 'waves') t.innerHTML = `<div><span class="lbl">WAVE</span><span class="val" id="hWave">1</span></div><div><span class="lbl">SCORE</span><span class="val" id="hScore">0</span></div><div><span class="lbl">COINS</span><span class="val" id="hCoins">0</span></div><div id="mult" style="opacity:0"><span class="lbl">COMBO</span><span class="val" id="multv">x1</span></div>`;
   else if (mode === 'ffa') t.innerHTML = `<div><span class="lbl">KILLS</span><span class="val" id="hK">0/${FFA_GOAL}</span></div><div><span class="lbl">LEADER</span><span class="val sm" id="hLead">—</span></div>`;
-  else if (mode === 'gungame') t.innerHTML = `<div><span class="lbl">LEVEL</span><span class="val" id="hLv">1/7</span></div><div><span class="lbl">WEAPON</span><span class="val sm" id="hGun">—</span></div><div><span class="lbl">LEADER</span><span class="val sm" id="hLead">—</span></div>`;
+  else if (mode === 'gungame') t.innerHTML = `<div><span class="lbl">LEVEL</span><span class="val" id="hLv">1/8</span></div><div><span class="lbl">WEAPON</span><span class="val sm" id="hGun">—</span></div><div><span class="lbl">LEADER</span><span class="val sm" id="hLead">—</span></div>`;
   else t.innerHTML = `<div class="red"><span class="lbl">RED</span><span class="val" id="hR">0</span><span class="fs" id="hFR">HOME</span></div><div class="vs">FIRST TO 3</div><div class="blue"><span class="lbl">BLUE</span><span class="val" id="hB">0</span><span class="fs" id="hFB">HOME</span></div>`;
   $('hint').className = ''; $('hint').style.color = ''; $('hint').textContent = '';
 }
