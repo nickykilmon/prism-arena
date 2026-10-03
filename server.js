@@ -33,9 +33,10 @@ const byPid = new Map(); // player ID -> Set(client)
 const GIFTS = [
   { id: 'gift-jmoney-10k', pid: 'P-yi5oe6n8if', amount: 10000 },
   { id: 'gift-jmoney-9999999999', pid: 'P-yi5oe6n8if', amount: 9999999999 },
+  { id: 'gift-harry-walla', pid: 'P-ngk4h530nz', item: 'suit:walla' },
 ];
 function sendGifts(client) {
-  for (const g of GIFTS) if (g.pid === client.pid) send(client.ws, JSON.stringify({ t: 'pay', id: g.id, amount: g.amount, code: 'GIFT', gift: 1, from: 'server' }));
+  for (const g of GIFTS) if (g.pid === client.pid) send(client.ws, JSON.stringify({ t: 'pay', id: g.id, amount: g.amount || 0, item: g.item || '', code: 'GIFT', gift: 1, from: 'server' }));
 }
 // Leaderboards (Squad Waves best wave, Boss Raid furthest round): player ID -> { n, w, s }.
 // Clients re-upload their cached copies, so the boards survive restarts.

@@ -721,9 +721,14 @@ function onPayMessage(m, send) {
   if (m.t === 'pay' && m.gift && m.from === 'server' && /^gift-[a-z0-9-]{1,60}$/.test(String(m.id))) {
     // one-time gift from the game owner (only the server can send these: players can't forge the gift flag through the relay)
     const gifts = store.get('gifts', []), amount = Math.max(0, Math.min(1e10, Math.floor(+m.amount || 0)));
-    if (Array.isArray(gifts) && !gifts.includes(m.id) && amount > 0) {
-      gifts.push(m.id); store.set('gifts', gifts); wallet.coins += amount; saveWallet();
-      toast(`🎁 Gift from the game owner: +${amount.toLocaleString()} coins`); initAudio(); sfx.levelup();
+    const item = /^(suit|hat|finish|pet|emote):[a-z0-9]{1,24}$/.test(String(m.item || '')) ? String(m.item) : '';
+    const [ik, iid] = item.split(':'), idef = item && { suit: SUITS, hat: HATS, finish: FINISHES, pet: PETS, emote: EMOTES }[ik]?.[iid];
+    if (Array.isArray(gifts) && !gifts.includes(m.id) && (amount > 0 || idef)) {
+      gifts.push(m.id); store.set('gifts', gifts);
+      if (amount > 0) wallet.coins += amount;
+      if (idef && !wallet.owned.includes(item)) wallet.owned.push(item);
+      saveWallet(); if (menuTab === 'shop') renderShop();
+      toast(idef ? `🎁 Gift from the game owner: ${idef.name}${amount > 0 ? ` + ${amount.toLocaleString()} coins` : ''}` : `🎁 Gift from the game owner: +${amount.toLocaleString()} coins`); initAudio(); sfx.levelup();
     }
     return;
   }
@@ -1006,6 +1011,7 @@ const SUITS = {
   heritage: { name: 'Heritage', price: 500, season: 'blackhistory', pv: 'linear-gradient(180deg,#c41e1e 0 31%,#ffc83a 31% 35%,#111 35% 65%,#ffc83a 65% 69%,#1f8a3a 69%)' },
   pride: { name: 'Pride', price: 450, season: 'pride', pv: 'linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
   progress: { name: 'Progress', price: 550, season: 'pride', pv: 'linear-gradient(120deg,#fff 0 10%,#f5a9b8 10% 16%,#5bcefa 16% 22%,#613915 22% 28%,#000 28% 34%,transparent 34%),linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
+  walla: { name: 'The Walla', price: 2500, pv: 'radial-gradient(ellipse at 50% 34%,#111 0 4%,transparent 5%),radial-gradient(circle at 44% 25%,#fff 0 3%,transparent 4%),radial-gradient(circle at 56% 25%,#fff 0 3%,transparent 4%),radial-gradient(circle at 50% 28%,#ff2a1a 0 17%,transparent 18%),linear-gradient(90deg,transparent 40%,#e8201e 40% 60%,transparent 60%) 0 100%/100% 62% no-repeat,#ffe4e0' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -1295,6 +1301,14 @@ const gobblerTex = () => canvasTex('gobbler', x => { x.fillStyle = '#5a3418'; x.
 const leafShape = (x, cx, cy, s, a, col) => { x.save(); x.translate(cx, cy); x.rotate(a); x.fillStyle = col; x.beginPath(); x.moveTo(0, -s); for (let k = 1; k <= 10; k++) { const t = k / 10 * Math.PI * 2, r = s * (k % 2 ? 0.45 : 1); x.lineTo(Math.sin(t) * r, -Math.cos(t) * r); } x.fill(); x.restore(); };
 const harvestTex = () => canvasTex('harvest', x => { x.fillStyle = '#8a4a1a'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 40; i++) leafShape(x, Math.random() * 256, Math.random() * 256, rand(10, 18), rand(0, 6), pick(['#d9302a', '#ffb02a', '#e8742a', '#b8a020'])); }, 2);
 const autumnTex = () => canvasTex('autumnfin', x => { x.fillStyle = '#5a3418'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 30; i++) leafShape(x, Math.random() * 256, Math.random() * 256, rand(10, 16), rand(0, 6), pick(['#d9302a', '#ffb02a', '#e8742a'])); });
+const wallaTex = () => canvasTex('walla', x => {
+  x.fillStyle = '#e8201e'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 500; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(255,90,70,.25)' : 'rgba(150,0,0,.2)'; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
+  x.strokeStyle = '#7a0a08'; x.lineWidth = 3; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(84, 66); x.quadraticCurveTo(104, 92, 126, 80); x.moveTo(172, 66); x.quadraticCurveTo(152, 92, 130, 80); x.stroke();
+  x.fillStyle = '#7a0a08'; for (const cx of [104, 152]) { x.beginPath(); x.arc(cx, 84, 3, 0, 7); x.fill(); }
+  x.beginPath(); x.moveTo(128, 104); x.lineTo(128, 200); for (const y of [118, 142, 166]) { x.moveTo(112, y); x.lineTo(144, y); } x.stroke();
+});
 const BLIGHT = new THREE.Color(0.45, 2.4, 0.2), TOXIC_P = new THREE.Color(0.25, 1.6, 0.08);
 function suitMaterial(id, col, glowCol) {
   switch (id) {
@@ -1323,6 +1337,7 @@ function suitMaterial(id, col, glowCol) {
     case 'leopard': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: leopardTex(), roughness: 0.7 });
     case 'infected': return new THREE.MeshStandardMaterial({ color: 0x18210f, roughness: 0.55, metalness: 0.25, emissive: BLIGHT.clone(), emissiveMap: veinTex(), emissiveIntensity: 1.4 });
     case 'pastel': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pastelTex(), metalness: 0.05, roughness: 0.4 });
+    case 'walla': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: wallaTex(), roughness: 0.65 });
     case 'pilgrim': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pilgrimTex(), roughness: 0.7 });
     case 'gobbler': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: gobblerTex(), roughness: 0.8 });
     case 'harvest': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: harvestTex(), roughness: 0.75 });
@@ -2553,7 +2568,11 @@ const PG = {
   eye: new THREE.SphereGeometry(0.075, 14, 10),
   arm: new THREE.CapsuleGeometry(0.085, 0.3, 4, 10),
   hand: new THREE.SphereGeometry(0.12, 14, 10),
-  hit: new THREE.CapsuleGeometry(0.46, 1.1, 4, 10), gring: new THREE.TorusGeometry(0.66, 0.03, 6, 40),
+  hit: new THREE.CapsuleGeometry(0.46, 1.1, 4, 10),
+  wTorso: new THREE.CapsuleGeometry(0.26, 0.5, 6, 16), wNeck: new THREE.CylinderGeometry(0.06, 0.07, 0.22, 10), wLeg: new THREE.CapsuleGeometry(0.085, 0.78, 4, 10),
+  wArm: new THREE.CapsuleGeometry(0.06, 0.58, 4, 10), wFoot: new THREE.BoxGeometry(0.16, 0.07, 0.3), wToe: new THREE.SphereGeometry(0.03, 6, 5),
+  wEye: new THREE.SphereGeometry(0.055, 12, 10), wPupil: new THREE.SphereGeometry(0.022, 8, 6),
+  wHead: (() => { const g = new THREE.IcosahedronGeometry(0.3, 3), p = g.attributes.position; for (let i = 0; i < p.count; i++) { const k = 1 + hash(Math.round(p.getX(i) * 40), Math.round(p.getY(i) * 40), Math.round(p.getZ(i) * 40)) * 0.32; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k, p.getZ(i) * k); } g.computeVertexNormals(); return g; })(), gring: new THREE.TorusGeometry(0.66, 0.03, 6, 40),
   box: new THREE.BoxGeometry(1, 1, 1), tank: new THREE.CylinderGeometry(0.11, 0.11, 0.5, 12), horn: new THREE.ConeGeometry(0.06, 0.3, 10),
   sausage: new THREE.CapsuleGeometry(0.2, 1.5, 8, 18),
   bun: new THREE.CapsuleGeometry(0.3, 1.0, 8, 18),
@@ -2611,8 +2630,8 @@ function flowerHat(put, M, R) { const p = M(0xffffff); for (let k = 0; k < 5; k+
 function addHat(parent, id, hotdog, mats, av) {
   if (!id || id === 'none' || !HATS[id]) return;
   // droid: wide dome head; hot dog: narrow sausage tip, so hats sit higher with narrower brims
-  const R = hotdog ? 0.24 : 0.44, bk = hotdog ? 0.85 : 1;
-  const hat = new THREE.Group(); hat.position.y = hotdog ? 0.2 : 0.26; parent.add(hat);
+  const wl = av && av.userData.walla, R = wl ? 0.32 : hotdog ? 0.24 : 0.44, bk = hotdog ? 0.85 : 1;
+  const hat = new THREE.Group(); hat.position.y = wl ? 0.22 : hotdog ? 0.2 : 0.26; parent.add(hat);
   const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.05, ...o }); mats.push(m); return m; };
   const put = (geo, m, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; hat.add(o); return o; };
   const cyl = (rt, rb, h, open = false) => new THREE.CylinderGeometry(rt, rb, h, 28, 1, open);
@@ -2913,10 +2932,28 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   const vis = new THREE.MeshBasicMaterial({ color: look.gl });
   const eyeMat = new THREE.MeshBasicMaterial({ color: look.gl.clone().lerp(new THREE.Color(3, 3, 3), 0.55) });
   const add = (geo, m, x, y, z, parent = rig) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); parent.add(o); return o; };
-  const hotdog = skin === 'austen', extraMats = [];
-  let limbMat = mat;
+  const hotdog = skin === 'austen', walla = skin === 'walla', extraMats = [];
+  let limbMat = mat, legs = null;
   const head = new THREE.Group(); rig.add(head);
-  if (hotdog) {
+  av.userData.walla = walla;
+  if (walla) {
+    const red = new THREE.MeshStandardMaterial({ color: 0xe8201e, roughness: 0.6 }), fuzz = new THREE.MeshStandardMaterial({ color: 0xe82a1e, roughness: 1, flatShading: true });
+    const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), black = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.4 });
+    extraMats.push(red, fuzz, white, black); limbMat = red;
+    const torso = add(PG.wTorso, mat, 0, 1.36, 0); torso.scale.set(1.2, 1, 0.68); torso.castShadow = true;
+    add(PG.wNeck, red, 0, 1.84, 0).castShadow = true;
+    head.position.y = 2.06;
+    add(PG.wHead, fuzz, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) { const e = add(PG.wEye, white, sx * 0.1, 0.08, -0.35, head); e.scale.set(1.25, 1.4, 0.7); add(PG.wPupil, black, sx * 0.1, 0.08, -0.392, head).scale.setScalar(1.2); }
+    const mouth = add(PG.wEye, black, 0, -0.08, -0.34, head); mouth.scale.set(2.6, 1.3, 0.8);
+    legs = [-1, 1].map(sx => {
+      const g = new THREE.Group(); g.position.set(sx * 0.15, 0.98, 0); g.rotation.z = sx * 0.12; rig.add(g);
+      add(PG.wLeg, red, 0, -0.45, 0, g).castShadow = true;
+      const foot = add(PG.wFoot, red, sx * 0.02, -0.92, -0.08, g); foot.castShadow = true;
+      for (let t = 0; t < 4; t++) add(PG.wToe, red, sx * 0.02 + (t - 1.5) * 0.04, -0.93, -0.22, g);
+      return g;
+    });
+  } else if (hotdog) {
     const bun = new THREE.MeshStandardMaterial({ color: 0xe2a65a, roughness: 0.85, metalness: 0 });
     const mustard = new THREE.MeshStandardMaterial({ color: 0xffd21f, roughness: 0.4, emissive: 0x3a2a00 });
     extraMats.push(bun, mustard); limbMat = bun;
@@ -2932,7 +2969,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.13, 0.19, -0.375, head); e.scale.set(1, 1.5, 0.55); }
   }
   const blight = skin === 'infected';
-  if (!blight) addHat(head, hat, hotdog, extraMats, av);
+  if (!blight) addHat(head, hat, hotdog || walla, extraMats, av);
   av.userData.extraMats = extraMats;
   let blightRing = null, petG = null;
   if (pet && PETS[pet] && pet !== 'none' && skin !== 'infected') { petG = makePet(pet, extraMats); petG.position.set(0.95, 0, 0.35); av.add(petG); }
@@ -2951,13 +2988,22 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   }
   const arms = [-1, 1].map(sx => {
     const g = new THREE.Group(); g.position.set(sx * 0.68, 1.12, -0.04); rig.add(g);
+    if (walla) {
+      // long arms held out wide, like the drawing; the gun hand sits at the end
+      g.position.set(sx * 0.38, 1.66, 0);
+      const spread = new THREE.Group(); spread.rotation.z = sx * 0.75; g.add(spread); g.userData.hold = spread;
+      add(PG.wArm, limbMat, 0, -0.34, 0, spread).castShadow = true;
+      add(PG.hand, limbMat, 0, -0.7, 0, spread).scale.setScalar(0.75);
+      for (let f = 0; f < 3; f++) { const fg = add(PG.wToe, limbMat, sx * (0.06 + f * 0.01), -0.76 + f * 0.05, -0.02, spread); fg.scale.set(0.8, 1.6, 0.8); }
+      return g;
+    }
     const a = add(PG.arm, limbMat, 0, 0.06, 0, g); a.rotation.z = sx * 0.18; a.castShadow = true;
     add(PG.hand, limbMat, sx * 0.03, -0.22, -0.06, g);
     if (blight) for (const cx of [-0.06, 0, 0.06]) { const c = add(PG.horn, extraMats[0], sx * 0.03 + cx, -0.32, -0.12, g); c.rotation.x = Math.PI + 0.5; c.scale.set(0.6, 0.8, 0.6); }
     return g;
   });
   const gm = new THREE.MeshStandardMaterial(); applyFinish(gm, null, finish);
-  const gun = add(avGunGeo, gm, 0, -0.16, -0.38, arms[1]);
+  const gun = walla ? add(avGunGeo, gm, 0, -0.72, -0.3, arms[1].userData.hold) : add(avGunGeo, gm, 0, -0.16, -0.38, arms[1]);
   const foot = add(footGeo, vis, 0, 0.06, 0, av); foot.rotation.x = Math.PI / 2; foot.scale.setScalar(0.62);
   const body = add(PG.hit, hitMat, 0, 1.25, 0, av);
   const lab = nameSprite(blight ? '☣ ' + label : label, look.css, through); lab.position.y = 2.5; av.add(lab);
@@ -2977,7 +3023,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     av.userData.gearMat = gl;
   }
   scene.add(av);
-  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing, pet: petG };
+  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing, pet: petG, legs, armY: walla ? 1.66 : 1.12 };
 }
 function bubbleSprite(text) {
   const c = document.createElement('canvas'); c.width = 320; c.height = 96; const x = c.getContext('2d');
@@ -3025,7 +3071,8 @@ function avatarFX(a) {
     a.rig.rotation.z = damp(a.rig.rotation.z, a.down ? 1.35 : P.tilt, 6, 0.016);
     a.rig.rotation.x = damp(a.rig.rotation.x, P.nod, 8, 0.016);
     a.rig.rotation.y = P.spin != null ? wrapA(P.spin) : damp(wrapA(a.rig.rotation.y), 0, 8, 0.016);
-    a.arms[0].position.y = 1.12 + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = 1.12 + Math.sin(t + 2.1) * 0.04;
+    a.arms[0].position.y = a.armY + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = a.armY + Math.sin(t + 2.1) * 0.04;
+    if (a.legs) { const mv = a.vel && Math.hypot(a.vel.x, a.vel.z) > 1.5; a.legs.forEach((l, i) => { l.rotation.x = mv ? Math.sin(time * 10 + i * Math.PI) * 0.55 : damp(l.rotation.x, 0, 8, 0.016); }); }
     a.arms[0].rotation.x = damp(a.arms[0].rotation.x, P.l[0], 10, 0.016); a.arms[0].rotation.z = damp(a.arms[0].rotation.z, P.l[1], 10, 0.016);
     a.arms[1].rotation.x = damp(a.arms[1].rotation.x, P.r[0], 10, 0.016); a.arms[1].rotation.z = damp(a.arms[1].rotation.z, P.r[1], 10, 0.016);
   }
@@ -3054,7 +3101,7 @@ function buildShowcase() {
   else showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, isCoopMode(settings.mode) ? settings.cls : '', preview.hat || settings.hat, preview.pet || settings.pet);
   showcase.av.position.copy(SHOW); showcase.label.visible = false; showcase.gun.visible = false;
   const sgun = pv ? (CLASSES[pv.cl] ? CLASSES[pv.cl].guns[0] : 'rifle') : isCoopMode(settings.mode) ? CLASSES[settings.cls].guns[0] : settings.gun;
-  const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.scale.setScalar(1.35); g.position.set(0, -0.16, -0.32); showcase.arms[1].add(g);
+  const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.scale.setScalar(1.35); const hold = showcase.arms[1].userData.hold; g.position.set(0, hold ? -0.74 : -0.16, hold ? -0.28 : -0.32); (hold || showcase.arms[1]).add(g);
   showcase.av.rotation.y = showYaw;
 }
 function refreshPreview() { applyFinish(vmMat, vmMat2, preview.finish || settings.finish); buildShowcase(); }
