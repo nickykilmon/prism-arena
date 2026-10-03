@@ -401,7 +401,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
       <div class="btnrow"><button class="ghost" id="ptPrivate">NEW PRIVATE ROOM</button><button class="ghost" id="ptCopy">COPY ROOM CODE</button><button class="ghost" id="ptInvite">INVITE FRIENDS</button></div>
     </div>
     <button id="play" disabled>Loading…</button>
-    <div class="meta"><span id="bestLine">Best wave <b id="bestWave">0</b> · score <b id="bestScore">0</b></span><span id="menuNet">Multiplayer: checking…</span></div>
+    <div class="meta"><span id="bestLine"><span id="bestLbl">Best wave</span> <b id="bestWave">0</b> · score <b id="bestScore">0</b></span><span id="menuNet">Multiplayer: checking…</span></div>
     <div class="daily"><div class="dhead"><b>DAILY CHALLENGES</b><span id="dreset"></span></div><div id="dlist"></div></div>
     <div class="mp"><b>Multiplayer:</b> friends who pick the same mode and room code join your match. Bots fill the empty slots, so every mode works solo too.</div>
     </div>
@@ -424,8 +424,9 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
       <div class="swatches" id="swatches2"></div>
     </div>
     <div class="pane" id="lbPane" hidden>
-      <div class="lbhead"><b>SQUAD WAVES · BEST WAVE</b><p id="lbNote">Loading…</p></div>
-      <div class="lbwrap"><table class="lb"><thead><tr><th>#</th><th>Pilot</th><th class="n">Wave</th><th class="n">Score</th></tr></thead><tbody id="lbBody"></tbody></table></div>
+      <div class="seg" id="lbTabs" style="grid-template-columns:1fr 1fr"><button data-b="waves">SQUAD WAVES</button><button data-b="boss">BOSS RAID</button></div>
+      <div class="lbhead"><b id="lbTitle">SQUAD WAVES · BEST WAVE</b><p id="lbNote">Loading…</p></div>
+      <div class="lbwrap"><table class="lb"><thead><tr><th>#</th><th>Pilot</th><th class="n" id="lbCol">Wave</th><th class="n">Score</th></tr></thead><tbody id="lbBody"></tbody></table></div>
     </div>
     <div class="pane" id="frPane" hidden>
       <div class="lbhead"><b>FRIENDS</b><p id="frNote"></p></div>
@@ -629,6 +630,7 @@ function kit() {
 }
 store.set('hue', settings.hue);
 let best = store.get('best', { wave: 0, score: 0 });
+let bestBoss = store.get('bestboss', { wave: 0, score: 0 }); if (!bestBoss || typeof bestBoss.wave !== 'number') bestBoss = { wave: 0, score: 0 };
 const opts = Object.assign({ scale: null, fov: 80, zsens: 1, invY: false, shake: true, vMaster: 0.8, vMusic: 0.6, vSfx: 0.9, fps: false, chat: true, autoQ: true }, store.get('opts', {}));
 const saveOpts = () => store.set('opts', opts);
 // permanent player ID, kept in this browser; creator-code payouts are addressed to it
@@ -709,8 +711,10 @@ function renderMenu() {
     el.innerHTML = `<b>${c.name}</b><small>${c.blurb}</small><div class="kit"><i>HEALTH</i><span>${c.hp}</span><i>GUNS</i><span>${c.guns.map(g => WEAPONS[g].name).join(' + ')}</span><i>Q</i><span>${c.qText}</span><i>G</i><span>${c.gText}</span></div>`; }
   $('ladderBox').hidden = settings.mode !== 'gungame';
   $('teamBox').hidden = settings.mode !== 'ctf';
-  $('bestWave').textContent = best.wave; $('bestScore').textContent = best.score.toLocaleString();
-  $('bestLine').style.visibility = settings.mode === 'waves' ? 'visible' : 'hidden';
+  const bb = settings.mode === 'boss' ? bestBoss : best;
+  $('bestLbl').textContent = settings.mode === 'boss' ? 'Best raid round' : 'Best wave';
+  $('bestWave').textContent = bb.wave; $('bestScore').textContent = bb.score.toLocaleString();
+  $('bestLine').style.visibility = isCoopMode(settings.mode) ? 'visible' : 'hidden';
   for (const id of ['swatches', 'swatches2']) $(id).querySelectorAll('button').forEach(b => b.classList.toggle('sel', +b.dataset.h === settings.hue));
   $('coinTab').textContent = wallet.coins.toLocaleString();
 }
@@ -1967,14 +1971,14 @@ function wsAdapter(name) {
   const pm = new Map(); let id = null, ws = null, alive = true, mine = {};
   function connect() {
     try { ws = new WebSocket(base + '/ws'); } catch { return; }
-    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); ws.send(JSON.stringify({ t: 'join', room: name })); ws.send(JSON.stringify({ t: 'lb', entries: lbPayload(true) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
+    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); ws.send(JSON.stringify({ t: 'join', room: name })); for (const k of Object.keys(LBD)) ws.send(JSON.stringify({ t: 'lb', board: k, entries: lbPayload(true, k) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
     ws.onmessage = e => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'hello') id = m.id;
       else if (m.t === 'peers') { pm.clear(); for (const p of m.list) pm.set(p.id, p.d || {}); }
       else if (m.t === 'u') pm.set(m.id, m.d || {});
       else if (m.t === 'bye') pm.delete(m.id);
-      else if (m.t === 'lbtop') onLBTop(m.list);
+      else if (m.t === 'lbtop') onLBTop(m.list, m.board || 'waves');
       else if (m.t === 'pay' || m.t === 'ack') onPayMessage(m, o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
       else if (m.t === 'whois' || m.t === 'invite' || m.t === 'profile' || m.t === 'invsent') onSocial(m);
     };
@@ -2432,7 +2436,7 @@ function setMenuTab(t) {
   $('playPane').hidden = t !== 'play'; $('shopPane').hidden = t !== 'shop'; $('setPane').hidden = t !== 'set'; $('lbPane').hidden = t !== 'lb'; $('frPane').hidden = t !== 'friends'; $('profPane').hidden = t !== 'prof';
   if (t === 'friends') { renderFriends(); askWho(); }
   if (t === 'prof' || was === 'prof') buildShowcase();
-  if (t === 'lb') { renderLB(); if (conn && conn.send && conn.connected()) conn.send({ t: 'lbget' }); }
+  if (t === 'lb') { renderLB(); if (conn && conn.send && conn.connected()) conn.send({ t: 'lbget', boards: Object.keys(LBD) }); }
   if (t === 'set') { syncSettingsUI(); renderBinds(); }
   else if (bindCapture) { bindCapture = null; }
   if (t === 'shop') { renderShop(); buildShowcase(); }
@@ -3163,9 +3167,10 @@ function onGSChange() {
       const bonus = 1000 * GS.wv, coins = 40 + 20 * GS.wv;
       if (state === 'playing' || state === 'paused') { score += bonus; if (player.downed) reviveMe(0.6); else player.hp = maxHp(); addCoins(coins); }
       announce('TITAN DEFEATED', `+${bonus.toLocaleString()} score · +${coins} coins`, '#74ffb5'); sfx.win();
+      if (state !== 'menu') saveBest(GS.wv);
       if (state === 'playing' || state === 'paused' || state === 'dead') { chal('boss'); bumpStat('bk'); }
     }
-    if (GS.wv < p.wv) { announce('RAID FAILED', `Fell on round ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); if (state === 'playing' || state === 'paused') gameOver(p.wv); score = 0; streak = 0; runCoins = 0; }
+    if (GS.wv < p.wv) { if (state !== 'menu') saveBest(p.wv); announce('RAID FAILED', `Fell on round ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); if (state === 'playing' || state === 'paused') gameOver(p.wv); score = 0; streak = 0; runCoins = 0; }
   }
   if (GS.ph === 1 && p.ph !== 1) {
     const mine = mode === 'ctf' ? GS.pw.startsWith(TEAM_NAME[myTeam]) : mode === 'infect' ? (GS.pw.startsWith('THE INFECTED') ? amInfected() : !amInfected()) : GS.pw === `${settings.name} WINS`;
@@ -4026,24 +4031,36 @@ function renderDeadStats() {
   $('deadstats').innerHTML = s.map(([a, b]) => `<div><span>${a}</span><b>${esc(b)}</b></div>`).join('');
 }
 function saveBest(wv) {
-  if (mode !== 'waves') return;
-  if (score > best.score || wv > best.wave) { best = { wave: Math.max(best.wave, wv), score: Math.max(best.score, score) }; store.set('best', best); renderMenu(); sendLB(false); }
+  if (!isCoopMode(mode)) return;
+  const cur = mode === 'boss' ? bestBoss : best;
+  if (score > cur.score || wv > cur.wave) {
+    const nb = { wave: Math.max(cur.wave, wv), score: Math.max(cur.score, score) };
+    if (mode === 'boss') { bestBoss = nb; store.set('bestboss', nb); } else { best = nb; store.set('best', nb); }
+    renderMenu(); sendLB(false, mode);
+  }
 }
-// Global leaderboard. Every client keeps a copy and re-uploads it, so the board survives server restarts.
-let lbList = store.get('lbcache', []); if (!Array.isArray(lbList)) lbList = [];
-let lbLive = false;
+// Global leaderboards (Squad Waves and Boss Raid). Every client keeps a copy and re-uploads it, so the boards survive server restarts.
+const LBD = {
+  waves: { cache: 'lbcache', title: 'SQUAD WAVES · BEST WAVE', col: 'Wave', empty: 'No runs yet. Survive a wave in Squad Waves to get on the board.' },
+  boss: { cache: 'lbcache_boss', title: 'BOSS RAID · FURTHEST ROUND', col: 'Round', empty: 'No raids yet. Reach a round in Boss Raid to get on the board.' },
+};
 const validLB = e => e && typeof e.pid === 'string' && /^P-[a-z0-9]{10,24}$/.test(e.pid) && Number.isFinite(+e.w) && +e.w > 0;
-function ownLB() { return best.wave > 0 ? { pid: PID, n: settings.name, w: best.wave, s: best.score } : null; }
-function lbPayload(all) { const own = ownLB(); const rest = all ? lbList.filter(e => e.pid !== PID).slice(0, 50) : []; return own ? [own, ...rest] : rest; }
-function sendLB(all) { if (conn && conn.send && conn.connected()) conn.send({ t: 'lb', entries: lbPayload(all) }); }
-function onLBTop(list) {
-  if (!Array.isArray(list)) return;
-  lbList = list.filter(validLB).map(e => ({ pid: e.pid, n: String(e.n || 'Pilot').slice(0, 14), w: Math.floor(+e.w), s: Math.floor(+e.s || 0) })).slice(0, 100);
-  lbLive = true; store.set('lbcache', lbList);
+for (const B of Object.values(LBD)) { B.list = store.get(B.cache, []); if (!Array.isArray(B.list)) B.list = []; B.live = false; }
+let lbBoard = 'waves';
+function ownLB(b = 'waves') { const x = b === 'boss' ? bestBoss : best; return x.wave > 0 ? { pid: PID, n: settings.name, w: x.wave, s: x.score } : null; }
+function lbPayload(all, b = 'waves') { const own = ownLB(b); const rest = all ? LBD[b].list.filter(e => e.pid !== PID).slice(0, 50) : []; return own ? [own, ...rest] : rest; }
+function sendLB(all, b) { if (!(conn && conn.send && conn.connected())) return; for (const k of b ? [b] : Object.keys(LBD)) conn.send({ t: 'lb', board: k, entries: lbPayload(all, k) }); }
+function onLBTop(list, board = 'waves') {
+  const B = LBD[board]; if (!B || !Array.isArray(list)) return;
+  B.list = list.filter(validLB).map(e => ({ pid: e.pid, n: String(e.n || 'Pilot').slice(0, 14), w: Math.floor(+e.w), s: Math.floor(+e.s || 0) })).slice(0, 100);
+  B.live = true; store.set(B.cache, B.list);
   if (menuTab === 'lb') renderLB();
 }
+document.querySelectorAll('#lbTabs button').forEach(b => b.addEventListener('click', () => { lbBoard = b.dataset.b; renderLB(); }));
 function renderLB() {
-  const own = ownLB(), rows = lbList.filter(e => e.pid !== PID);
+  const B = LBD[lbBoard], own = ownLB(lbBoard), rows = B.list.filter(e => e.pid !== PID);
+  document.querySelectorAll('#lbTabs button').forEach(b => b.classList.toggle('sel', b.dataset.b === lbBoard));
+  $('lbTitle').textContent = B.title; $('lbCol').textContent = B.col;
   if (own) rows.push(own);
   rows.sort((a, b) => b.w - a.w || b.s - a.s);
   const tb = $('lbBody'); tb.textContent = '';
@@ -4057,8 +4074,8 @@ function renderLB() {
     tr.append(rk, nm, w, sc); tb.appendChild(tr);
     tr.addEventListener('click', () => openProfile(r.pid, r.n));
   });
-  if (!rows.length) { const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 4; td.textContent = 'No runs yet. Survive a wave in Squad Waves to get on the board.'; tr.appendChild(td); tb.appendChild(tr); }
-  $('lbNote').textContent = netKind !== 'ws' ? 'The global board needs the website version. Showing your own best.' : lbLive ? `${rows.length} pilot${rows.length === 1 ? '' : 's'} · live` : 'Showing the last saved copy. Connecting…';
+  if (!rows.length) { const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 4; td.textContent = B.empty; tr.appendChild(td); tb.appendChild(tr); }
+  $('lbNote').textContent = netKind !== 'ws' ? 'The global board needs the website version. Showing your own best.' : B.live ? `${rows.length} pilot${rows.length === 1 ? '' : 's'} · live` : 'Showing the last saved copy. Connecting…';
 }
 let ksKills = 0;
 const ksReady = [];
@@ -4700,7 +4717,7 @@ const netSend = o => { if (!social()) return false; conn.send(o); return true; }
 const menuOpenNow = () => state === 'menu' || (state === 'paused' && !$('menu').hidden);
 function myProfile() {
   return { n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, cl: settings.cls, since: stats.since,
-    st: { k: stats.k, d: stats.d, w: stats.w, bk: stats.bk, inf: stats.inf, gp: stats.gp, pt: Math.round(stats.pt), ch: stats.ch, bw: best.wave, bs: best.score } };
+    st: { k: stats.k, d: stats.d, w: stats.w, bk: stats.bk, inf: stats.inf, gp: stats.gp, pt: Math.round(stats.pt), ch: stats.ch, bw: best.wave, bs: best.score, br: bestBoss.wave } };
 }
 function sendProf() { const p = myProfile(), j = JSON.stringify(p); if (j !== lastProfSent && netSend({ t: 'prof', p })) lastProfSent = j; }
 setInterval(sendProf, 60000);
@@ -4828,7 +4845,7 @@ function renderProfile() {
   $('pfStatus').textContent = me ? 'This is you' : info ? (info.on ? (pr ? `Online · ${placeText(pr)}` : 'Online') : 'Offline') : '';
   const h = Math.floor((st.pt || 0) / 3600), mm = Math.floor((st.pt || 0) % 3600 / 60);
   const cells = [['KILLS', st.k], ['DEATHS', st.d], ['K/D', st.d ? (st.k / st.d).toFixed(2) : (st.k || 0).toFixed(2)], ['WINS', st.w], ['BEST WAVE', st.bw], ['TITANS', st.bk],
-    ['INFECTIONS', st.inf], ['MATCHES', st.gp], ['TIME PLAYED', `${h}h ${mm}m`], ['CHALLENGES', st.ch], ['FAVORITE CLASS', CLASSES[P?.cl]?.name || '—'], ['PLAYING SINCE', P?.since ? new Date(+P.since).toLocaleDateString() : '—']];
+    ['INFECTIONS', st.inf], ['MATCHES', st.gp], ['TIME PLAYED', `${h}h ${mm}m`], ['BEST RAID ROUND', st.br], ['FAVORITE CLASS', CLASSES[P?.cl]?.name || '—'], ['PLAYING SINCE', P?.since ? new Date(+P.since).toLocaleDateString() : '—']];
   $('pfStats').innerHTML = P ? cells.map(([a, b]) => `<div><span>${a}</span><b>${esc(b ?? 0)}</b></div>`).join('') : '';
   const bs = $('pfBtns'); bs.textContent = '';
   if (me) bs.appendChild(btn('COPY MY ID', () => { try { navigator.clipboard.writeText(PID).then(() => toast('Player ID copied')); } catch {} }));

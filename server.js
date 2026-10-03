@@ -28,10 +28,11 @@ function parseCreators(raw) {
 }
 const CREATORS = { ...DEFAULT_CREATORS, ...parseCreators(process.env.CREATOR_CODES) };
 const byPid = new Map(); // player ID -> Set(client)
-// Squad Waves leaderboard: player ID -> { n, w, s }. Clients re-upload their cached copy, so it survives restarts.
-const LB = new Map();
-function lbTop() { return [...LB.entries()].map(([pid, v]) => ({ pid, n: v.n, w: v.w, s: v.s })).sort((a, b) => b.w - a.w || b.s - a.s).slice(0, 100); }
-function lbMerge(client, entries) {
+// Leaderboards (Squad Waves best wave, Boss Raid furthest round): player ID -> { n, w, s }.
+// Clients re-upload their cached copies, so the boards survive restarts.
+const BOARDS = { waves: new Map(), boss: new Map() };
+function lbTop(LB = BOARDS.waves) { return [...LB.entries()].map(([pid, v]) => ({ pid, n: v.n, w: v.w, s: v.s })).sort((a, b) => b.w - a.w || b.s - a.s).slice(0, 100); }
+function lbMerge(client, entries, LB = BOARDS.waves) {
   if (!Array.isArray(entries)) return;
   for (const e of entries.slice(0, 60)) {
     if (!e || typeof e.pid !== 'string' || !PID_RE.test(e.pid)) continue;
@@ -49,7 +50,7 @@ function lbMerge(client, entries) {
 }
 // Player profiles (look + stats). Each player re-uploads their own whenever they connect.
 const PROF = new Map();
-const STAT_KEYS = ['k', 'd', 'w', 'bk', 'inf', 'gp', 'pt', 'ch', 'bw', 'bs'];
+const STAT_KEYS = ['k', 'd', 'w', 'bk', 'inf', 'gp', 'pt', 'ch', 'bw', 'bs', 'br'];
 function cleanProfile(p) {
   if (!p || typeof p !== 'object') return null;
   const num = v => Math.max(0, Math.min(1e9, Math.floor(+v || 0)));
@@ -152,10 +153,13 @@ wss.on('connection', ws => {
       const msg = JSON.stringify({ t: 'pay', id: m.id, amount, code: String(m.code).toUpperCase(), from: client.pid });
       for (const o of byPid.get(target) || []) send(o.ws, msg);
     } else if (m.t === 'lb' && client.pid) {
-      lbMerge(client, m.entries);
-      send(ws, JSON.stringify({ t: 'lbtop', list: lbTop() }));
+      // older pages send no board name: that's the Squad Waves board, and they only get that board back
+      const board = BOARDS[m.board] ? m.board : 'waves';
+      lbMerge(client, m.entries, BOARDS[board]);
+      send(ws, JSON.stringify({ t: 'lbtop', board, list: lbTop(BOARDS[board]) }));
     } else if (m.t === 'lbget') {
-      send(ws, JSON.stringify({ t: 'lbtop', list: lbTop() }));
+      const boards = Array.isArray(m.boards) ? m.boards.filter(b => BOARDS[b]) : ['waves'];
+      for (const board of boards) send(ws, JSON.stringify({ t: 'lbtop', board, list: lbTop(BOARDS[board]) }));
     } else if (m.t === 'prof' && client.pid) {
       const pr = cleanProfile(m.p);
       if (pr) { PROF.delete(client.pid); PROF.set(client.pid, pr); if (PROF.size > 5000) PROF.delete(PROF.keys().next().value); }
