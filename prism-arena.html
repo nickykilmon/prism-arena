@@ -2638,7 +2638,23 @@ function onHostChange(oldH, newH) {
   }
   clientSeen.host = null;
 }
+// bot skill levels: a lobby is about 20% easy, 50% medium and 30% hard bots (hard = the original bot brain)
+const SKILL = {
+  easy:   { react: [0.9, 1.5],  hit: 0.45, melee: 0.55, rate: 1.7,  turn: 4,  sight: 30, think: [0.5, 0.8],  speed: 0.86, jump: 0.12, strafe: 0.35, aim: 0.25 },
+  medium: { react: [0.6, 1.0],  hit: 0.72, melee: 0.8,  rate: 1.3,  turn: 6.5, sight: 40, think: [0.32, 0.5], speed: 0.94, jump: 0.25, strafe: 0.6, aim: 0.3 },
+  hard:   { react: [0.45, 0.8], hit: 1,    melee: 1,    rate: 1,    turn: 10, sight: 48, think: [0.2, 0.35], speed: 1,    jump: 0.4,  strafe: 0.8, aim: 0.35 },
+};
+const SKILL_MIX = { easy: 0.2, medium: 0.5, hard: 0.3 };
+// in CTF each team gets its own mix so neither side is stacked with hard bots
+function pickSkill(team) {
+  const bots = [...ents.values()].filter(e => e.kind === 'bot' && e.skill && (mode !== 'ctf' || e.team === team)), n = bots.length + 1;
+  let best = 'medium', gap = -Infinity;
+  for (const [k, f] of Object.entries(SKILL_MIX)) { const g = f * n - bots.filter(b => b.skill === k).length; if (g > gap + 1e-9) { gap = g; best = k; } }
+  return best;
+}
+const skillOf = e => SKILL[e.skill] || SKILL.medium;
 function initSim(e) {
+  if (e.kind === 'bot' && !SKILL[e.skill]) e.skill = pickSkill(e.team);
   e.vel = e.vel || new V3(); e.fireT = e.fireT ?? rand(1, 2.5); e.strafe = e.strafe || (Math.random() < .5 ? 1 : -1); e.strafeT = e.strafeT ?? rand(1, 3);
   e.hoverY = e.hoverY ?? rand(3, 8); e.t = e.t ?? rand(0, 9); e.onGround = false; e.lastGround = 0; e.jumps = 0; e.thinkT = 0; e.stuckT = 0; e.side = e.side || 1;
   e.respawnT = e.respawnT ?? 1; e.role = e.role || (Math.random() < .5 ? 'atk' : 'def'); e.invuln = 0; e.lastDmgT = -9; e.hp = e.hp ?? 100;
@@ -2971,14 +2987,15 @@ function hostUpdateBot(e, dt, acts) {
   bEye.copy(e.pos).setY(e.pos.y + 1.45);
   e.thinkT -= dt;
   if (e.thinkT <= 0) {
-    e.thinkT = rand(0.2, 0.35);
-    let best = null, bd = 48;
+    const S = skillOf(e);
+    e.thinkT = rand(...S.think);
+    let best = null, bd = S.sight;
     for (const a of acts) {
       if (!a.alive || a.id === e.id || !enemyOf(e.team, a.team)) continue;
       const d = a.pos.distanceTo(e.pos) - (a.id === e.target?.id ? 6 : 0);
       if (d < bd && hasLOS(bEye, bTgt.copy(a.pos).setY(a.pos.y + 1.2))) { bd = d; best = a; }
     }
-    if (best && best.id !== e.target?.id) e.fireT = Math.max(e.fireT, rand(0.45, 0.8));
+    if (best && best.id !== e.target?.id) e.fireT = Math.max(e.fireT, rand(...S.react));
     e.target = best;
   }
   const goal = botGoal(e, acts);
@@ -2990,9 +3007,9 @@ function hostUpdateBot(e, dt, acts) {
     if (!urgent || gd < 3) {
       const tx = e.target.pos.x - e.pos.x, tz = e.target.pos.z - e.pos.z, tl = Math.hypot(tx, tz) || 1;
       const rad = clamp((td - ideal) / 6, -1, 1);
-      dir.set(tx / tl * rad - tz / tl * e.strafe * 0.8, 0, tz / tl * rad + tx / tl * e.strafe * 0.8).normalize();
+      const sf = skillOf(e).strafe; dir.set(tx / tl * rad - tz / tl * e.strafe * sf, 0, tz / tl * rad + tx / tl * e.strafe * sf).normalize();
     }
-    if (Math.random() < dt * 0.4 && e.onGround) { e.vel.y = 11; e.jumps = 1; }
+    if (Math.random() < dt * skillOf(e).jump && e.onGround) { e.vel.y = 11; e.jumps = 1; }
   } else if (gd < 1.2) dir.set(0, 0, 0);
   // obstacle feeler
   if (dir.lengthSq() > 0) {
@@ -3006,7 +3023,7 @@ function hostUpdateBot(e, dt, acts) {
     const nx = e.pos.x + dir.x * 3, nz = e.pos.z + dir.z * 3;
     if (Math.hypot(nx, nz) > ARENA_R - 2) dir.set(-e.pos.x, 0, -e.pos.z).normalize();
   }
-  const spd = 8.3 * (W.melee ? 1.1 : 1) * (mode === 'infect' && e.team === 1 ? 1.12 : 1);
+  const spd = 8.3 * skillOf(e).speed * (W.melee ? 1.1 : 1) * (mode === 'infect' && e.team === 1 ? 1.12 : 1);
   if (e.onGround) { e.vel.x = damp(e.vel.x, dir.x * spd, 10, dt); e.vel.z = damp(e.vel.z, dir.z * spd, 10, dt); }
   else if (dir.lengthSq() > 0) { const hs = Math.max(spd, Math.hypot(e.vel.x, e.vel.z)); e.vel.x = damp(e.vel.x, dir.x * hs, 2.5, dt); e.vel.z = damp(e.vel.z, dir.z * hs, 2.5, dt); }
   if (dir.lengthSq() > 0 && Math.hypot(e.vel.x, e.vel.z) < 1.2 && e.onGround) { e.stuckT += dt; if (e.stuckT > 0.5) { e.vel.y = 11; e.side *= -1; e.stuckT = 0; } } else e.stuckT = 0;
@@ -3014,26 +3031,27 @@ function hostUpdateBot(e, dt, acts) {
   if (e.pos.y < -30) { e.hp = 0; hostKillEnt(e, time - e.lastDmgT < 5 ? e.lastHitBy : '', null); return; }
   // aim + shoot
   const face = e.target ? e.target.pos : (dir.lengthSq() > 0 ? tB.copy(e.pos).add(dir) : null);
-  if (face) { const want = Math.atan2(e.pos.x - face.x, e.pos.z - face.z); let dy = want - e.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); e.yaw += dy * (1 - Math.exp(-10 * dt)); }
+  if (face) { const want = Math.atan2(e.pos.x - face.x, e.pos.z - face.z); let dy = want - e.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); e.yaw += dy * (1 - Math.exp(-skillOf(e).turn * dt)); }
   e.fireT -= dt;
   if (e.target && e.fireT <= 0 && GS.ph === 0) {
     const t = e.target, dist = t.pos.distanceTo(e.pos);
     const aimErr = Math.abs(Math.atan2(Math.sin(Math.atan2(e.pos.x - t.pos.x, e.pos.z - t.pos.z) - e.yaw), Math.cos(Math.atan2(e.pos.x - t.pos.x, e.pos.z - t.pos.z) - e.yaw)));
-    if (aimErr < 0.35 && dist < Math.min(W.range, 60)) { botShoot(e, t, dist, W); e.fireT = W.rate * (W.auto ? 2.1 : 1.5) + (W.auto && Math.random() < 0.12 ? 0.8 : 0); }
+    const S = skillOf(e);
+    if (aimErr < S.aim && dist < Math.min(W.range, 60)) { botShoot(e, t, dist, W); e.fireT = (W.rate * (W.auto ? 2.1 : 1.5) + (W.auto && Math.random() < 0.12 ? 0.8 : 0)) * S.rate; }
   }
 }
 function botShoot(e, t, dist, W) {
   if (!t.alive) return;
   const from = new V3().copy(e.pos).setY(e.pos.y + 1.15), to = new V3().copy(t.pos).setY(t.pos.y + 1.0);
   if (W.melee) {
-    if (dist < 3.4) { if (t.ent) hostDamageEnt(t.ent, W.dmg, e.id, e.wp); else hostHitHuman(t, W.dmg, e.pos, e); e.vel.addScaledVector(tB.subVectors(t.pos, e.pos).setY(0).normalize(), 8); }
+    if (dist < 3.4 && Math.random() < skillOf(e).melee) { if (t.ent) hostDamageEnt(t.ent, W.dmg, e.id, e.wp); else hostHitHuman(t, W.dmg, e.pos, e); e.vel.addScaledVector(tB.subVectors(t.pos, e.pos).setY(0).normalize(), 8); }
     return;
   }
   const moving = t.vel && Math.hypot(t.vel.x, t.vel.z) > 3;
-  let chance = clamp(0.66 - dist * 0.011, 0.15, 0.6) * (moving ? 0.7 : 1);
+  let chance = clamp(0.66 - dist * 0.011, 0.15, 0.6) * (moving ? 0.7 : 1) * skillOf(e).hit;
   if (e.wp === 'rail') chance *= 0.75;
   let dmg = 0;
-  if (W.pellets > 1) { const k = clamp(1 - dist / W.range, 0.05, 1); dmg = W.dmg * Math.round(W.pellets * k * rand(0.3, 0.8)); chance = 1; }
+  if (W.pellets > 1) { const k = clamp(1 - dist / W.range, 0.05, 1); dmg = W.dmg * Math.round(W.pellets * k * rand(0.3, 0.8) * skillOf(e).hit); chance = 1; }
   else dmg = W.projectile ? 95 : W.dmg;
   const hit = Math.random() < chance && dmg > 0;
   if (!hit) to.add(new V3(rand(-1.5, 1.5), rand(-0.8, 1.2), rand(-1.5, 1.5)));
