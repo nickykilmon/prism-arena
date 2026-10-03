@@ -2768,6 +2768,11 @@ function creditKill(kind, pts, name) {
     return;
   }
   score += 100;
+  // PvP modes: every kill refills your health
+  if (player.alive && player.hp < maxHp()) {
+    player.hp = maxHp(); tone(880, 1320, 0.15, 0.07, 'triangle');
+    burst(tA.copy(player.pos).setY(player.pos.y + 1), 16, GREEN, 4, 0.5, 0.08, -2);
+  }
   if (mode === 'gungame') {
     if (ggLv >= LADDER.length - 1) { ggLv = LADDER.length; announce('FINAL KILL', 'You finished the ladder', '#74ffb5'); return; }
     ggLv++; setWeapon(LADDER[ggLv]); sfx.levelup();
