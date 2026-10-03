@@ -415,7 +415,7 @@ const WEAPONS = {
   cannon:  { name: 'Hand Cannon',   auto: false, rate: 0.18,  dmg: 55,  mag: 10, reload: 1.1,  spread: 0.004, ads: 0.001, pellets: 1, range: 400, zoom: 55, recoil: 2.2, color: [2.9, 2.3, 0.7], css: '#ffe27a', blurb: 'Fast heavy semi-auto' },
   rail:    { name: 'Rail Lance',    auto: false, rate: 1.1,   dmg: 100, mag: 5,  reload: 1.7,  spread: 0.035, ads: 0,     pellets: 1, range: 600, zoom: 24, recoil: 3.5, color: [1.5, 0.6, 3.0], css: '#b48cff', blurb: 'Scoped one-shot' },
   nova:    { name: 'Nova Launcher', auto: false, rate: 0.85,  dmg: 140,  mag: 4,  reload: 1.8,  spread: 0.004, ads: 0.002, pellets: 1, range: 400, zoom: 60, recoil: 3,   color: [3.0, 1.0, 0.3], css: '#ff8a3d', blurb: 'Rockets · rocket-jump', projectile: true, speed: 40, splash: 8.5 },
-  lmg:     { name: 'Havoc LMG',     auto: true,  rate: 0.082, dmg: 15,  mag: 80, reload: 3.6,  spread: 0.018, ads: 0.006, pellets: 1, range: 350, zoom: 58, recoil: 0.85, color: [1.4, 2.9, 0.5], css: '#b6ff5c', blurb: '80 rounds · slow reload' },
+  lmg:     { name: 'Havoc LMG',     auto: true,  rate: 0.082, dmg: 15,  mag: 80, reload: 5,  spread: 0.018, ads: 0.006, pellets: 1, range: 350, zoom: 58, recoil: 0.85, color: [1.4, 2.9, 0.5], css: '#b6ff5c', blurb: '80 rounds · slow reload' },
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
 };
 const WIDS = Object.keys(WEAPONS);
@@ -2105,10 +2105,10 @@ function onGSChange() {
     if (GS.wv > p.wv && GS.wst === 1) { announce('WAVE ' + GS.wv, GS.wv === 1 ? 'Drones inbound' : 'Drones inbound', '#5ff2ff'); sfx.wave(); }
     else if (GS.wst === 1 && p.wst !== 1 && GS.wv === p.wv) { /* resumed */ }
     if (GS.wst === 2 && p.wst === 1 && GS.wv > 0) {
-      const bonus = 250 * GS.wv; if (state === 'playing') { score += bonus; if (player.downed) reviveMe(0.5); else player.hp = Math.min(maxHp(), player.hp + 35); addCoins(5 * GS.wv); }
+      const bonus = 250 * GS.wv; if (state === 'playing' || state === 'paused') { score += bonus; if (player.downed) reviveMe(0.5); else player.hp = Math.min(maxHp(), player.hp + 35); addCoins(5 * GS.wv); }
       announce('WAVE CLEARED', `+${bonus.toLocaleString()} score · +${5 * GS.wv} coins`, '#74ffb5');
     }
-    if (GS.wv < p.wv) { saveBest(p.wv); announce('SQUAD WIPED', `Reached wave ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); if (state === 'playing') gameOver(p.wv); score = 0; streak = 0; runCoins = 0; }
+    if (GS.wv < p.wv) { saveBest(p.wv); announce('SQUAD WIPED', `Reached wave ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); if (state === 'playing' || state === 'paused') gameOver(p.wv); score = 0; streak = 0; runCoins = 0; }
   }
   if (GS.ph === 1 && p.ph !== 1) {
     const mine = mode === 'ctf' ? GS.pw.startsWith(TEAM_NAME[myTeam]) : GS.pw === `${settings.name} WINS`;
@@ -2149,7 +2149,7 @@ function updateOrbs(dt) {
     o.m.children[0].scale.setScalar(1 + Math.sin(time * 30 + i) * 0.15);
     if (Math.random() < 0.5) burst(o.m.position, 1, o.color, 0.5, 0.25, 0.08, 0);
     if (deploys.length && deploys.some(d => d.kind === 'shield' && o.m.position.distanceTo(d.pos) < d.r)) { burst(o.m.position, 12, new THREE.Color(0.6, 2.2, 3), 5, 0.35, 0.08); killOrb(i); continue; }
-    if (player.alive && state === 'playing' && capsuleDist(o.m.position, player.pos) < 0.7) {
+    if (player.alive && inMatch() && capsuleDist(o.m.position, player.pos) < 0.7) {
       player.vel.addScaledVector(tA.copy(o.vel).normalize(), 6);
       hurt(o.dmg, { text: 'Shot down by drones' });
       burst(o.m.position, 16, o.color, 6, 0.4, 0.1); killOrb(i); continue;
@@ -2551,7 +2551,7 @@ function updateWeapon(dt) {
 
 // ================= damage / death / scoring =================
 function hurt(dmg, src) {
-  if (!player.alive || player.invuln > 0 || state !== 'playing' || GS.ph === 1) return;
+  if (!player.alive || player.invuln > 0 || !inMatch() || GS.ph === 1) return;
   if (mode === 'waves' && inShield(player.pos)) { shockRing(player.pos.clone().setY(player.pos.y + 1), new THREE.Color(0.6, 2.2, 3), 1.5, 0.25); return; }
   player.hp -= dmg; player.lastDmgT = time;
   dmgFlash = Math.min(1, dmgFlash + 0.5 + dmg / 40); shake = Math.max(shake, 0.18); sfx.hurt();
@@ -2595,8 +2595,11 @@ function reviveMe(frac, who) {
   announce('REVIVED', who ? `by ${who}` : 'Back in the fight', '#74ffb5'); sfx.levelup();
   burst(player.pos.clone().setY(player.pos.y + 1), 30, GREEN, 6, 0.6, 0.1, -2);
 }
+// in multiplayer the match keeps running while your pause menu is open
+const inMatch = () => state === 'playing' || (state === 'paused' && peers.size > 0);
 function gameOver(wave) {
   player.downed = false; player.alive = false; state = 'dead'; firing = false; clearAds(); closeChat();
+  $('menu').hidden = true; $('board').hidden = true; $('hud').hidden = false;
   lastRunWave = wave;
   $('downUI').hidden = true; $('useUI').hidden = true; for (const el of markEls.values()) el.remove(); markEls.clear();
   $('deadtitle').textContent = 'SQUAD WIPED';
@@ -2606,9 +2609,13 @@ function gameOver(wave) {
   if (document.pointerLockElement) document.exitPointerLock();
 }
 const markEls = new Map();
+function clearReviveUI() {
+  $('downUI').hidden = true; $('useUI').hidden = true;
+  for (const el of markEls.values()) el.remove(); markEls.clear();
+}
 function updateRevive(dt) {
   beingRevived = 0;
-  if (mode !== 'waves') { reviveT = 0; reviveTarget = null; return; }
+  if (mode !== 'waves') { reviveT = 0; reviveTarget = null; clearReviveUI(); return; }
   for (const o of peers.values()) if (Array.isArray(o.d.rp) && o.d.rp[0] === myId) beingRevived = Math.max(beingRevived, +o.d.rp[1] || 0);
   let tgt = null;
   if (player.alive && state === 'playing') {
@@ -3070,6 +3077,7 @@ function startGame() {
   if (!kit().guns.includes(curW) || state === 'menu' || state === 'paused') curW = mode === 'waves' ? kit().guns[0] : settings.gun;
   if (state === 'menu' || state === 'paused') { score = 0; frags = 0; deaths = 0; streak = 0; ggLv = 0; runCoins = 0; }
   $('menu').hidden = true; $('dead').hidden = true; $('hud').hidden = false;
+  player.downed = false; clearReviveUI();
   buildTop(); $('feed').textContent = '';
   spawnPlayer(); state = 'playing'; requestLock();
   if (mode === 'ctf') announce(`${TEAM_NAME[myTeam]} TEAM`, 'Grab their flag · bring it home', TEAM_CSS[myTeam]);
