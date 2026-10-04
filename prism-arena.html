@@ -59,7 +59,7 @@ button,input,select{font:inherit;color:inherit}
 #cross i:nth-child(3){width:8px;height:2px;top:-1px;left:calc(-8px - var(--gap))}
 #cross i:nth-child(4){width:8px;height:2px;top:-1px;left:var(--gap)}
 #cross b{position:absolute;width:3px;height:3px;left:-1.5px;top:-1.5px;background:var(--cyan);border-radius:50%}
-#scope{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(circle at center,transparent 0,transparent min(34vw,34vh),rgba(5,3,12,.92) calc(min(34vw,34vh) + 2px))}
+#scope{position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(rgba(180,140,255,.8),rgba(180,140,255,.8)) center/50% 1px no-repeat,radial-gradient(circle at center,transparent 0,transparent min(34vw,34vh),rgba(5,3,12,.92) calc(min(34vw,34vh) + 2px))}
 #scope::before,#scope::after{content:"";position:absolute;background:rgba(180,140,255,.8)}
 #scope::before{left:50%;top:15%;bottom:15%;width:1px}
 #scope::after{top:50%;left:25%;right:25%;height:1px}
@@ -131,7 +131,7 @@ button,input,select{font:inherit;color:inherit}
 #slotm.bust{border-color:#ff4d6a;box-shadow:0 0 40px rgba(255,77,106,.7)}
 #slowfx{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(255,205,110,.38) 100%)}
 #chillfx{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(150,215,255,.5) 100%);box-shadow:inset 0 0 60px rgba(220,245,255,.6)}
-#scope::after{content:'';position:absolute;left:50%;top:50%;width:min(64vw,64vh);height:min(64vw,64vh);transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(255,214,107,calc(var(--ch,0)*.9));box-shadow:0 0 calc(var(--ch,0)*34px) rgba(255,214,107,calc(var(--ch,0)*.55)),inset 0 0 calc(var(--ch,0)*24px) rgba(255,214,107,calc(var(--ch,0)*.35))}
+#scope::after{content:'';position:absolute;background:transparent;left:50%;top:50%;width:min(64vw,64vh);height:min(64vw,64vh);transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(255,214,107,calc(var(--ch,0)*.9));box-shadow:0 0 calc(var(--ch,0)*34px) rgba(255,214,107,calc(var(--ch,0)*.55)),inset 0 0 calc(var(--ch,0)*24px) rgba(255,214,107,calc(var(--ch,0)*.35))}
 #dmg.poison{background:radial-gradient(ellipse at center,transparent 35%,rgba(60,230,50,.75) 100%)}
 #ks{position:absolute;right:16px;bottom:calc(120px + env(safe-area-inset-bottom,0px));font-size:12px;letter-spacing:.14em;color:#ff8a3d;background:var(--panel);border:1px solid rgba(255,138,61,.45);padding:6px 10px;border-radius:4px;text-align:right}
 #ks b{color:var(--fg)}
@@ -786,7 +786,7 @@ const CLASSES = {
   mech: { name: 'Mech Pilot', hp: 140, css: '#ff9a3c', guns: ['autocannon', 'scatter'], q: 'mech', g: 'mines', blurb: 'Calls a giant mech down from the sky.', qText: 'Call the Mech: 400 armor, minigun + rocket salvo (15s)', gText: 'Sky Mines: 5 floating mines drones blow up on' },
   gambler: { name: 'Gambler', hp: 120, css: '#ffd86b', guns: ['cards', 'cannon'], q: 'slots', g: 'coin', blurb: 'Lives and dies by luck.', qText: 'Slot Machine: jackpot, triple damage, team heal, cash… or bust', gText: 'Lucky Coin: fire, ice or lightning' },
 };
-const QDEF = { turret: { name: 'TURRET', cd: 18 }, drones: { name: 'DRONE PAIR', cd: 30 }, hole: { name: 'BLACK HOLE', cd: 20 }, barrier: { name: 'BARRIER', cd: 20 }, pounce: { name: 'POUNCE', cd: 5 }, pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 }, rift: { name: 'RIFT DASH', cd: 8 }, firering: { name: 'RING OF FIRE', cd: 20 }, thunder: { name: 'THUNDERSTRIKE', cd: 22 }, mark: { name: 'MARK FOR DEATH', cd: 25 }, mech: { name: 'CALL THE MECH', cd: 40 }, slots: { name: 'SLOT MACHINE', cd: 25 } };
+const QDEF = { none: { name: 'NO ABILITY', cd: 1 }, turret: { name: 'TURRET', cd: 18 }, drones: { name: 'DRONE PAIR', cd: 30 }, hole: { name: 'BLACK HOLE', cd: 20 }, barrier: { name: 'BARRIER', cd: 20 }, pounce: { name: 'POUNCE', cd: 5 }, pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 }, rift: { name: 'RIFT DASH', cd: 8 }, firering: { name: 'RING OF FIRE', cd: 20 }, thunder: { name: 'THUNDERSTRIKE', cd: 22 }, mark: { name: 'MARK FOR DEATH', cd: 25 }, mech: { name: 'CALL THE MECH', cd: 40 }, slots: { name: 'SLOT MACHINE', cd: 25 } };
 const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name: 'DECOY', max: 2, re: 16 }, antigrav: { name: 'ANTI-GRAV', max: 1, re: 22 }, slam: { name: 'GROUND SLAM', max: 2, re: 12 }, taunt: { name: 'IRON ROAR', max: 1, re: 18 }, none: { name: 'NO GADGET', max: 0, re: 1 }, nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 }, hook: { name: 'CHAIN HOOK', max: 2, re: 10 }, heatwave: { name: 'HEATWAVE', max: 2, re: 12 }, tesla: { name: 'TESLA COIL', max: 1, re: 20 }, mines: { name: 'SKY MINES', max: 1, re: 18 }, coin: { name: 'LUCKY COIN', max: 2, re: 10 } };
 const JET_MAX = 4;
 const isCoopMode = m => m === 'waves' || m === 'boss' || m === 'mission';
@@ -799,7 +799,7 @@ const REVIVE_TIME = 3.5, MEDIC_REVIVE_TIME = 1.75;
 const TEAM_NAME = ['RED', 'BLUE'], TEAM_CSS = ['#ff5a6e', '#5aa8ff'];
 const TEAM_COL = [new THREE.Color(2.9, 0.35, 0.45), new THREE.Color(0.35, 1.3, 3.0)];
 const BASES = [new V3(-44, 0, 0), new V3(44, 0, 0)];
-const BOT_NAMES = ['Viper', 'Nyx', 'Rook', 'Echo', 'Jinx', 'Talon', 'Pixel', 'Bolt', 'Halo', 'Mako', 'Rune', 'Vex'];
+const BOT_NAMES = ['Viper', 'Nyx', 'Rook', 'Echo', 'Jinx', 'Talon', 'Pixel', 'Bolt', 'Halo', 'Mako', 'Rune', 'Vex', 'Blaze', 'Cobra', 'Drift', 'Ember', 'Frost', 'Ghost', 'Hex', 'Ion', 'Jolt', 'Kite', 'Lynx', 'Moss', 'Nova', 'Onyx', 'Pike', 'Quill', 'Raze', 'Sable', 'Tango', 'Umbra', 'Volt', 'Wisp', 'Xeno', 'Yeti', 'Zephyr', 'Ace', 'Brick', 'Comet', 'Dash', 'Fang', 'Grit', 'Hawk', 'Ivy', 'Jett', 'Kodiak', 'Lark', 'Mantis', 'Nitro', 'Orbit', 'Pulsar', 'Quake', 'Rogue', 'Spike', 'Tusk'];
 const DTYPES = ['scout', 'charger', 'warden', 'titan', 'poisoner', 'queen', 'qclone', 'colossus', 'voideye', 'reaper', 'wyrm', 'overmind'];
 
 // ================= seasons =================
@@ -899,7 +899,7 @@ if (!CLASSES[settings.cls]) settings.cls = 'fighter';
 function kit() {
   if (coop()) { const c = CLASSES[settings.cls]; return { guns: c.guns, q: c.q, g: c.g, jet: c.q === null }; }
   if (amInfected()) return { guns: ['claw'], q: 'pounce', g: 'none', jet: false };
-  if (mode === 'royale') return { guns: ['pick', ...RY.guns.filter(Boolean)], q: 'pulse', g: 'none', jet: false };
+  if (mode === 'royale') return { guns: ['pick', ...RY.guns.filter(Boolean)], q: 'none', g: 'none', jet: false };
   return { guns: settings.loadout, q: 'pulse', g: 'nade', jet: false };
 }
 store.set('hue', settings.hue);
@@ -1113,7 +1113,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
-  { id: 'royale', date: '2026-10-04', title: 'Battle Royale, Clans & Kill Cam', lines: ['New mode: Battle Royale. Up to 15 players wait in a sky lobby, then drop onto a big island and glide down', 'Loot guns (Common, Rare, Epic and Legendary hit harder), ammo for each kind of gun, and heals you use when you want: 5 Bandage, 6 Medkit, 7 Shield Cell', 'Gold chests hold better loot. Press E to open them and to pick up guns. The storm closes in, so keep to the white circle on your map', 'Clans: start or join one in the Friends tab. Your tag shows on your name, wins count for your clan, and /c in chat talks to your clan', 'Kill cam: see how you went down, from the eyes of whoever got you (turn it off in Settings)', 'Prop Hunt: your pet no longer gives away where you are hiding, and bot hunters now sometimes take a shot at props that stand still', 'Engineer turrets have less range and fire a little slower', 'Battle Royale: you no longer drop in with grenades'] },
+  { id: 'royale2', date: '2026-10-04', title: 'Bigger Battle Royale', lines: ['Every Battle Royale match now has 50 players: bots fill whatever spots real people don\'t', 'The island is far bigger, with four new places: New Town, The Ruins, Sunny Ranch and Dusty Camp, plus lots more huts, trees, chests and loot', 'The storm takes much longer to close in (7 rings, about 13 minutes)', 'No pulse ability in Battle Royale', 'Fixed the purple tint over the Rail Lance scope'] },
+  { id: 'royale', date: '2026-10-04', title: 'Battle Royale, Clans & Kill Cam', lines: ['New mode: Battle Royale. Up to 50 players (bots fill the empty spots) wait in a sky lobby, then drop onto a big island and glide down', 'Loot guns (Common, Rare, Epic and Legendary hit harder), ammo for each kind of gun, and heals you use when you want: 5 Bandage, 6 Medkit, 7 Shield Cell', 'Gold chests hold better loot. Press E to open them and to pick up guns. The storm closes in, so keep to the white circle on your map', 'Clans: start or join one in the Friends tab. Your tag shows on your name, wins count for your clan, and /c in chat talks to your clan', 'Kill cam: see how you went down, from the eyes of whoever got you (turn it off in Settings)', 'Prop Hunt: your pet no longer gives away where you are hiding, and bot hunters now sometimes take a shot at props that stand still', 'Engineer turrets have less range and fire a little slower', 'Battle Royale: you no longer drop in with grenades'] },
   { id: 'boss-skins', date: '2026-10-04', title: 'Boss Skins', lines: ['Five new suits in the shop, each with its own model based on a Boss Raid boss', 'Titan Warlord: armoured giant with one burning eye, a molten core and a pod orbiting him', 'Mirror Queen: crystal gown, shard wings and crown, with mirrors circling her', 'Clockwork Reaper: tattered cloak, skull in a hood, a ticking chest clock and a scythe on his back', 'Frost Wyrm: an ice dragon warrior with horns, wings and a swishing tail', 'The Overmind: a chrome body with a brain in a glass dome and hex shields orbiting it', '3,000 coins each'] },
   { id: 'boss-models', date: '2026-10-04', title: 'Boss Makeover', lines: ["Five bosses got brand new, far more detailed models", "The Titan: split armour plates over a molten heart, a slit-pupil eye, rear thrusters and a caged weak-spot pod", "Mirror Queen: a faceted crystal gown, a shard collar, a taller crown, a mirror sceptre and hexagonal mirrors orbiting her", "Clockwork Reaper: a tattered cloak and hood, a grinning skull, a sun-ray clock with a swinging pendulum, more gears and a proper crescent scythe", "Frost Wyrm: a toothed, opening jaw with icy breath, horns and frills, armoured belly plates and full bat-style wings with crystal claws", "The Overmind: a wrinkled brain with firing synapses, a ribbed dome, sensor lenses, hex-patterned shields and cable tendrils", 'Hit spots and weak points are exactly where they were'] },
   { id: 'campaign', date: '2026-10-04', title: 'Missions: The Full Campaign', lines: ['Missions is now a 20-mission campaign in 6 chapters plus a finale', 'Every chapter builds up over a couple of missions to a boss fight: Mirror Queen, Inferno Colossus, Frost Wyrm, Void Eye, Clockwork Reaper and the Titan', 'The Overmind waits at the very end in Core Meltdown'] },
@@ -1830,7 +1831,7 @@ function addCoins(n) {
 }
 
 // ================= world =================
-const ARENA_R = ROYALE ? 150 : 58;
+const ARENA_R = ROYALE ? 260 : 58;
 const colliders = [], worldMeshes = [], decor = [];
 function boxGeo(w, h, d) {
   const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv;
@@ -1853,8 +1854,14 @@ function block(x, z, w, h, d, y = 0, trim = cyanGlow) {
     }
   }
 }
+// merge geometries per patch of ground, so each patch has its own small bounding sphere (fast raycasts on the big island)
+function mergeChunks(geos, mat, cell = 64) {
+  const groups = new Map(), c = new V3();
+  for (const g of geos) { g.computeBoundingBox(); g.boundingBox.getCenter(c); const k = Math.floor(c.x / cell) + ',' + Math.floor(c.z / cell); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(g); }
+  return [...groups.values()].map(l => new THREE.Mesh(mergeGeometries(l), mat));
+}
 function finalizeWorld() {
-  const m = new THREE.Mesh(mergeGeometries(stoneGeos), stoneMat); m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m);
+  for (const m of ROYALE ? mergeChunks(stoneGeos, stoneMat) : [new THREE.Mesh(mergeGeometries(stoneGeos), stoneMat)]) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); }
   for (const [mat, geos] of trimGeos) scene.add(new THREE.Mesh(mergeGeometries(geos), mat));
   if (snowGeos.length) { const sm = new THREE.Mesh(mergeGeometries(snowGeos), snowMat); sm.receiveShadow = true; scene.add(sm); }
 }
@@ -2530,11 +2537,11 @@ function buildRoyale() {
   };
   const road = (x0, z0, x1, z1, w = 4) => { const L = Math.hypot(x1 - x0, z1 - z0), a = Math.atan2(z1 - z0, x1 - x0); roadG.push(ni(new THREE.PlaneGeometry(L, w).rotateX(-Math.PI / 2).rotateY(-a).translate((x0 + x1) / 2, 0.03, (z0 + z1) / 2))); };
   // ground
-  const grassTex = canvasTex('grass', x => { x.fillStyle = '#4f8a3c'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 2600; i++) { const v = Math.random(); x.fillStyle = v < 0.33 ? '#5c9a44' : v < 0.66 ? '#447a34' : '#6aa84e'; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 3 + Math.random() * 4); } }, 60);
+  const grassTex = canvasTex('grass', x => { x.fillStyle = '#4f8a3c'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 2600; i++) { const v = Math.random(); x.fillStyle = v < 0.33 ? '#5c9a44' : v < 0.66 ? '#447a34' : '#6aa84e'; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 3 + Math.random() * 4); } }, 100);
   const ground = new THREE.Mesh(new THREE.CircleGeometry(ARENA_R, 120).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.95 }));
   ground.receiveShadow = true; scene.add(ground);
   // named places
-  const POI = [['PRISM POINT', 0, 0, 26], ['OLD TOWN', -78, 18, 34], ['PINE WOODS', 22, 92, 36], ['CRYSTAL QUARRY', 84, -58, 28], ['RED BARN FARM', -62, -82, 32], ['LOOKOUT', 104, 34, 14]];
+  const POI = [['PRISM POINT', 0, 0, 26], ['OLD TOWN', -135, 30, 34], ['PINE WOODS', 40, 160, 38], ['CRYSTAL QUARRY', 150, -100, 28], ['RED BARN FARM', -110, -145, 32], ['LOOKOUT', 180, 60, 14], ['NEW TOWN', 55, -180, 32], ['THE RUINS', -180, 115, 28], ['SUNNY RANCH', 130, 160, 26], ['DUSTY CAMP', -40, 95, 20]];
   RL.pois = POI;
   for (const [, x, z, r] of POI) used.push([x, z, r]);
   for (const [, x, z, r] of POI.slice(1)) { const d = Math.hypot(x, z); road(x / d * 18, z / d * 18, x - x / d * r * 0.6, z - z / d * r * 0.6); }
@@ -2547,7 +2554,7 @@ function buildRoyale() {
   spot(3, -3, 1.2); spot(-3, 3, 1.2);
   for (let k = 0; k < 4; k++) { const a = k / 4 * Math.PI * 2 + 0.785, x = Math.cos(a) * 22, z = Math.sin(a) * 22; block(x, z, k % 2 ? 1 : 6, 1.4, k % 2 ? 6 : 1, 0, null); spot(x * 1.12, z * 1.12); }
   // Old Town: houses round a little square
-  { const cx = -78, cz = 18;
+  { const cx = -135, cz = 30;
     [[-14, -15], [0, -17], [14, -15], [-17, 1], [17, 1], [-14, 17], [0, 19], [14, 17]].forEach(([dx, dz], i) => {
       const door = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 2 : 3) : (dz > 0 ? 0 : 1);
       house(cx + dx, cz + dz, rr(8, 10), rr(7, 9), door, rp(ROOFS), 3.4, i % 2 === 0);
@@ -2555,25 +2562,25 @@ function buildRoyale() {
     block(cx, cz, 3, 0.8, 3, 0, amberGlow); spot(cx + 4, cz); spot(cx - 4, cz); spot(cx, cz + 4); crate(cx + 6, cz - 6); crate(cx - 6, cz + 6, 1.2);
   }
   // Pine Woods: a cabin in a thick forest
-  { const cx = 22, cz = 92;
+  { const cx = 40, cz = 160;
     house(cx, cz, 7, 6, 0, 0x6a4a2a, 3.2, true);
     chest(cx + 12, cz - 8, 0.5); chest(cx - 14, cz + 6, 2.2);
     const keep = [[cx, cz, 6], [cx + 12, cz - 8, 2], [cx - 14, cz + 6, 2]];
-    for (let i = 0; i < 70; i++) {
-      const a = rnd() * 6.283, r = 7 + Math.sqrt(rnd()) * 30, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
+    for (let i = 0; i < 110; i++) {
+      const a = rnd() * 6.283, r = 7 + Math.sqrt(rnd()) * 32, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
       if (Math.hypot(x, z) > ARENA_R - 6 || keep.some(([kx, kz, kr]) => Math.hypot(x - kx, z - kz) < kr)) continue;
       tree(x, z, rr(0.9, 1.5), 1); if (i % 8 === 0) spot(x + 1.6, z);
     }
   }
   // Crystal Quarry: a ring of boulders around glowing crystals
-  { const cx = 84, cz = -58;
+  { const cx = 150, cz = -100;
     for (let i = 0; i < 24; i++) { const a = i / 24 * 6.283 + rr(-0.1, 0.1), r = rr(15, 24); rock(cx + Math.cos(a) * r, cz + Math.sin(a) * r, rr(1.6, 3.4)); }
     for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + 0.4, r = rr(5, 11); rock(cx + Math.cos(a) * r, cz + Math.sin(a) * r, rr(0.9, 1.6)); }
     for (let k = 0; k < 5; k++) { const a = k / 5 * 6.283, x = cx + Math.cos(a) * 8, z = cz + Math.sin(a) * 8; crystal(x, 2.6, z, rr(0.8, 1.3), k % 2 ? 0x9feaff : 0xff6fb5); spot(x * 0.97 + cx * 0.03, z * 0.97 + cz * 0.03); }
     chest(cx, cz, 0); chest(cx + 3, cz + 12, 1); spot(cx - 4, cz - 3); spot(cx + 4, cz - 5);
   }
   // Red Barn Farm: a barn, a silo and a fenced field
-  { const cx = -62, cz = -82;
+  { const cx = -110, cz = -145;
     house(cx, cz, 14, 10, 1, 0x9a2a22, 6, true);
     block(cx + 11, cz - 2, 4, 11, 4, 0, null); solidG.push(tint(new THREE.ConeGeometry(2.9, 2.4, 8).translate(cx + 11, 12.2, cz - 2), 0x8a8a92));
     const fx = cx - 4, fz = cz + 19;
@@ -2583,7 +2590,7 @@ function buildRoyale() {
     spot(cx - 4, cz); spot(cx + 4, cz + 2); spot(fx, fz); spot(fx + 6, fz - 4); chest(fx - 8, fz + 5, 0.4);
   }
   // the Lookout: a tower with stairs spiralling up to a chest on top
-  { const cx = 104, cz = 34, top = 14;
+  { const cx = 180, cz = 60, top = 14;
     for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) block(cx + sx * 3.2, cz + sz * 3.2, 0.8, top, 0.8, 0, null);
     block(cx, cz, 8.6, 0.4, 8.6, top, amberGlow);
     for (const [x, z, w, d] of [[cx, cz - 4.2, 8.6, 0.3], [cx, cz + 4.2, 8.6, 0.3], [cx - 4.2, cz, 0.3, 8.6]]) block(x, z, w, 1.1, d, top + 0.4, null);
@@ -2591,26 +2598,51 @@ function buildRoyale() {
     block(cx + 5, cz, 1.6, 0.4, 2, top, null);
     chest(cx - 1.5, cz, Math.PI / 2, top + 0.4); spot(cx + 2, cz + 2, top + 0.4); spot(cx + 2, cz - 2, top + 0.4); spot(cx - 7, cz - 7); spot(cx + 8, cz + 8);
   }
+  // New Town: a ring of houses round a well
+  { const cx = 55, cz = -180;
+    [[-13, -11], [13, -11], [-15, 7], [15, 7], [0, 16], [0, -15]].forEach(([dx, dz], i) => {
+      const door = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 2 : 3) : (dz > 0 ? 0 : 1);
+      house(cx + dx, cz + dz, rr(7.5, 9.5), rr(7, 8.5), door, rp(ROOFS), 3.4, i % 2 === 1);
+    });
+    block(cx, cz, 2.4, 1, 2.4, 0, cyanGlow); spot(cx + 3.5, cz); spot(cx - 3.5, cz); crate(cx + 5, cz + 4);
+  }
+  // the Ruins: broken walls and toppled pillars
+  { const cx = -180, cz = 115;
+    for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283 + rr(-0.2, 0.2), r = rr(8, 22), x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r, along = rnd() < 0.5; block(x, z, along ? rr(3, 8) : 0.8, rr(1.2, 4.5), along ? 0.8 : rr(3, 8), 0, null); if (i % 2) spot(x + 1.5, z + 1.5); }
+    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283, x = cx + Math.cos(a) * 12, z = cz + Math.sin(a) * 12; block(x, z, 1.6, i % 3 === 0 ? 2.2 : 6, 1.6, 0, roseGlow); }
+    chest(cx, cz, 0); chest(cx + 15, cz - 6, 1.2); chest(cx - 10, cz + 14, 2.5); crystal(cx, 5, cz, 1.6, 0xb48cff);
+  }
+  // Sunny Ranch: a farmhouse, a shed and some hay
+  { const cx = 130, cz = 160;
+    house(cx, cz, 10, 8, 2, 0xc8902e, 3.6, true); house(cx + 14, cz - 6, 6, 5, 3, 0x9a2a22, 3, false);
+    for (let i = 0; i < 4; i++) { const x = cx - 12 + rr(-4, 4), z = cz + 10 + rr(-4, 4), h = hayProp(); h.position.set(x, 0, z); h.traverse(k => { if (k.isMesh) k.castShadow = true; }); scene.add(h); colliders.push({ min: new V3(x - 1.2, 0, z - 0.85), max: new V3(x + 1.2, 1.6, z + 0.85) }); }
+    block(cx - 4, cz - 12, 22, 1.1, 0.3, 0, null); spot(cx - 8, cz - 6); spot(cx + 6, cz + 8); chest(cx - 14, cz - 2, 1.6);
+  }
+  // Dusty Camp: tents (huts) round a fire pit
+  { const cx = -40, cz = 95;
+    for (let k = 0; k < 4; k++) { const a = k / 4 * 6.283 + 0.4; house(cx + Math.cos(a) * 11, cz + Math.sin(a) * 11, 5, 5, k, rp(ROOFS), 2.8, k === 0); }
+    block(cx, cz, 2, 0.5, 2, 0, amberGlow); spot(cx + 3, cz + 1); spot(cx - 3, cz - 1);
+  }
   // little huts all over the island
-  for (let i = 0, tries = 0; i < 9 && tries < 400; tries++) {
-    const a = rnd() * 6.283, r = rr(35, 125), x = Math.cos(a) * r, z = Math.sin(a) * r;
+  for (let i = 0, tries = 0; i < 24 && tries < 900; tries++) {
+    const a = rnd() * 6.283, r = rr(35, ARENA_R - 25), x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (!free(x, z, 7)) continue;
     house(x, z, rr(5, 6.5), rr(5, 6.5), Math.floor(rnd() * 4), rp(ROOFS), 3, rnd() < 0.5); i++;
   }
   // trees, rocks and crates for cover, then loose loot spots in the open
-  for (let i = 0, tries = 0; i < 80 && tries < 1200; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; tree(x, z, rr(0.9, 1.4), rnd() < 0.3 ? 1 : 0); used.push([x, z, 1.5]); i++; }
-  for (let i = 0, tries = 0; i < 38 && tries < 800; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 3)) continue; rock(x, z, rr(1, 2.6)); used.push([x, z, 2.5]); i++; }
-  for (let i = 0, tries = 0; i < 22 && tries < 600; tries++) { const a = rnd() * 6.283, r = rr(20, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; crate(x, z, rr(1.1, 1.6)); if (rnd() < 0.5) crate(x + 1.6, z + rr(-0.5, 0.5), 1.1); spot(x - 1.8, z); used.push([x, z, 2.5]); i++; }
-  for (let i = 0, tries = 0; i < 45 && tries < 900; tries++) { const a = rnd() * 6.283, r = rr(8, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 1)) continue; spot(x, z); used.push([x, z, 4]); i++; }
+  for (let i = 0, tries = 0; i < 240 && tries < 3000; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; tree(x, z, rr(0.9, 1.4), rnd() < 0.3 ? 1 : 0); used.push([x, z, 1.5]); i++; }
+  for (let i = 0, tries = 0; i < 100 && tries < 2000; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 3)) continue; rock(x, z, rr(1, 2.6)); used.push([x, z, 2.5]); i++; }
+  for (let i = 0, tries = 0; i < 55 && tries < 1500; tries++) { const a = rnd() * 6.283, r = rr(20, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; crate(x, z, rr(1.1, 1.6)); if (rnd() < 0.5) crate(x + 1.6, z + rr(-0.5, 0.5), 1.1); spot(x - 1.8, z); used.push([x, z, 2.5]); i++; }
+  for (let i = 0, tries = 0; i < 130 && tries < 2500; tries++) { const a = rnd() * 6.283, r = rr(8, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 1)) continue; spot(x, z); used.push([x, z, 4]); i++; }
   // the sky lobby everyone waits on before the drop
   { const y = LOBBY_Y, m = PM(0xd8d0e8, { roughness: 0.6 });
-    solidBox(0, y - 1, 0, 30, 1, 30, m).castShadow = false;
-    for (const [x, z, w, d] of [[0, -15, 30, 0.6], [0, 15, 30, 0.6], [-15, 0, 0.6, 30], [15, 0, 0.6, 30]]) solidBox(x, y, z, w, 1.6, d, m).castShadow = false;
-    floatSign('BATTLE ROYALE', 0, y + 6, -14.5, 0, 14, '#ffbf6b'); floatSign('BATTLE ROYALE', 0, y + 6, 14.5, Math.PI, 14, '#ffbf6b');
-    const under = island(13); under.position.set(0, y - 6, 0); under.castShadow = false; scene.add(under); decor.push(under);
+    solidBox(0, y - 1, 0, 44, 1, 44, m).castShadow = false;
+    for (const [x, z, w, d] of [[0, -22, 44, 0.6], [0, 22, 44, 0.6], [-22, 0, 0.6, 44], [22, 0, 0.6, 44]]) solidBox(x, y, z, w, 1.6, d, m).castShadow = false;
+    floatSign('BATTLE ROYALE', 0, y + 7, -21.5, 0, 18, '#ffbf6b'); floatSign('BATTLE ROYALE', 0, y + 7, 21.5, Math.PI, 18, '#ffbf6b');
+    const under = island(19); under.position.set(0, y - 6, 0); under.castShadow = false; scene.add(under); decor.push(under);
   }
-  const solidM = new THREE.Mesh(mergeGeometries(solidG), vcMat); solidM.castShadow = solidM.receiveShadow = true; scene.add(solidM); worldMeshes.push(solidM);
-  const softM = new THREE.Mesh(mergeGeometries(softG), vcMat); softM.castShadow = softM.receiveShadow = true; scene.add(softM);
+  for (const m of mergeChunks(solidG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); }
+  for (const m of mergeChunks(softG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); }
   const roadM = new THREE.Mesh(mergeGeometries(roadG), new THREE.MeshStandardMaterial({ color: 0x9a7a52, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })); roadM.receiveShadow = true; scene.add(roadM);
   finalizeWorld();
 }
@@ -2711,7 +2743,7 @@ function island(r) {
 }
 const islands = [];
 for (let i = 0; i < 16; i++) {
-  const a = (i / 16) * Math.PI * 2 + rand(-0.15, 0.15), d = ROYALE ? rand(240, 430) : rand(110, 320), r = rand(5, 18);
+  const a = (i / 16) * Math.PI * 2 + rand(-0.15, 0.15), d = ROYALE ? rand(380, 620) : rand(110, 320), r = rand(5, 18);
   const m = island(r); m.position.set(Math.cos(a) * d, rand(-30, 45), Math.sin(a) * d); m.rotation.y = rand(0, 6);
   m.userData = { y: m.position.y, ph: rand(0, 6) };
   scene.add(m); islands.push(m); decor.push(m);
@@ -5635,7 +5667,7 @@ function syncEntVis(e, dt) {
     const ch = e.charge || 0; v.eye.scale.setScalar(1 + ch * 0.9 + (e.type === 'charger' ? Math.sin(time * 20 + hashStr(e.id)) * 0.2 : 0));
   } else {
     if (e.visTeam !== e.team || e.visThr !== (teamMode() && e.team === myTeam)) { disposeAvatar(e.vis); makeBotVis(e); }
-    const v = e.vis; v.av.position.copy(e.pos); v.av.rotation.y = e.yaw; v.av.visible = !!e.alive;
+    const v = e.vis; v.av.position.copy(e.pos); v.av.rotation.y = e.yaw; v.av.visible = !!e.alive && (!ROYALE || Math.abs(e.pos.x - camera.position.x) + Math.abs(e.pos.z - camera.position.z) < 240);
     v.flash = e.flash; avatarFX(v);
   }
 }
@@ -5724,7 +5756,7 @@ function hostKillEnt(e, attackerId, weapon) {
   if (e.kind === 'drone') { if (e.type === 'qclone') cloneShatter(e, attackerId); e.alive = false; removeEnt(e, true); }
   else {
     e.alive = false; e.hp = 0; e.d = (e.d || 0) + 1; e.respawnT = mode === 'duel' || mode === 'royale' ? 1e9 : mode === 'ctf' ? 3 : 1.6;
-    explosionFX(tA.copy(e.pos).setY(e.pos.y + 1), e.vis.glow, 1);
+    explosionFX(tA.copy(e.pos).setY(e.pos.y + 1), e.vis.glow, 1); e.deadT = time;
     if (mode === 'royale') royaleBotDrop(e);
     if (mode === 'gungame' && weapon === 'blade') e.lv = Math.max(0, (e.lv || 0) - 1);
   }
@@ -6213,11 +6245,11 @@ function hostManageBots(dt) {
   if (coop() || mode === 'hub') { for (const b of bots) removeEnt(b, false); return; }
   const hs = humans();
   if (mode === 'royale') {
-    // bots join in the lobby so there are always 8 in a match, then stay out until they drop
+    // bots join in the lobby so every match has 50 players, then stay out until they drop
     if (GS.rph !== 0) return;
-    const want = Math.max(0, 8 - hs.length);
-    if (bots.length < want) { hostAddBot(-1); const b = [...ents.values()].filter(e => e.kind === 'bot').pop(); if (b) { b.respawnT = 1e9; b.alive = false; } }
-    else if (bots.length > want) removeEnt(bots[bots.length - 1], false);
+    const want = Math.max(0, 50 - hs.length);
+    for (let n = bots.length; n < want; n++) { hostAddBot(-1); const b = [...ents.values()].filter(e => e.kind === 'bot').pop(); if (b) { b.respawnT = 1e9; b.alive = false; } }
+    for (let n = bots.length; n > want; n--) { const b = [...ents.values()].filter(e => e.kind === 'bot').pop(); if (b) removeEnt(b, false); }
     return;
   }
   if (mode === 'duel' || mode === 'prophunt') {
@@ -6255,7 +6287,11 @@ function botGoal(e, acts) {
     const zc = GS.zc, zt = GS.zt;
     if (Math.hypot(e.pos.x - zc[0], e.pos.z - zc[1]) > zc[2] - 4) return new V3(zc[0], 0, zc[1]);
     if (e.target) return e.target.pos;
-    if (!e.patrol || e.pos.distanceTo(e.patrol) < 3 || Math.random() < 0.003 || Math.hypot(e.patrol.x - zt[0], e.patrol.z - zt[1]) > zt[2]) { const a = rand(0, 6.283), r = Math.sqrt(Math.random()) * Math.max(2, zt[2] * 0.8); e.patrol = new V3(zt[0] + Math.cos(a) * r, 0, zt[1] + Math.sin(a) * r); }
+    // looting: short trips around where they are, with a pause at each stop; drift toward the next circle when it's far
+    if (!e.patrol || Math.hypot(e.patrol.x - zt[0], e.patrol.z - zt[1]) > zt[2]) e.patrol = null;
+    if (e.patrol && e.pos.distanceTo(e.patrol) < 3) { e.patrol = null; e.idleUntil = time + rand(4, 14); }
+    if (time < (e.idleUntil || 0)) return e.pos;
+    if (!e.patrol) { const toC = Math.hypot(e.pos.x - zt[0], e.pos.z - zt[1]), k = toC > zt[2] * 0.7 ? 0.35 : 0, a = rand(0, 6.283), r = rand(6, 22); e.patrol = new V3(e.pos.x + (zt[0] - e.pos.x) * k + Math.cos(a) * r, 0, e.pos.z + (zt[1] - e.pos.z) * k + Math.sin(a) * r); }
     return e.patrol;
   }
   if (e.target) return e.target.pos;
@@ -6284,15 +6320,19 @@ function hostUpdateBot(e, dt, acts) {
   if ((mode === 'duel' && GS.drs !== 1) || (mode === 'prophunt' && GS.pph !== 2) || (mode === 'royale' && GS.rph !== 1)) { e.vel.set(0, 0, 0); return; }
   const bMax = mode === 'infect' && e.team === 1 ? INFECTED_HP : 100;
   if (mode !== 'royale' && time - e.lastDmgT > 4 && e.hp < bMax) e.hp = Math.min(bMax, e.hp + 15 * dt);
+  if (mode === 'royale' && e.wp === 'pick' && time > (e.lootT || 0)) e.wp = pick(BR_GUNS);
   const W = WEAPONS[e.wp] || WEAPONS.rifle;
   bEye.copy(e.pos).setY(e.pos.y + 1.45);
   e.thinkT -= dt;
   if (e.thinkT <= 0) {
     const S = skillOf(e);
     e.thinkT = rand(...S.think);
-    let best = null, bd = S.sight;
+    // Battle Royale bots loot first: with only a pickaxe they just fight back; with a gun they look less far
+    const brPick = mode === 'royale' && e.wp === 'pick', angry = time - e.lastDmgT < 4 ? e.lastHitBy : '';
+    let best = null, bd = S.sight * (mode === 'royale' ? (brPick ? 0.12 : 0.45) : 1);
     for (const a of acts) {
       if (!a.alive || a.id === e.id || !enemyOf(e.team, a.team)) continue;
+      if (brPick && a.id !== angry) continue;
       if (mode === 'prophunt' && !propSeen(a, e)) continue;
       const d = a.pos.distanceTo(e.pos) - (a.id === e.target?.id ? 6 : 0);
       if (d < bd && hasLOS(bEye, bTgt.copy(a.pos).setY(a.pos.y + 1.2))) { bd = d; best = a; }
@@ -6318,7 +6358,7 @@ function hostUpdateBot(e, dt, acts) {
   if (dir.lengthSq() > 0) {
     const ahead = tA.copy(e.pos).addScaledVector(dir, 1.4).setY(e.pos.y + 0.9);
     if (pointInWorld(ahead)) {
-      const tall = colliders.some(c => ahead.x > c.min.x && ahead.x < c.max.x && ahead.z > c.min.z && ahead.z < c.max.z && c.max.y > e.pos.y + 3.6);
+      const tall = collNear(ahead.x, ahead.z).some(c => ahead.x > c.min.x && ahead.x < c.max.x && ahead.z > c.min.z && ahead.z < c.max.z && c.max.y > e.pos.y + 3.6);
       if (tall) dir.set(dir.x * 0.2 - dir.z * e.side, 0, dir.z * 0.2 + dir.x * e.side).normalize();
       else if (e.onGround) { e.vel.y = 11; e.jumps = 1; }
       else if (e.jumps < 2 && e.vel.y < 2) { e.vel.y = 10.5; e.jumps = 2; }
@@ -6352,7 +6392,7 @@ function botShoot(e, t, dist, W) {
     return;
   }
   const moving = t.vel && Math.hypot(t.vel.x, t.vel.z) > 3;
-  let chance = clamp(0.66 - dist * 0.011, 0.15, 0.6) * (moving ? 0.7 : 1) * skillOf(e).hit;
+  let chance = clamp(0.66 - dist * 0.011, 0.15, 0.6) * (moving ? 0.7 : 1) * skillOf(e).hit * (mode === 'royale' ? 0.6 : 1);
   if (e.wp === 'rail') chance *= 0.75;
   let dmg = 0;
   if (W.pellets > 1) { const k = clamp(1 - dist / W.range, 0.05, 1); dmg = W.dmg * Math.round(W.pellets * k * rand(0.3, 0.8) * skillOf(e).hit); chance = 1; }
@@ -7027,6 +7067,7 @@ function throwNade() {
 function useAbility() {
   if (mode === 'hub' || isPropPlayer() || playerFrozen()) return;
   const k = kit();
+  if (k.q === 'none') return;
   if (!k.q) { toast(`Jetpack: jump, then hold ${bindLabel('jump')} to fly`); return; }
   if (k.q === 'pulse') return pulse();
   if (k.q === 'pounce') {
@@ -8317,7 +8358,7 @@ function buildPresence() {
     vz: document.hidden ? 0 : 1, hs: isHost ? 1 : 0, en: null, ob: null, bs: null, ek: null, ev: null, bd: null, wt: null, wr: null, wv: null, wst: null, fl: null, cs: null, ph: null, pw: null, pwid: null, gm: null, inf: null, it: null, ip: null, bhp: null, bp: null,
   };
   if (isHost) {
-    o.en = [...ents.values()].map(e => e.kind === 'drone'
+    o.en = [...ents.values()].filter(e => !(mode === 'royale' && e.kind === 'bot' && !e.alive && time - (e.deadT || -99) > 4)).map(e => e.kind === 'drone'
       ? ['d', e.id, DTYPES.indexOf(e.type), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), Math.round(e.hp), Math.round((e.charge || 0) * 10), ...(isBoss(e) || e.type === 'qclone' ? [e.bst | 0, r2(e.yaw || 0)] : [])]
       : ['b', e.id, Math.max(0, BOT_NAMES.indexOf(e.name)), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), r2(e.yaw), Math.round(e.hp), e.team, e.alive ? 1 : 0, WIDS.indexOf(e.wp), e.lv || 0, e.f || 0, e.d || 0]);
     Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, fl: GS.fl, cs: GS.cs, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
@@ -8332,7 +8373,7 @@ function buildPresence() {
 }
 function sendPresence(dt) {
   if (!conn || !conn.connected()) return;
-  presT -= dt; if (presT > 0) return; presT = 1 / 15;
+  presT -= dt; if (presT > 0) return; presT = peers.size > 15 ? 1 / 10 : 1 / 15;
   for (const k in edm) if (!ents.has(k)) delete edm[k];
   conn.presence(buildPresence());
 }
@@ -8449,6 +8490,7 @@ function updateHUD() {
   if (hudCache.ammo !== ammoTxt) { hudCache.ammo = ammoTxt; $('ammo').innerHTML = curW === 'dual' ? `<small>DEFLECT </small>${ammoTxt}` : W.melee ? '∞' : `${ammo}<small> / ${rRes != null ? rRes : W.mag}</small>`; }
   setStyle($('dashbar'), 'width', Math.round(100 - player.dashCd / 1.1 * 100) + '%'); $('abDash').classList.toggle('ready', player.dashCd <= 0);
   const K = kit(), qd = K.q ? QDEF[K.q] : null, gd = GDEF[K.g];
+  setStyle($('abPulse'), 'visibility', K.q === 'none' ? 'hidden' : 'visible');
   if (!qd) {
     setText('qLbl', 'JETPACK'); setText('qKey', bindLabel('jump').toUpperCase());
     setStyle($('pulsebar'), 'width', Math.round(jetFuel / JET_MAX * 100) + '%'); $('abPulse').classList.toggle('ready', jetFuel >= JET_MAX);
@@ -9472,14 +9514,14 @@ function peerProp(o, d) {
 // ================= Battle Royale =================
 // The island's loot comes from the match seed, so every player's game rolls the same items in the same places.
 // Players only share what changed: items they picked up, chests they opened, guns they dropped and what they carried when they died.
-const RZ = [[45, 35, 100, 1], [40, 30, 64, 2], [35, 25, 38, 4], [30, 20, 20, 6], [25, 18, 8, 9], [20, 15, 0, 14]]; // wait (s), shrink (s), radius, storm damage per second
+const RZ = [[90, 60, 175, 1], [75, 50, 115, 2], [60, 45, 72, 3], [50, 35, 42, 5], [40, 30, 22, 7], [30, 25, 9, 10], [25, 20, 0, 14]]; // wait (s), shrink (s), radius, storm damage per second
 const RAR = [{ n: 'Common', css: '#c8d0dc', c: new THREE.Color(1.5, 1.6, 1.8), k: 1 }, { n: 'Rare', css: '#5aa8ff', c: new THREE.Color(0.4, 1.3, 3.0), k: 1.1 }, { n: 'Epic', css: '#c07dff', c: new THREE.Color(1.9, 0.6, 3.0), k: 1.22 }, { n: 'Legendary', css: '#ffbf3a', c: new THREE.Color(3.0, 1.9, 0.3), k: 1.35 }];
 const AMMO_OF = { smg: 'L', rifle: 'L', lmg: 'L', cards: 'L', cannon: 'H', rail: 'H', autocannon: 'H', scatter: 'S', arc: 'E', inferno: 'E', nova: 'R' };
 const AMMO = { L: { n: 'Light Ammo', c: 0x5ff2ff, max: 240, give: [30, 60] }, H: { n: 'Heavy Ammo', c: 0xff9a3c, max: 90, give: [12, 24] }, S: { n: 'Shells', c: 0xff4fa3, max: 48, give: [8, 16] }, E: { n: 'Energy Cells', c: 0xb48cff, max: 300, give: [40, 80] }, R: { n: 'Rockets', c: 0xff6a1a, max: 12, give: [3, 6] } };
 const AMMO_ROLL = 'LLLHHSSEER';
 const HEALS = { b: { n: 'Bandage', icon: '🩹', key: 5, max: 10, t: 2, give: [2, 3] }, m: { n: 'Medkit', icon: '✚', key: 6, max: 3, t: 4.5, give: [1, 1] }, s: { n: 'Shield Cell', icon: '🛡', key: 7, max: 4, t: 3, give: [1, 2] } };
 const BR_GUNS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'inferno', 'arc', 'autocannon', 'cards'], BR_GUN_W = [10, 10, 8, 8, 3, 2, 6, 5, 6, 5, 6];
-const RY = { guns: [null, null, null], rar: [0, 0, 0], ammo: { L: 0, H: 0, S: 0, E: 0, R: 0 }, heals: { b: 0, m: 0, s: 0 }, using: null, picked: [], opened: [], drops: [], dropSeq: 0, glide: false, zoneT: 0.5, near: null, inMatch: false, lastInv: [], zc: [0, 0, 150], mapT: 0, ui: null };
+const RY = { guns: [null, null, null], rar: [0, 0, 0], ammo: { L: 0, H: 0, S: 0, E: 0, R: 0 }, heals: { b: 0, m: 0, s: 0 }, using: null, picked: [], opened: [], drops: [], dropSeq: 0, glide: false, zoneT: 0.5, near: null, inMatch: false, lastInv: [], zc: [0, 0, ARENA_R], mapT: 0, ui: null };
 const mulberry = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const parseCode = s => { const [k, a, b] = String(s).split(':'); return { k, a, b: +b || 0 }; };
 function rollGun(r, better) {
@@ -9583,7 +9625,7 @@ function spawnDrop(prefix, pos, codes) {
   const list = codes.slice(0, 12), y = groundBelow(tC.set(pos.x, pos.y + 0.5, pos.z));
   list.forEach((code, j) => { const a = j / list.length * 6.283; addItem(prefix + '.' + j, String(code), pos.x + Math.cos(a) * 1.2, y, pos.z + Math.sin(a) * 1.2); });
 }
-function royaleBotDrop(e) { if (!GS.rsd) return; const t = AMMO_OF[e.wp] || 'L'; spawnDrop('b' + e.id + '.' + GS.rsd, e.pos, [`g:${BR_GUNS.includes(e.wp) ? e.wp : 'rifle'}:0`, `a:${t}:${AMMO[t].give[1]}`, 'h:b:2']); }
+function royaleBotDrop(e) { if (!GS.rsd) return; const t = AMMO_OF[e.wp] || 'L'; spawnDrop('b' + e.id + '.' + GS.rsd, e.pos, BR_GUNS.includes(e.wp) ? [`g:${e.wp}:0`, `a:${t}:${AMMO[t].give[1]}`, 'h:b:2'] : ['h:b:2']); }
 // ---------- picking things up ----------
 function autoPick(it) {
   const c = it.c;
@@ -9631,7 +9673,7 @@ function royaleHealDone(t) {
   tone(880, 1320, 0.15, 0.07, 'triangle');
 }
 // ---------- match flow ----------
-const royaleSpawn = () => new V3(rand(-10, 10), LOBBY_Y, rand(-10, 10));
+const royaleSpawn = () => new V3(rand(-18, 18), LOBBY_Y, rand(-18, 18));
 function royaleGroundSpot(r) {
   for (let k = 0; k < 40; k++) { const a = r() * 6.283, d = Math.sqrt(r()) * (ARENA_R - 25), p = new V3(Math.cos(a) * d, 0, Math.sin(a) * d); if (!pointInWorld(tA.copy(p).setY(1)) && !pointInWorld(tA.copy(p).setY(0.3))) return p; }
   return new V3(0, 0, 30);
@@ -9697,7 +9739,7 @@ function royaleStart(R) {
   GS.rsd = 1 + Math.floor(Math.random() * 1e9); GS.rph = 1; GS.zs = 0; GS.zk = 0; GS.zc = [0, 0, ARENA_R];
   const nr = RZ[0][2], off = (ARENA_R - nr) * 0.6 * Math.random(), a = Math.random() * 6.283; GS.zt = [r1(Math.cos(a) * off), r1(Math.sin(a) * off), nr];
   R.timer = RZ[0][0]; R.from = GS.zc.slice(); R.t0 = time; R.lobbyT = null; GS.ztm = RZ[0][0];
-  for (const e of ents.values()) if (e.kind === 'bot') { e.pos.copy(royaleGroundSpot(Math.random)); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.hp = 100; e.alive = true; e.invuln = 3; e.target = null; e.patrol = null; e.wp = pick(BR_GUNS); e.f = 0; e.d = 0; e.respawnT = 1e9; }
+  for (const e of ents.values()) if (e.kind === 'bot') { e.pos.copy(royaleGroundSpot(Math.random)); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.hp = 100; e.alive = true; e.invuln = 3; e.target = null; e.patrol = null; e.wp = 'pick'; e.lootT = time + rand(35, 140); e.f = 0; e.d = 0; e.respawnT = 1e9; }
   GS.ral = allActors().filter(a => a.alive).length;
   hostEvent('The match has started');
 }
@@ -9733,7 +9775,7 @@ function drawRoyaleMap() {
   const cv = RY.ui.map, x = cv.getContext('2d'), S = cv.width, k = S / (ARENA_R * 2), X = v => S / 2 + v * k;
   x.clearRect(0, 0, S, S); x.save(); x.beginPath(); x.arc(S / 2, S / 2, S / 2, 0, 7); x.clip();
   x.fillStyle = '#3f6a34'; x.fillRect(0, 0, S, S);
-  x.fillStyle = 'rgba(255,255,255,.8)'; x.font = '700 15px Oxanium, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = 'rgba(255,255,255,.8)'; x.font = '700 12px Oxanium, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
   for (const [n, px, pz] of RL.pois) x.fillText(n, X(px), X(pz));
   if (GS.rph === 1) {
     x.fillStyle = 'rgba(150,60,255,.45)'; x.beginPath(); x.rect(0, 0, S, S); x.arc(X(RY.zc[0]), X(RY.zc[1]), Math.max(0, RY.zc[2] * k), 0, Math.PI * 2, true); x.fill();

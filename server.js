@@ -10,8 +10,8 @@ const crypto = require('crypto');
 const GAME_FILE = path.join(__dirname, 'prism-arena.html');
 const PORT = process.env.PORT || 3000;
 const MAX_ROOM = 12;
-// Battle Royale rooms hold up to 15 players (plus a spare slot)
-const roomCap = name => /^pa-royale-/.test(name) ? 16 : MAX_ROOM;
+// Battle Royale rooms hold up to 50 players (plus a couple of spare slots)
+const roomCap = name => /^pa-royale-/.test(name) ? 52 : MAX_ROOM;
 const MAX_MSG = 64 * 1024;
 
 // Creator codes -> player IDs. Built-in defaults below; the host can add or override them with
