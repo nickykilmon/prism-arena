@@ -471,10 +471,8 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
   <div id="downUI" hidden><b>DOWNED</b><span id="downTxt">Hang on. A teammate can revive you.</span><div class="rbar" id="downBarWrap" hidden><i id="downBar"></i></div></div>
   <div id="useUI" hidden><span id="useTxt"></span><div class="rbar"><i id="useBar"></i></div></div>
   <div id="marks"></div>
-  <div class="wp" id="wp0" hidden></div>
   <div class="wp mwp" id="mwp" hidden></div>
   <div id="mlog" hidden></div>
-  <div class="wp" id="wp1" hidden></div>
   <div id="team" hidden></div>
   <div id="bl">
     <div class="row"><span id="hpnum">100</span><span class="lbl">SHIELD</span></div>
@@ -499,18 +497,16 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     <div class="pane" id="playPane">
     <div class="news" id="news"></div>
     <div class="sect">Game mode</div>
-    <button class="hubbtn" id="hubBtn">🏙 ENTER THE HUB PLAZA <small>hang out with everyone · walk into portals to play</small></button>
     <div class="modes" id="modes">
       <button class="mode" data-mode="waves"><b>Squad Waves</b><span>Survive drone waves together. Earns coins.</span></button>
       <button class="mode" data-mode="boss"><b>Boss Raid</b><span>Your squad vs 7 giant bosses that loop and get harder. Big payouts.</span></button>
       <button class="mode" data-mode="ffa"><b>Free-for-All</b><span>Your gun, everyone vs everyone. First to 20 kills.</span></button>
       <button class="mode" data-mode="gungame"><b>Gun Game</b><span>Every kill swaps your gun. Finish the ladder to win.</span></button>
-      <button class="mode" data-mode="ctf"><b>Capture the Flag</b><span>Red vs Blue. First to 3 captures wins.</span></button>
       <button class="mode" data-mode="infect"><b>Infection</b><span>One player starts infected. Survive 3 minutes or join the horde.</span></button>
       <button class="mode" data-mode="mission"><b>Missions</b><span>A co-op story campaign: collect, hack, escort, defend, then beat a boss.</span></button>
       <button class="mode" data-mode="duel"><b>1v1 Duel</b><span>First to 5 rounds. Challenge a friend, or a tough bot if you're alone.</span></button>
       <button class="mode" data-mode="prophunt"><b>Prop Hunt</b><span>Hide as anything in Prism Mart, or hunt the props down.</span></button>
-      <button class="mode" data-mode="royale"><b>Battle Royale</b><span>Up to 15 drop onto a big island. Loot guns, ammo and heals. Last one standing wins.</span></button>
+      <button class="mode" data-mode="royale"><b>Battle Royale</b><span>50 drop onto a big island. Loot guns, ammo and heals. Last one standing wins.</span></button>
     </div>
     <div class="sect">Map</div>
     <div class="maps" id="maps"></div>
@@ -529,14 +525,6 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     <div id="ladderBox" hidden>
       <div class="sect" style="margin-bottom:8px">Gun ladder <span style="letter-spacing:.08em;text-transform:none">· one kill per gun · a Blade kill knocks the victim down a level</span></div>
       <div class="ladder" id="ladder"></div>
-    </div>
-    <div id="teamBox" hidden>
-      <div class="sect" style="margin-bottom:8px">Team</div>
-      <div class="seg" id="teams"><button data-team="auto">AUTO</button><button class="r" data-team="0">RED</button><button class="b" data-team="1">BLUE</button></div>
-    </div>
-    <div>
-      <div class="sect" style="margin-bottom:16px">Color</div>
-      <div class="swatches" id="swatches"></div>
     </div>
     <div class="fields">
       <div class="field"><label for="name">Callsign</label><input type="text" id="name" maxlength="14" autocomplete="off" spellcheck="false"></div>
@@ -791,14 +779,13 @@ const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name:
 const JET_MAX = 4;
 const isCoopMode = m => m === 'waves' || m === 'boss' || m === 'mission';
 const coop = () => isCoopMode(mode);
-const teamMode = () => mode === 'ctf' || mode === 'infect' || mode === 'prophunt';
+const teamMode = () => mode === 'infect' || mode === 'prophunt';
 const INF_TIME = 180, INF_PRE = 8, INFECTED_HP = 200;
 const amInfected = () => mode === 'infect' && GS.inf.includes(myId);
 const maxHp = () => coop() ? CLASSES[settings.cls].hp : amInfected() ? INFECTED_HP : 100;
 const REVIVE_TIME = 3.5, MEDIC_REVIVE_TIME = 1.75;
 const TEAM_NAME = ['RED', 'BLUE'], TEAM_CSS = ['#ff5a6e', '#5aa8ff'];
 const TEAM_COL = [new THREE.Color(2.9, 0.35, 0.45), new THREE.Color(0.35, 1.3, 3.0)];
-const BASES = [new V3(-44, 0, 0), new V3(44, 0, 0)];
 const BOT_NAMES = ['Viper', 'Nyx', 'Rook', 'Echo', 'Jinx', 'Talon', 'Pixel', 'Bolt', 'Halo', 'Mako', 'Rune', 'Vex', 'Blaze', 'Cobra', 'Drift', 'Ember', 'Frost', 'Ghost', 'Hex', 'Ion', 'Jolt', 'Kite', 'Lynx', 'Moss', 'Nova', 'Onyx', 'Pike', 'Quill', 'Raze', 'Sable', 'Tango', 'Umbra', 'Volt', 'Wisp', 'Xeno', 'Yeti', 'Zephyr', 'Ace', 'Brick', 'Comet', 'Dash', 'Fang', 'Grit', 'Hawk', 'Ivy', 'Jett', 'Kodiak', 'Lark', 'Mantis', 'Nitro', 'Orbit', 'Pulsar', 'Quake', 'Rogue', 'Spike', 'Tusk'];
 const DTYPES = ['scout', 'charger', 'warden', 'titan', 'poisoner', 'queen', 'qclone', 'colossus', 'voideye', 'reaper', 'wyrm', 'overmind'];
 
@@ -841,7 +828,6 @@ const settings = {
   hue: store.get('hue', Math.floor(rand(0, 360))),
   mode: store.get('mode', 'waves'),
   gun: store.get('gun', 'rifle'),
-  team: store.get('team', 'auto'),
   map: store.get('map', 'prism'),
   cls: store.get('cls', 'fighter'), mission: store.get('mission', 0), spray: store.get('spray', 'prism'), banner: store.get('banner', 0), title: store.get('title', 'rookie'), vpose: store.get('vpose', 'wave'),
   skin: store.get('skin', 'standard'),
@@ -849,17 +835,16 @@ const settings = {
   hat: store.get('hat', 'none'),
   pet: store.get('pet', 'none'),
 };
-const MODES = ['waves', 'boss', 'ffa', 'gungame', 'ctf', 'infect', 'duel', 'mission', 'prophunt', 'hub', 'royale'];
+const MODES = ['waves', 'boss', 'ffa', 'gungame', 'infect', 'duel', 'mission', 'prophunt', 'royale'];
 if (!MODES.includes(settings.mode)) settings.mode = 'waves';
 // the 3 guns you bring (first one is what you spawn holding)
 settings.loadout = (() => { const l = store.get('loadout', null), out = []; for (const id of Array.isArray(l) ? l : []) if (LOADOUT.includes(id) && !out.includes(id)) out.push(id); for (const id of [settings.gun, 'rifle', 'smg', 'scatter']) if (out.length < 3 && LOADOUT.includes(id) && !out.includes(id)) out.push(id); return out.slice(0, 3); })();
 settings.gun = settings.loadout[0];
 let gunSel = 0;
-const MAPS = { prism: 'Prism Spire', frost: 'Frostfall', haunted: 'Haunted Hollow', harvest: 'Harvest Farm', xmas: 'Candy Cane Village', heritage: 'Heritage Square', valentine: 'Heart Gardens', easter: 'Egg Meadow', pride: 'Pride Parade', summer: 'Splash Isle' };
+const MAPS = { prism: 'Prism Spire', haunted: 'Haunted Hollow', harvest: 'Harvest Farm', xmas: 'Candy Cane Village', heritage: 'Heritage Square', valentine: 'Heart Gardens', easter: 'Egg Meadow', pride: 'Pride Parade', summer: 'Splash Isle' };
 // seasonal maps only show up during their season
 const MAP_INFO = {
   prism: { blurb: 'Floating crystal arena at sunset.', mp: 'linear-gradient(160deg,#ffcf9a,#ff8fc4 35%,#b48cff 60%,#3b355e)' },
-  frost: { blurb: 'Frozen keep under the aurora.', mp: 'radial-gradient(ellipse at 50% 0,#3fffb0aa,transparent 60%),linear-gradient(180deg,#14214a,#3a5c9a 45%,#cfe4ff 75%,#9fb8dc)' },
   haunted: { season: 'halloween', blurb: 'Graveyard, giant pumpkins and a haunted tower.', mp: 'radial-gradient(circle at 75% 25%,#fff3c4 0 8%,transparent 9%),linear-gradient(180deg,#1a0f2a,#4a1f4a 55%,#ff7a1a)' },
   xmas: { season: 'christmas', blurb: 'Gingerbread houses around a giant tree.', mp: 'radial-gradient(circle at 50% 35%,#ffd23a 0 6%,transparent 7%),linear-gradient(180deg,#24305a,#7a8ac8 50%,#f4f8ff)' },
   valentine: { season: 'valentine', blurb: 'Rose gardens and a heart fountain.', mp: 'radial-gradient(circle at 50% 55%,#ff2f6e 0 12%,transparent 13%),linear-gradient(180deg,#ff9ac0,#ffd6e6 60%,#f2a6c4)' },
@@ -869,17 +854,16 @@ const MAP_INFO = {
   pride: { season: 'pride', blurb: 'Rainbow arch, flags and falling confetti.', mp: 'linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
   summer: { season: 'summer', blurb: 'Sandcastles, palm trees and open sea.', mp: 'linear-gradient(180deg,#5fc8ff,#bfeaff 50%,#19c7d0 51%,#f6e0aa 75%)' },
 };
-const mapOpen = id => id === 'editor' || id === 'hub' || id === 'store' || id === 'royale' || /^c-[a-z0-9]{4,16}$/.test(id) || (!!MAPS[id] && (!MAP_INFO[id].season || seasonActive(MAP_INFO[id].season)));
+const mapOpen = id => id === 'editor' || id === 'store' || id === 'royale' || /^c-[a-z0-9]{4,16}$/.test(id) || (!!MAPS[id] && (!MAP_INFO[id].season || seasonActive(MAP_INFO[id].season)));
 if (!mapOpen(settings.map)) settings.map = 'prism';
 // community maps and the map editor build their own arena
 const EDITOR = settings.map === 'editor';
 let CMAP = null;
 if (/^c-/.test(settings.map)) { CMAP = store.get('cmap', null); if (!CMAP || CMAP.id !== settings.map || !Array.isArray(CMAP.objs)) { CMAP = null; settings.map = 'prism'; } }
 const EDTHEME = EDITOR ? (store.get('mapdraft', null) || {}).theme : null;
-// Prop Hunt has its own store map and the Hub Plaza is its own place
-const HUB = settings.map === 'hub', STORE = settings.map === 'store', ROYALE = settings.map === 'royale';
-if (HUB) settings.mode = 'hub'; else if (STORE) settings.mode = 'prophunt'; else if (ROYALE) settings.mode = 'royale'; else if (settings.mode === 'hub' || settings.mode === 'prophunt' || settings.mode === 'royale') settings.mode = 'ffa';
-const FROST = settings.map === 'frost';
+// Prop Hunt has its own store map and Battle Royale its own island
+const STORE = settings.map === 'store', ROYALE = settings.map === 'royale';
+if (STORE) settings.mode = 'prophunt'; else if (ROYALE) settings.mode = 'royale'; else if (settings.mode === 'prophunt' || settings.mode === 'royale') settings.mode = 'ffa';
 const THEMES = {
   prism: { exp: 0.62, fog: [0xa17f9f, 140], sun: [15, 205], sky: [4.5, 2.4, 0.0012, 0.9], hemi: [0xffd4c4, 0x2c2450, 0.9], sunC: [0xffd2a8, 2.7], stone: [0x7a72a6, 0.72, 0.18, 0x8a82b6], tileRM: [0.42, 0.35], tiles: ['#3b355e', '#5a5190', '#7a6fb8'], under: [0.15, 1.2, 1.45], rim: [2.9, 0.45, 1.5], cone: [0.09, 0.07, 0.16, 0.12, 0.08, 0.12], isle: [[0.42, 0.36, 0.62], [0.12, 0.09, 0.2], 0.22, [0x5ff2ff, 0xff4fa3]], cloud: [0.88, 0.98, 0.45, 0.72, 0.86], fx: 'dust' },
   frost: { exp: 0.6, fog: [0x9fb4d6, 120], sun: [13, 150], sky: [1.1, 1.1, 0.0025, 0.86], hemi: [0xd6e6ff, 0x2a3656, 1.0], sunC: [0xffd6b8, 2.3], stone: [0xa8bde0, 0.55, 0.08, 0xbccbe6], tileRM: [0.14, 0.2], tiles: ['#7c97c2', '#c4d6f2', '#5fd8ff'], under: [0.45, 1.5, 2.2], rim: [0.8, 2.3, 3.0], cone: [0.28, 0.4, 0.62, 0.4, 0.4, 0.32], isle: [[0.86, 0.92, 1.0], [0.3, 0.5, 0.78], 0.75, [0x9feaff, 0x7dffc8]], cloud: [0.55, 0.62, 0.35, 0.8, 0.92], fx: 'snow', fxColor: 0xffffff, snowCaps: true, aurora: true },
@@ -990,7 +974,6 @@ $('quality').addEventListener('change', () => { settings.quality = $('quality').
   }
   $('ladder').innerHTML = LADDER.map((id, i) => `<span style="--lc:${WEAPONS[id].css}">${i + 1}. ${WEAPONS[id].name}</span>`).join('<i>›</i>');
   document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => pickMode(b.dataset.mode)));
-  document.querySelectorAll('#teams button').forEach(b => b.addEventListener('click', () => { settings.team = b.dataset.team; store.set('team', settings.team); renderMenu(); }));
   // the arena is built once at load, so switching maps reloads the page (your room and mode are kept)
   for (const [id, name] of Object.entries(MAPS)) {
     if (!mapOpen(id)) continue;
@@ -1006,28 +989,26 @@ function renderMenu() {
   document.querySelectorAll('.map').forEach(b => b.classList.toggle('sel', b.dataset.map === settings.map));
   document.querySelectorAll('.gun').forEach(b => { b.classList.toggle('sel', settings.loadout.includes(b.dataset.w)); const k = settings.loadout.indexOf(b.dataset.w); b.dataset.slot = k >= 0 ? String(k + 1) : ''; });
   { const gs = $('gunSlots'); gs.textContent = ''; settings.loadout.forEach((id, i) => { const W = WEAPONS[id], b = document.createElement('button'); b.className = i === gunSel ? 'sel' : ''; b.style.setProperty('--gc', W.css); b.innerHTML = `<kbd>${i + 1}</kbd><span>${W.name}</span>`; b.addEventListener('click', () => { gunSel = i; renderMenu(); }); gs.appendChild(b); }); }
-  document.querySelectorAll('#teams button').forEach(b => b.classList.toggle('sel', b.dataset.team === String(settings.team)));
-  $('loadoutBox').hidden = settings.mode === 'gungame' || settings.mode === 'hub' || settings.mode === 'royale' || isCoopMode(settings.mode);
+  $('loadoutBox').hidden = settings.mode === 'gungame' || settings.mode === 'royale' || isCoopMode(settings.mode);
   $('missionBox').hidden = settings.mode !== 'mission'; if (settings.mode === 'mission') renderMissions();
   $('classBox').hidden = !isCoopMode(settings.mode);
   document.querySelectorAll('.cls').forEach(b => b.classList.toggle('sel', b.dataset.c === settings.cls));
   { const c = CLASSES[settings.cls], el = $('classInfo'); el.style.setProperty('--gc', c.css);
     el.innerHTML = `<b>${c.name}</b><small>${c.blurb}</small><div class="kit"><i>HEALTH</i><span>${c.hp}</span><i>GUNS</i><span>${c.guns.map(g => WEAPONS[g].name).join(' + ')}</span><i>Q</i><span>${c.qText}</span><i>G</i><span>${c.gText}</span></div>`; }
   $('ladderBox').hidden = settings.mode !== 'gungame';
-  $('teamBox').hidden = settings.mode !== 'ctf';
   const bb = settings.mode === 'boss' ? bestBoss : best;
   $('bestLbl').textContent = settings.mode === 'boss' ? 'Best raid round' : 'Best wave';
   $('bestWave').textContent = bb.wave; $('bestScore').textContent = bb.score.toLocaleString();
   $('bestLine').style.visibility = isCoopMode(settings.mode) ? 'visible' : 'hidden';
-  for (const id of ['swatches', 'swatches2']) $(id).querySelectorAll('button').forEach(b => b.classList.toggle('sel', +b.dataset.h === settings.hue));
+  for (const id of ['swatches2']) $(id).querySelectorAll('button').forEach(b => b.classList.toggle('sel', +b.dataset.h === settings.hue));
   $('coinTab').textContent = wallet.coins.toLocaleString();
 }
 
 function pickMode(m, auto = false) {
   settings.mode = m; store.set('mode', m);
-  const need = m === 'prophunt' ? 'store' : m === 'hub' ? 'hub' : m === 'royale' ? 'royale' : null;
-  if (need && settings.map !== need) { store.set('autostart', auto || m === 'hub' ? 1 : 0); switchMap(need); return; }
-  if (!need && (HUB || STORE || ROYALE)) { const back = MAPS[store.get('prevmap', 'prism')] ? store.get('prevmap', 'prism') : 'prism'; store.set('map', back); store.set('autostart', auto ? 1 : 0); toast(`Loading ${MODE_NAME[m]}…`); setTimeout(() => location.reload(), 120); return; }
+  const need = m === 'prophunt' ? 'store' : m === 'royale' ? 'royale' : null;
+  if (need && settings.map !== need) { store.set('autostart', auto ? 1 : 0); switchMap(need); return; }
+  if (!need && (STORE || ROYALE)) { const back = MAPS[store.get('prevmap', 'prism')] ? store.get('prevmap', 'prism') : 'prism'; store.set('map', back); store.set('autostart', auto ? 1 : 0); toast(`Loading ${MODE_NAME[m]}…`); setTimeout(() => location.reload(), 120); return; }
   menuChanged(); if (auto) startGame();
 }
 function switchMap(id) {
@@ -1056,7 +1037,6 @@ const CH_POOL = [
   { ev: 'boss', n: [1, 2, 3], t: n => `Defeat ${n} boss${n > 1 ? 'es' : ''} in Boss Raid` },
   { ev: 'weak', n: [25, 50, 90], t: n => `Hit a boss's weak spot ${n} times` },
   { ev: 'win', n: [1, 2, 3], t: n => `Win ${n} PvP match${n > 1 ? 'es' : ''} or rounds` },
-  { ev: 'cap', n: [1, 2, 4], t: n => `Capture ${n} flag${n > 1 ? 's' : ''} in CTF` },
   { ev: 'infect', n: [3, 6, 10], t: n => `Infect ${n} survivors in Infection` },
   { ev: 'survive', n: [1, 1, 2], t: n => `Survive ${n} Infection round${n > 1 ? 's' : ''}` },
   { ev: 'ability', n: [10, 20, 35], t: n => `Use your Q ability ${n} times` },
@@ -1115,6 +1095,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'debloat', date: '2026-10-04', title: 'Spring Cleaning', lines: ['Capture the Flag, the Hub Plaza and the Frostfall map are gone, so there are fewer, busier modes', 'Your color is now only picked in Customize'] },
   { id: 'pause-live', date: '2026-10-04', title: 'No More Pause Freezing', lines: ["Opening the menu in a multiplayer match no longer freezes you in place: you keep falling, the storm still hurts and you can still be hit"] },
   { id: 'br-lobbies', date: '2026-10-04', title: 'Battle Royale Lobbies', lines: ["In the public room, if a Battle Royale match has already started you're sent to the next lobby (BR2, BR3 and so on) instead of joining halfway", 'Getting knocked out and pressing Play again puts you in a fresh lobby. You can no longer sneak back into the match you were knocked out of', 'In a private room you still watch until the next match starts'] },
   { id: 'shop-rotation', date: '2026-10-04', title: 'Hourly Item Shop & Island Legends', lines: ['The shop now changes every hour: 12 suits (half with their own model), 6 hats, 4 gun finishes, 5 pets, 5 emotes and 2 sprays. Seasonal items are always there, and anything you own stays in Customize', 'New Island Legends skins, all in the shop this hour: Peelo, Fishstik, Cuddle Squad Leader, Tomatoface, The Dark Knight, Skul Trooper and Meowsclez', 'Battle Royale bots now wait in the sky lobby with you, then drop and glide down when the match starts', 'Battle Royale bots no longer stand around: they keep moving while they loot'] },
@@ -1913,13 +1894,6 @@ function finalizeWorld() {
   }
   cone.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); cone.computeVertexNormals();
   const under2 = new THREE.Mesh(cone, rockMat); under2.position.y = -25; scene.add(under2); decor.push(under2);
-  if (FROST) {
-    // icicles hanging under the rim
-    const geos = [];
-    for (let i = 0; i < 90; i++) { const a = i / 90 * Math.PI * 2 + rand(-0.02, 0.02), r = ARENA_R - rand(0.5, 4), h = rand(1.5, 6); geos.push(new THREE.ConeGeometry(rand(0.2, 0.55), h, 6).rotateX(Math.PI).translate(Math.cos(a) * r, -h / 2 - 0.3, Math.sin(a) * r)); }
-    const ice = new THREE.Mesh(mergeGeometries(geos), new THREE.MeshStandardMaterial({ color: 0xcfeaff, roughness: 0.1, metalness: 0.1, emissive: 0x2a5a8a, transparent: true, opacity: 0.85, flatShading: true }));
-    scene.add(ice); decor.push(ice);
-  }
 }
 const crystals = [];
 function crystal(x, y, z, s, color) {
@@ -2358,7 +2332,7 @@ function buildCustomWorld(map) {
     b.g.traverse(k => { if (k.userData.flicker) animProps.push(t => { for (const f of k.userData.flicker) f.scale.y = 1 + Math.sin(t * 13 + f.id) * 0.15; }); if (k.userData.spin) animProps.push(t => { k.userData.spin.rotation.y = t * 0.8; }); if (k.userData.wave) animProps.push(t => { k.userData.wave.rotation.y = Math.sin(t * 2) * 0.15; }); });
   }
 }
-// ================= Prism Mart (Prop Hunt) and the Hub Plaza =================
+// ================= Prism Mart (Prop Hunt) =================
 const signTex = (key, text, bg, fg, w = 512, h = 128) => { if (TEX[key]) return TEX[key]; const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.fillStyle = bg; x.fillRect(0, 0, w, h); x.fillStyle = fg; x.font = `900 ${Math.round(h * 0.6)}px Arial Black, Impact, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, w / 2, h / 2 + 4); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return (TEX[key] = t); };
 // a solid box with its own material (blocks bodies and bullets)
 function solidBox(x, y, z, w, h, d, mat) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y + h / 2, z); m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); colliders.push({ min: new V3(x - w / 2, y, z - d / 2), max: new V3(x + w / 2, y + h, z + d / 2) }); return m; }
@@ -2442,52 +2416,6 @@ function buildStore() {
   // a few outside by the entrance and the parking lot
   place(['cart', 'cone', 'bin', 'cart'], -30, 30, 33, 44, 10);
   for (const [x, z] of [[-40, 40], [40, 40], [-44, -10], [44, -10]]) { const g = MAP_CATALOG.tree[3](); g.position.set(x, 0, z); scene.add(g); colliders.push({ min: new V3(x - 0.6, 0, z - 0.6), max: new V3(x + 0.6, 4, z + 0.6) }); }
-}
-// ---------- Hub Plaza ----------
-const PORTALS = [['royale', 'BATTLE ROYALE', '#ffbf6b'], ['waves', 'SQUAD WAVES', '#5ff2ff'], ['boss', 'BOSS RAID', '#ff8a3d'], ['mission', 'MISSIONS', '#74ffb5'], ['ffa', 'FREE-FOR-ALL', '#ffbf6b'], ['gungame', 'GUN GAME', '#b48cff'], ['ctf', 'CAPTURE THE FLAG', '#ff4f6e'], ['infect', 'INFECTION', '#7dff4a'], ['prophunt', 'PROP HUNT', '#ffd23a'], ['duel', '1V1 DUEL', '#ff6fb5'], ['editor', 'MAP EDITOR', '#cfd6e2']];
-const hubSpots = [], hubAnim = [];
-function buildHub() {
-  const stone = PM(0xd8d0e8, { roughness: 0.7 }), gold = PM(0xffd86b, { metalness: 0.9, roughness: 0.25 }), dark = PM(0x2a2440, { metalness: 0.5, roughness: 0.4 });
-  // fountain
-  { const b = new THREE.Mesh(new THREE.CylinderGeometry(5, 5.3, 0.8, 40), stone); b.position.y = 0.4; b.castShadow = b.receiveShadow = true; scene.add(b); worldMeshes.push(b); colliders.push({ min: new V3(-4.2, 0, -4.2), max: new V3(4.2, 0.8, 4.2) }); }
-  const water = new THREE.Mesh(new THREE.CircleGeometry(4.4, 40), new THREE.MeshStandardMaterial({ color: 0x3fb8ff, roughness: 0.05, metalness: 0.3, emissive: 0x0a4a8a, transparent: true, opacity: 0.85 })); water.rotation.x = -Math.PI / 2; water.position.y = 0.82; scene.add(water);
-  solidBox(0, 0.8, 0, 1.4, 3.2, 1.4, stone);
-  const spout = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 0), crystalMat(0x9feaff)); spout.position.y = 5.2; scene.add(spout); hubAnim.push(t => { spout.rotation.y = t; spout.position.y = 5.2 + Math.sin(t * 1.5) * 0.3; if (Math.random() < 0.4) burst(tA.set(rand(-0.4, 0.4), 4, rand(-0.4, 0.4)), 1, new THREE.Color(0.6, 1.8, 3), 4, 0.9, 0.12, 6); });
-  floatSign('PRISM PLAZA', 0, 8.4, 0, 0, 12, '#ffffff'); floatSign('PRISM PLAZA', 0, 8.4, 0.01, Math.PI, 12, '#ffffff');
-  // portals in a ring, facing the fountain
-  PORTALS.forEach(([m, label, css], i) => {
-    const a = i / PORTALS.length * Math.PI * 2, x = Math.cos(a) * 26, z = Math.sin(a) * 26, ry = Math.atan2(x, z), col = new THREE.Color(css);
-    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
-    for (const s of [-1, 1]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.6, 4.6, 0.6), dark); p.position.set(s * 2, 2.3, 0); g.add(p); colliders.push({ min: new V3(x + Math.cos(ry) * s * 2 - 0.4, 0, z - Math.sin(ry) * s * 2 - 0.4), max: new V3(x + Math.cos(ry) * s * 2 + 0.4, 4.6, z - Math.sin(ry) * s * 2 + 0.4) }); }
-    const arch = new THREE.Mesh(new THREE.TorusGeometry(2, 0.3, 10, 32, Math.PI), dark); arch.position.y = 4.6; g.add(arch);
-    const swirl = new THREE.Mesh(new THREE.CircleGeometry(1.75, 40), new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(1.6), transparent: true, opacity: 0.55, side: THREE.DoubleSide, map: canvasTex('swirl', x => { const gr = x.createRadialGradient(128, 128, 10, 128, 128, 128); gr.addColorStop(0, '#fff'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 256, 256); x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 6; for (let k = 0; k < 4; k++) { x.beginPath(); for (let t = 0; t < 80; t++) { const r = t * 1.5, an = t * 0.12 + k * Math.PI / 2; x.lineTo(128 + Math.cos(an) * r, 128 + Math.sin(an) * r); } x.stroke(); } }) }));
-    swirl.position.y = 2.6; swirl.scale.y = 1.3; g.add(swirl); hubAnim.push(t => { swirl.rotation.z = t * 1.5; });
-    const glowRing = new THREE.Mesh(new THREE.TorusGeometry(2, 0.06, 6, 40, Math.PI), new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(2.5) })); glowRing.position.y = 4.6; glowRing.position.z = -0.32; g.add(glowRing);
-    const sign = floatSign(label, x, 6.3, z, ry + Math.PI, 7, css); sign.position.set(x, 6.3, z);
-    hubSpots.push({ kind: 'portal', mode: m, label, pos: new V3(x, 0, z), r: 2.4 });
-  });
-  // shop kiosk, community board and leaderboard statue on an inner ring
-  const kiosk = (x, z, label, css, kind) => {
-    solidBox(x, 0, z, 4, 2.8, 2.4, PM(0x3a2a5a, { roughness: 0.6 })); solidBox(x, 2.8, z, 4.6, 0.3, 3, PM(new THREE.Color(css).getHex()));
-    const ry = Math.atan2(-x, -z); floatSign(label, x, 4.2, z, ry + Math.PI, 5, css);
-    hubSpots.push({ kind, label, pos: new V3(x - Math.sin(ry) * -2.4, 0, z - Math.cos(ry) * -2.4).lerp(new V3(x, 0, z), 0), r: 3.6 });
-  };
-  kiosk(0, -13, 'SHOP', '#ffd86b', 'shop'); kiosk(-11.3, 6.5, 'MAPS', '#5ff2ff', 'maps'); kiosk(11.3, 6.5, 'FRIENDS', '#74ffb5', 'friends');
-  // leaderboard statue: the best Squad Waves and Boss Raid players float above it
-  solidBox(0, 0, 13, 3, 2.2, 3, gold);
-  hubSpots.push({ kind: 'board', label: 'LEADERBOARD', pos: new V3(0, 0, 13), r: 3.4 });
-  // parkour tower to a trophy on top
-  const tx = -40, tz = -26;
-  for (let k = 0; k < 16; k++) { const a = k * 0.62, r = 5.5, x = tx + Math.cos(a) * r, z = tz + Math.sin(a) * r; solidBox(x, k * 1.45, z, 2.4, 0.5, 2.4, k % 2 ? PM(0x5ff2ff, { emissive: 0x0a3a4a }) : PM(0xff6fb5, { emissive: 0x4a0a2a })); }
-  solidBox(tx, 0, tz, 2, 23.5, 2, dark);
-  const cup = new THREE.Group(); cup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.25, 0.9, 16).translate(0, 0.9, 0), gold)); cup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 0.25, 12).translate(0, 0.12, 0), gold)); cup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.4, 8).translate(0, 0.45, 0), gold));
-  cup.position.set(tx, 23.5, tz); scene.add(cup); hubAnim.push(t => { cup.rotation.y = t; });
-  floatSign('CLIMB ME', tx, 4, tz + 7.5, Math.PI, 6, '#ff6fb5');
-  hubSpots.push({ kind: 'trophy', label: 'TROPHY', pos: new V3(tx, 23.5, tz), r: 1.8, y: 23.5 });
-  // lamps, trees and benches around the plaza
-  for (let k = 0; k < 10; k++) { const a = (k + 0.5) / 10 * Math.PI * 2; const L = MAP_CATALOG.lamp[3](); L.position.set(Math.cos(a) * 18, 0, Math.sin(a) * 18); scene.add(L); }
-  for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2 + 0.2, x = Math.cos(a) * 44, z = Math.sin(a) * 44; if (Math.hypot(x - tx, z - tz) < 10) continue; const T = (k % 2 ? MAP_CATALOG.autumn : MAP_CATALOG.tree)[3](); T.position.set(x, 0, z); scene.add(T); colliders.push({ min: new V3(x - 0.6, 0, z - 0.6), max: new V3(x + 0.6, 4, z + 0.6) }); }
-  animProps.push(t => { for (const f of hubAnim) f(t); });
 }
 // ================= Battle Royale island =================
 // Built from a fixed random seed, so every player gets exactly the same island (and the same loot spots).
@@ -2664,49 +2592,9 @@ function buildRoyale() {
 }
 if (CMAP) buildCustomWorld(CMAP);
 else if (EDITOR) {}
-else if (HUB) buildHub();
 else if (STORE) buildStore();
 else if (ROYALE) buildRoyale();
-else if (FROST) {
-  // Frostfall: an ice keep in the middle, stair-cut daises on the diagonals, pillar gates on the axes, igloo bunkers and ice spires on the rim
-  block(0, 0, 13, 1.2, 13, 0, iceGlow);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) block(sx * 5.2, sz * 5.2, 2.2, 4.2, 2.2, 1.2, frostGlow);
-  block(0, 0, 2.6, 6.5, 2.6, 1.2, iceGlow);
-  for (const a of [45, 135, 225, 315]) {
-    const r = deg(a), x = Math.cos(r) * 30, z = Math.sin(r) * 30, sx = -Math.sign(x);
-    block(x, z, 9, 3, 9, 0, iceGlow);
-    for (let i = 1; i <= 5; i++) block(x + sx * (4 + i), z, 1, 3 - i * 0.5, 3.2, 0, null);
-  }
-  for (const a of [0, 90, 180, 270]) {
-    const r = deg(a), cx = Math.cos(r) * 19, cz = Math.sin(r) * 19, tx = -Math.sin(r), tz = Math.cos(r);
-    for (const s of [-1, 1]) block(cx + tx * s * 3.6, cz + tz * s * 3.6, 1.6, 5, 1.6, 0, frostGlow);
-    block(cx, cz, Math.abs(tx) > 0.5 ? 5.6 : 1, 1.1, Math.abs(tz) > 0.5 ? 5.6 : 1, 0, null);
-  }
-  for (let k = 0; k < 8; k++) {
-    const r = deg(22.5 + k * 45), x = Math.cos(r) * 38, z = Math.sin(r) * 38;
-    block(x, z, 3.6, 2.2, 3.6, 0, k % 2 ? iceGlow : frostGlow); block(x, z, 2.2, 1.2, 2.2, 2.2, null);
-  }
-  for (let k = 0; k < 5; k++) {
-    const r = deg(18 + k * 72), x = Math.cos(r) * 52, z = Math.sin(r) * 52;
-    block(x, z, 2.8, 6, 2.8, 0, iceGlow); block(x, z, 1.9, 5, 1.9, 6, null); block(x, z, 1.1, 4, 1.1, 11, frostGlow);
-    crystal(x, 17.4, z, 1, k % 2 ? 0x9feaff : 0x7dffc8);
-  }
-  // snowy pines on the diagonals (trunks collide, needles are decoration)
-  const pg = [];
-  for (const a of [45, 135, 225, 315]) {
-    const r = deg(a + 12), x = Math.cos(r) * 47, z = Math.sin(r) * 47;
-    block(x, z, 0.7, 2.2, 0.7, 0, null);
-    for (const [rad, h, y] of [[2.3, 3.4, 3.6], [1.7, 2.9, 5.4], [1.0, 2.3, 7.1]]) {
-      const g = new THREE.ConeGeometry(rad, h, 9).translate(x, y, z), pp = g.attributes.position, cols = [];
-      for (let i = 0; i < pp.count; i++) { const top = pp.getY(i) > y + h * 0.15; cols.push(...(top ? [0.92, 0.96, 1] : [0.12, 0.32, 0.26])); }
-      g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); pg.push(g);
-    }
-  }
-  const pines = new THREE.Mesh(mergeGeometries(pg), pineMat); pines.castShadow = true; scene.add(pines);
-  finalizeWorld();
-  crystal(0, 10.6, 0, 1.9, 0x9feaff);
-  for (let k = 0; k < 3; k++) crystal(Math.cos(k * 2.1) * 3.2, 9.4, Math.sin(k * 2.1) * 3.2, 0.55, 0x7dffc8);
-} else if (MAP_INFO[settings.map].season) {
+else if (MAP_INFO[settings.map].season) {
   seasonalLayout(settings.map);
 } else {
 block(0, 0, 6, 8, 6, 0, roseGlow);
@@ -2740,8 +2628,8 @@ function pad(x, z, up, push) {
   const rings = [0, 1, 2].map(() => { const r = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.04, 6, 32), ringMat.clone()); r.rotation.x = Math.PI / 2; r.position.set(x, 0, z); scene.add(r); return r; });
   pads.push({ x, z, up, push, rings });
 }
-if (!CMAP && !EDITOR && !HUB && !STORE && !ROYALE) for (const [x, z] of FROST ? [[9.5, 0], [-9.5, 0], [0, 9.5], [0, -9.5]] : [[6, 0], [-6, 0], [0, 6], [0, -6]]) pad(x, z, FROST ? 21 : 25, new V3(-x, 0, -z).normalize().multiplyScalar(FROST ? 5 : 4.2));
-if (!CMAP && !EDITOR && !HUB && !STORE && !ROYALE) for (const a of [0, 90, 180, 270]) {
+if (!CMAP && !EDITOR && !STORE && !ROYALE) for (const [x, z] of [[6, 0], [-6, 0], [0, 6], [0, -6]]) pad(x, z, 25, new V3(-x, 0, -z).normalize().multiplyScalar(4.2));
+if (!CMAP && !EDITOR && !STORE && !ROYALE) for (const a of [0, 90, 180, 270]) {
   const r = THREE.MathUtils.degToRad(a), x = Math.cos(r) * 47, z = Math.sin(r) * 47;
   pad(x, z, 19, new V3(-x, 0, -z).normalize().multiplyScalar(14));
 }
@@ -2821,26 +2709,6 @@ if (TH.ocean) {
   const sea = new THREE.Mesh(new THREE.CircleGeometry(2400, 64), new THREE.MeshStandardMaterial({ color: 0x1aa8c8, roughness: 0.08, metalness: 0.3 }));
   sea.rotation.x = -Math.PI / 2; sea.position.y = -45; scene.add(sea);
 }
-
-// CTF bases + flags
-const ctfObjs = [];
-const flags = [0, 1].map(t => {
-  const col = TEAM_COL[t];
-  const baseRing = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.09, 8, 48), new THREE.MeshBasicMaterial({ color: col }));
-  baseRing.rotation.x = Math.PI / 2; baseRing.position.copy(BASES[t]).setY(0.08); scene.add(baseRing); ctfObjs.push(baseRing);
-  const baseDisc = new THREE.Mesh(new THREE.CircleGeometry(2.3, 40), new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(0.12), transparent: true, opacity: 0.8, depthWrite: false }));
-  baseDisc.rotation.x = -Math.PI / 2; baseDisc.position.copy(BASES[t]).setY(0.05); scene.add(baseDisc); ctfObjs.push(baseDisc);
-  const g = new THREE.Group();
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.4, 8), gunMat2); pole.position.y = 1.2; g.add(pole);
-  const clothGeo = new THREE.PlaneGeometry(1.3, 0.8, 12, 4); clothGeo.translate(0.65, 0, 0);
-  const cloth = new THREE.Mesh(clothGeo, new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide })); cloth.position.y = 1.95; g.add(cloth);
-  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), new THREE.MeshBasicMaterial({ color: col })); orb.position.y = 2.45; g.add(orb);
-  scene.add(g);
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 60, 12, 1, true), new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(0.35), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  beam.position.y = 30; scene.add(beam);
-  ctfObjs.push(g, beam);
-  return { g, cloth, beam, pos: BASES[t].clone() };
-});
 
 // ================= FX =================
 const PMAX = 1400;
@@ -3290,14 +3158,6 @@ function spawnPoint(team) {
   if (mode === 'royale') return royaleSpawn();
   if (mode === 'prophunt') return team === 1 ? hunterSpawn() : propSpawn();
   if (mode === 'duel') return duelSpawn(Math.max(0, duelIdx(myId)));
-  if (mode === 'hub') { const a = rand(0, 6.28); return new V3(Math.cos(a) * 9, 0, Math.sin(a) * 9); }
-  if (mode === 'ctf' && (team === 0 || team === 1)) {
-    for (let i = 0; i < 20; i++) {
-      const b = BASES[team], p = new V3(b.x + (team === 0 ? rand(0, 5) : -rand(0, 5)), 0, rand(-9, 9));
-      if (!pointInWorld(tA.copy(p).setY(1))) return p;
-    }
-    return BASES[team].clone();
-  }
   if (coop()) { const a = rand(0, Math.PI * 2); return new V3(Math.cos(a) * 43, 0, Math.sin(a) * 43); }
   const others = allActors().filter(a => a.alive);
   let bestP = null, bestD = -1;
@@ -3315,7 +3175,7 @@ function spawnPlayer() {
   if (mode === 'royale') royaleResetInv();
   const p = spawnPoint(myTeam);
   player.pos.copy(p); player.vel.set(0, 0, 0);
-  const look = mode === 'ctf' ? new V3(0, 0, p.z * 0.3) : new V3();
+  const look = new V3();
   player.yaw = Math.atan2(p.x - look.x, p.z - look.z); player.pitch = -0.05;
   player.over = 0; player.mechUntil = 0; player.chillUntil = 0;
   player.hp = maxHp(); player.alive = true; player.downed = false; player.invuln = 2; player.dashCd = 0; player.pulseCd = 0; player.jumps = 0; nadeCount = GDEF[kit().g].max; nadeT = 0; jetFuel = JET_MAX;
@@ -3352,8 +3212,7 @@ function updatePlayer(dt) {
   player.dashCd = Math.max(0, player.dashCd - dt); player.pulseCd = Math.max(0, player.pulseCd - dt); player.invuln = Math.max(0, player.invuln - dt);
   if (!coop() && mode !== 'royale' && time - player.lastDmgT > 4 && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 15 * dt);
   const wish = player.downed || playerFrozen() ? pWish.set(0, 0, 0) : wishDir(pWish);
-  const carrying = mode === 'ctf' && GS.fl.some(f => f[0] === 1 && f[1] === myId);
-  const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.6 : 1);
+  const spd = (ads ? 6 : 9.5) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.6 : 1);
   updateRift(dt);
   if (player.dashT > 0) player.dashT -= dt;
   else if (player.onGround) { v.x = damp(v.x, wish.x * spd, 14, dt); v.z = damp(v.z, wish.z * spd, 14, dt); }
@@ -3706,7 +3565,7 @@ function updateNetLabel() {
   const others = peers.size;
   const on = conn && conn.connected();
   $('netdot').classList.toggle('on', !!on);
-  const mname = { waves: 'Waves', boss: 'Boss Raid', ffa: 'FFA', gungame: 'Gun Game', ctf: 'CTF', infect: 'Infection', duel: '1v1 Duel', mission: 'Missions', prophunt: 'Prop Hunt', hub: 'Hub Plaza', royale: 'Battle Royale' }[mode];
+  const mname = { waves: 'Waves', boss: 'Boss Raid', ffa: 'FFA', gungame: 'Gun Game', infect: 'Infection', duel: '1v1 Duel', mission: 'Missions', prophunt: 'Prop Hunt', royale: 'Battle Royale' }[mode];
   $('nettxt').textContent = on ? `${mname} · room ${settings.room}${mode === 'royale' && settings.room === 'public' ? ` · BR${brInst}` : ''} · ${others + 1} online` : `${mname} · solo`;
   $('menuNet').textContent = on ? `Room ${settings.room}: ${others + 1} online` : (netKind === 'off' ? 'Multiplayer unavailable here' : 'Multiplayer: connecting…');
 }
@@ -3722,7 +3581,6 @@ function nameSprite(text, css, through) {
   s.scale.set(2.4, 0.6, 1); s.position.y = 2.35; s.renderOrder = through ? 10 : 0; return s;
 }
 function avatarLook(team, hue) {
-  if (mode === 'ctf' && (team === 0 || team === 1)) return { col: new THREE.Color(TEAM_CSS[team]).multiplyScalar(0.8), gl: TEAM_COL[team].clone(), css: TEAM_CSS[team] };
   if (mode === 'infect' && team === 1) return { col: new THREE.Color(0.18, 0.5, 0.12), gl: new THREE.Color(0.7, 3.0, 0.4), css: '#7dff4a' };
   return { col: new THREE.Color().setHSL(hue / 360, 0.65, 0.55), gl: new THREE.Color().setHSL(hue / 360, 1, 0.6).multiplyScalar(2.6), css: `hsl(${hue},100%,72%)` };
 }
@@ -5147,7 +5005,7 @@ $('pidcopy').addEventListener('click', () => {
 });
 renderCreator();
 settings.hue = HUES.reduce((a, b) => Math.abs(b - settings.hue) < Math.abs(a - settings.hue) ? b : a, HUES[0]);
-for (const id of ['swatches', 'swatches2']) for (const h of HUES) {
+for (const id of ['swatches2']) for (const h of HUES) {
   const b = document.createElement('button'); b.dataset.h = h; b.setAttribute('aria-label', `Color hue ${h}`);
   b.style.setProperty('--sw', `hsl(${h},80%,60%)`);
   b.addEventListener('click', () => { settings.hue = h; store.set('hue', h); renderMenu(); if (menuTab === 'shop' || menuTab === 'custom') renderShop(); buildShowcase(); });
@@ -5860,7 +5718,7 @@ const SKILL = {
 const SKILL_MIX = { easy: 0.2, medium: 0.5, hard: 0.3 };
 // in CTF each team gets its own mix so neither side is stacked with hard bots
 function pickSkill(team) {
-  const bots = [...ents.values()].filter(e => e.kind === 'bot' && e.skill && (mode !== 'ctf' || e.team === team)), n = bots.length + 1;
+  const bots = [...ents.values()].filter(e => e.kind === 'bot' && e.skill), n = bots.length + 1;
   let best = 'medium', gap = -Infinity;
   for (const [k, f] of Object.entries(SKILL_MIX)) { const g = f * n - bots.filter(b => b.skill === k).length; if (g > gap + 1e-9) { gap = g; best = k; } }
   return best;
@@ -5886,7 +5744,6 @@ function resetMatchWorld() {
   prevGS = JSON.parse(JSON.stringify(GS));
   H.ob = []; H.bs = []; H.ek = []; H.ev = []; H.bd = {}; H.seen.clear(); H.W = { queue: [], spawnT: 0, timer: 3 };
   clientSeen.host = null;
-  for (const o of ctfObjs) o.visible = mode === 'ctf';
 }
 
 // ---------- host: damage & kills ----------
@@ -5901,7 +5758,7 @@ function hostKillEnt(e, attackerId, weapon) {
   const pts = e.kind === 'drone' ? TYPES[e.type].pts : 100;
   if (e.kind === 'drone') { if (e.type === 'qclone') cloneShatter(e, attackerId); e.alive = false; removeEnt(e, true); }
   else {
-    e.alive = false; e.hp = 0; e.d = (e.d || 0) + 1; e.respawnT = mode === 'duel' || mode === 'royale' ? 1e9 : mode === 'ctf' ? 3 : 1.6;
+    e.alive = false; e.hp = 0; e.d = (e.d || 0) + 1; e.respawnT = mode === 'duel' || mode === 'royale' ? 1e9 : 1.6;
     explosionFX(tA.copy(e.pos).setY(e.pos.y + 1), e.vis.glow, 1); e.deadT = time;
     if (mode === 'royale') royaleBotDrop(e);
     if (mode === 'gungame' && weapon === 'blade') e.lv = Math.max(0, (e.lv || 0) - 1);
@@ -6388,7 +6245,7 @@ function hostAddBot(team) {
 function hostManageBots(dt) {
   H.botT -= dt; if (H.botT > 0) return; H.botT = 1;
   const bots = [...ents.values()].filter(e => e.kind === 'bot');
-  if (coop() || mode === 'hub') { for (const b of bots) removeEnt(b, false); return; }
+  if (coop()) { for (const b of bots) removeEnt(b, false); return; }
   const hs = humans();
   if (mode === 'royale') {
     // bots join in the lobby so every match has 50 players, then stay out until they drop
@@ -6410,25 +6267,9 @@ function hostManageBots(dt) {
     const want = Math.max(0, 6 - hs.length);
     if (bots.length < want) hostAddBot(mode === 'infect' ? 0 : -1);
     else if (bots.length > want) removeEnt(bots[bots.length - 1], false);
-  } else {
-    for (const t of [0, 1]) {
-      const want = Math.max(0, 4 - hs.filter(h => h.team === t).length), mine = bots.filter(b => b.team === t);
-      if (mine.length < want) { hostAddBot(t); return; }
-      if (mine.length > want) { const b = mine[mine.length - 1]; dropIfCarrying(b.id); removeEnt(b, false); return; }
-    }
   }
 }
 function botGoal(e, acts) {
-  if (mode === 'ctf') {
-    const my = GS.fl[e.team], their = GS.fl[1 - e.team];
-    if (their[0] === 1 && their[1] === e.id) return BASES[e.team];
-    if (my[0] === 1) { const c = acts.find(a => a.id === my[1]); if (c) return c.pos; }
-    if (my[0] === 2) return tA.set(my[2], my[3], my[4]).clone();
-    if (their[0] !== 1 && (e.role === 'atk' || e.pos.distanceTo(tB.set(their[2], 0, their[4])) < 22)) return new V3(their[2], 0, their[4]);
-    if (their[0] === 1) { const c = acts.find(a => a.id === their[1]); if (c && e.role === 'atk') return c.pos; }
-    if (!e.patrol || e.pos.distanceTo(e.patrol) < 2 || Math.random() < 0.01) e.patrol = BASES[e.team].clone().add(new V3((e.team === 0 ? 1 : -1) * rand(2, 14), 0, rand(-12, 12)));
-    return e.patrol;
-  }
   if (mode === 'royale') {
     // stay inside the circle: head for the next one, and roam inside it
     const zc = GS.zc, zt = GS.zt;
@@ -6497,11 +6338,10 @@ function hostUpdateBot(e, dt, acts) {
   if (mode === 'prophunt' && GS.pph === 2 && !e.target) botGuessProp(e, dt);
   const goal = botGoal(e, acts);
   const dir = bDir.set(goal.x - e.pos.x, 0, goal.z - e.pos.z); const gd = dir.length(); if (gd > 0.01) dir.divideScalar(gd);
-  const urgent = mode === 'ctf' && (GS.fl[1 - e.team][1] === e.id || e.role === 'atk');
   if (e.target) {
     const td = e.target.pos.distanceTo(e.pos), ideal = W.melee ? 0 : W.flame ? 5 : W.pellets > 1 ? 7 : e.wp === 'rail' ? 28 : 14;
     e.strafeT -= dt; if (e.strafeT <= 0) { e.strafe *= -1; e.strafeT = rand(0.6, 1.8); }
-    if (!urgent || gd < 3) {
+    {
       const tx = e.target.pos.x - e.pos.x, tz = e.target.pos.z - e.pos.z, tl = Math.hypot(tx, tz) || 1;
       const rad = clamp((td - ideal) / 6, -1, 1);
       const sf = skillOf(e).strafe; dir.set(tx / tl * rad - tz / tl * e.strafe * sf, 0, tz / tl * rad + tx / tl * e.strafe * sf).normalize();
@@ -6568,36 +6408,6 @@ function showBotShot(from, to, wi) {
   const pf = panFor(from); sfx.shot(id, pf.v * 0.75, pf.pan);
 }
 
-// ---------- host: CTF ----------
-function dropIfCarrying(id) {
-  for (const i of [0, 1]) { const f = GS.fl[i]; if (f[0] === 1 && f[1] === id) { f[0] = 2; f[1] = ''; H.dropT[i] = 15; if (f[3] < -3 || Math.hypot(f[2], f[4]) > ARENA_R) { returnFlag(i); } else hostEvent(`${TEAM_NAME[i]} flag dropped`); } }
-}
-function returnFlag(i) { GS.fl[i] = [0, '', BASES[i].x, 0, BASES[i].z]; }
-function hostCTF(dt) {
-  if (GS.ph !== 0) return;
-  const acts = allActors();
-  for (const i of [0, 1]) {
-    const f = GS.fl[i];
-    if (f[0] === 1) {
-      const c = acts.find(a => a.id === f[1]);
-      if (!c || !c.alive) { dropIfCarrying(f[1]); continue; }
-      f[2] = r1(c.pos.x); f[3] = r1(c.pos.y); f[4] = r1(c.pos.z);
-      const home = BASES[c.team];
-      if (GS.fl[c.team][0] === 0 && Math.hypot(c.pos.x - home.x, c.pos.z - home.z) < 2.6 && c.pos.y < 3) {
-        GS.cs[c.team]++; returnFlag(i);
-        hostEvent(`${c.name} captured the ${TEAM_NAME[i]} flag`);
-        if (GS.cs[c.team] >= 3) { GS.ph = 1; GS.pw = `${TEAM_NAME[c.team]} TEAM WINS`; GS.pwid = mvpOf(a => a.team === c.team); H.phT = 9; }
-      }
-    } else {
-      for (const a of acts) {
-        if (!a.alive || Math.hypot(a.pos.x - f[2], a.pos.z - f[4]) > 1.8 || Math.abs(a.pos.y - f[3]) > 2.2) continue;
-        if (a.team !== i && (a.team === 0 || a.team === 1)) { f[0] = 1; f[1] = a.id; hostEvent(`${a.name} took the ${TEAM_NAME[i]} flag`); break; }
-        if (a.team === i && f[0] === 2) { returnFlag(i); hostEvent(`${a.name} returned the ${TEAM_NAME[i]} flag`); break; }
-      }
-      if (f[0] === 2) { H.dropT[i] -= dt; if (H.dropT[i] <= 0) { returnFlag(i); hostEvent(`${TEAM_NAME[i]} flag returned`); } }
-    }
-  }
-}
 function hostPhase(dt) {
   if (mode === 'gungame' && GS.ph === 0) {
     const w = allActors().find(a => (a.me ? ggLv : a.ent ? a.ent.lv : +a.peer.d.lv || 0) >= LADDER.length);
@@ -6610,7 +6420,7 @@ function hostPhase(dt) {
   if (GS.ph === 1) {
     H.phT -= dt;
     if (H.phT <= 0) {
-      GS.ph = 0; GS.pw = ''; GS.pwid = ''; GS.gm++; GS.ds = [0, 0]; GS.dp = []; GS.pph = 0; GS.cs = [0, 0]; returnFlag(0); returnFlag(1);
+      GS.ph = 0; GS.pw = ''; GS.pwid = ''; GS.gm++; GS.ds = [0, 0]; GS.dp = []; GS.pph = 0;
       for (const e of ents.values()) if (e.kind === 'bot') { e.lv = 0; e.f = 0; e.d = 0; e.alive = false; e.respawnT = rand(0.2, 1); if (mode === 'gungame') e.wp = LADDER[0]; if (mode === 'infect') { e.team = 0; e.wp = e.gun || 'rifle'; } }
       if (mode === 'infect') { GS.inf = []; GS.ip = INF_PRE; GS.it = INF_TIME; H.I = { pre: INF_PRE, alive: new Map(), last: '' }; }
       if (mode === 'royale') { Object.assign(GS, { rph: 0, rsd: 0, zs: 0, zk: 0, ztm: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R] }); H.R = null; for (const e of ents.values()) if (e.kind === 'bot') e.respawnT = 1e9; }
@@ -6653,7 +6463,6 @@ function hostTick(dt) {
   hostManageBots(dt);
   const acts = allActors(), hs = acts.filter(a => !a.ent);
   for (const e of [...ents.values()]) { if (!ents.has(e.id)) continue; if (e.kind === 'drone') hostUpdateDrone(e, dt, hs); else hostUpdateBot(e, dt, acts); }
-  if (mode === 'ctf') hostCTF(dt);
   hostPhase(dt);
 }
 
@@ -6669,8 +6478,6 @@ function mirrorHost(hd) {
   if (Array.isArray(hd.inf)) GS.inf = hd.inf.slice(0, 32).map(String);
   if (Array.isArray(hd.dp)) GS.dp = hd.dp.slice(0, 2).map(String); if (Array.isArray(hd.ds)) GS.ds = [+hd.ds[0] || 0, +hd.ds[1] || 0];
   if (Array.isArray(hd.mhk)) GS.mhk = [0, 1, 2].map(i => +hd.mhk[i] || 0); if (Array.isArray(hd.hunt)) GS.hunt = hd.hunt.slice(0, 16).map(String);
-  if (Array.isArray(hd.fl) && hd.fl.length === 2) GS.fl = hd.fl.map(f => Array.isArray(f) ? [...f] : [0, '', 0, 0, 0]);
-  if (Array.isArray(hd.cs)) GS.cs = [+hd.cs[0] || 0, +hd.cs[1] || 0];
   if (prevGS === null) prevGS = JSON.parse(JSON.stringify(GS));
   // entities
   if (Array.isArray(hd.en)) {
@@ -6760,7 +6567,7 @@ function onGSChange() {
   if (GS.ph !== 1 && podium) stopPodium();
   if (GS.ph === 1 && GS.pwid && !podium && !coop()) startPodium();
   if (GS.ph === 1 && p.ph !== 1) {
-    const mine = mode === 'ctf' ? GS.pw.startsWith(TEAM_NAME[myTeam]) : mode === 'infect' ? (GS.pw.startsWith('THE INFECTED') ? amInfected() : !amInfected()) : GS.pw === `${settings.name} WINS`;
+    const mine = mode === 'infect' ? (GS.pw.startsWith('THE INFECTED') ? amInfected() : !amInfected()) : GS.pw === `${settings.name} WINS`;
     announce(GS.pw, mine ? 'Victory' : 'Next match starts shortly', mine ? '#74ffb5' : '#ffbf6b', true); sfx.win();
     if (mine && state !== 'menu') { chal('win'); bumpStat('w'); if (clanTag) netSend({ t: 'clan', op: 'win' }); if (mode === 'infect' && !amInfected()) chal('survive'); }
   }
@@ -6769,12 +6576,7 @@ function onGSChange() {
     ggLv = 0; frags = 0; deaths = 0; score = 0; resetStreaks();
     if (mode === 'gungame' && player.alive) setWeapon(LADDER[0]);
     if (mode === 'infect' && player.alive) player.hp = 100;
-    announce(mode === 'infect' ? 'NEW ROUND' : 'NEW MATCH', mode === 'royale' ? 'Back to the sky lobby' : mode === 'ctf' ? 'First to 3 captures' : mode === 'ffa' ? `First to ${FFA_GOAL} kills` : mode === 'infect' ? 'Someone is about to turn…' : 'Climb the ladder', '#5ff2ff');
-  }
-  if (mode === 'ctf' && (GS.cs[0] !== p.cs[0] || GS.cs[1] !== p.cs[1])) {
-    const t = GS.cs[0] !== p.cs[0] ? 0 : 1;
-    if (t === myTeam && GS.cs[t] > p.cs[t] && p.fl[1 - t][0] === 1 && p.fl[1 - t][1] === myId) chal('cap');
-    announce(`${TEAM_NAME[t]} SCORES`, `${GS.cs[0]} – ${GS.cs[1]}`, TEAM_CSS[t]);
+    announce(mode === 'infect' ? 'NEW ROUND' : 'NEW MATCH', mode === 'royale' ? 'Back to the sky lobby' : mode === 'ffa' ? `First to ${FFA_GOAL} kills` : mode === 'infect' ? 'Someone is about to turn…' : 'Climb the ladder', '#5ff2ff');
   }
   prevGS = JSON.parse(JSON.stringify(GS));
 }
@@ -7199,7 +7001,7 @@ function throwThing(kind, speed = 21) {
   return { from, vel };
 }
 function throwNade() {
-  if (mode === 'hub' || isPropPlayer() || playerFrozen()) return;
+  if (isPropPlayer() || playerFrozen()) return;
   const k = kit(), gd = GDEF[k.g];
   if (!player.alive || nadeCount <= 0) return;
   if (k.g === 'hook') { if (chainHook()) { nadeCount--; if (nadeT <= 0) nadeT = gd.re; } return; }
@@ -7219,7 +7021,7 @@ function throwNade() {
   noise(0.18, 0.12, 900, 'bandpass', 1.5, 0, 0, 2400); vmKick = Math.min(vmKick + 1.2, 3);
 }
 function useAbility() {
-  if (mode === 'hub' || isPropPlayer() || playerFrozen()) return;
+  if (isPropPlayer() || playerFrozen()) return;
   const k = kit();
   if (k.q === 'none') return;
   if (!k.q) { toast(`Jetpack: jump, then hold ${bindLabel('jump')} to fly`); return; }
@@ -7756,7 +7558,7 @@ function hitscan(origin, dir, W, targets) {
 }
 function startReload() { const W = WEAPONS[curW]; if (W.melee || reloadT > 0 || ammo === W.mag) return; if (mode === 'royale' && !royaleCanReload()) return; reloadT = W.reload; sfx.reload(); }
 function fire() {
-  if (mode === 'hub' || playerFrozen()) return;
+  if (playerFrozen()) return;
   if (isPropPlayer()) { fireCd = 0.4; firing = false; propGun(); return; }
   if (mode === 'royale' && RY.using) { RY.using = null; toast('Stopped healing'); }
   const W = royaleW(curW);
@@ -8166,12 +7968,12 @@ function updateWeapon(dt) {
   { const sp = curGun().g.userData.spin; if (sp) { sp.userData.v = damp(sp.userData.v || 0, firing ? 32 : 2, 6, dt); sp.rotation.z += dt * sp.userData.v; } }
   const scoped = curW === 'rail' && ads && camera.fov < 34;
   if (scoped) $('scope').style.setProperty('--ch', scopeCharge.toFixed(2));
-  $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && state !== 'editor' && !scoped && !specOn && !KC.on && !(podium && GS.ph === 1) && mode !== 'hub' && !isPropPlayer();
+  $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && state !== 'editor' && !scoped && !specOn && !KC.on && !(podium && GS.ph === 1) && !isPropPlayer();
 }
 
 // ================= damage / death / scoring =================
 function hurt(dmg, src) {
-  if (mode === 'hub' || (mode === 'royale' && GS.rph !== 1)) return;
+  if ((mode === 'royale' && GS.rph !== 1)) return;
   if (!player.alive || player.invuln > 0 || !inMatch() || GS.ph === 1) return;
   if (coop() && inShield(player.pos)) { shockRing(player.pos.clone().setY(player.pos.y + 1), new THREE.Color(0.6, 2.2, 3), 1.5, 0.25); return; }
   if (coop() && deploys.some(d => d.kind === 'taunt' && d.owner === myId)) dmg *= 0.5;
@@ -8194,13 +7996,12 @@ function die(src) {
   const kWeapon = src.weapon || (peers.get(k) ? WIDS[peers.get(k).d.wp] : ents.get(k)?.wp);
   killSeq++; killRec = [killSeq, killerKey, WIDS.indexOf(kWeapon || '')];
   if (isHost && ents.has(k)) { const b = ents.get(k); if (b.kind === 'bot') { b.f = (b.f || 0) + 1; if (mode === 'gungame') botLevelUp(b); } }
-  if (mode === 'ctf' && isHost) dropIfCarrying(myId);
   const kname = k ? nameOf(k) : '';
   specLock = k && (peers.has(k) || ents.has(k)) ? String(k) : ''; specIdx = 0;
   feedKill(k, settings.name, kWeapon);
   explosionFX(player.pos.clone().setY(player.pos.y + 1), ROSE, 1);
   if (mode === 'gungame' && kWeapon === 'blade' && ggLv > 0) { ggLv--; toast('Bladed! Down to level ' + (ggLv + 1)); }
-  respawnAt = mode === 'duel' || mode === 'royale' || (mode === 'prophunt' && !amHunter()) ? Infinity : time + (coop() ? (humans().some(a => a.alive && !a.me) ? 5 : 1.4) : mode === 'ctf' || mode === 'prophunt' ? 3 : 1.6);
+  respawnAt = mode === 'duel' || mode === 'royale' || (mode === 'prophunt' && !amHunter()) ? Infinity : time + (coop() ? (humans().some(a => a.alive && !a.me) ? 5 : 1.4) : mode === 'prophunt' ? 3 : 1.6);
   $('deadtitle').textContent = 'ELIMINATED';
   $('deadcause').textContent = k ? `${kname} ${src.text || 'got you'}${kWeapon && WEAPONS[kWeapon] ? ' with the ' + WEAPONS[kWeapon].name : ''}.` : (src.text || 'Shield depleted') + '.';
   if (mode === 'royale') { RY.lastInv = royaleInvCodes(); spawnDrop('d' + myId + '.' + RL.seed, player.pos, RY.lastInv); RY.using = null; RY.glide = false; $('deadtitle').textContent = `ELIMINATED · #${Math.max(2, GS.ral || 2)}`; }
@@ -8299,7 +8100,7 @@ function renderDeadStats() {
     : mode === 'gungame' ? [['LEVEL', `${Math.min(ggLv + 1, LADDER.length)}/${LADDER.length}`], ['FRAGS', frags], ['DEATHS', deaths]]
     : mode === 'ffa' ? [['KILLS', `${frags}/${FFA_GOAL}`], ['DEATHS', deaths]]
     : mode === 'royale' ? [['KILLS', frags], ['ALIVE', GS.ral || 0], ['STORM', `RING ${GS.zs + 1}`]]
-    : [['RED', GS.cs[0]], ['BLUE', GS.cs[1]], ['FRAGS', frags]];
+    : [['KILLS', frags], ['DEATHS', deaths]];
   $('deadstats').innerHTML = s.map(([a, b]) => `<div><span>${a}</span><b>${esc(b)}</b></div>`).join('');
 }
 function saveBest(wv) {
@@ -8438,7 +8239,7 @@ function updatePeers(dt, list) {
     seen.add(p.id);
     let o = peers.get(p.id);
     const hue = typeof d.h === 'number' ? ((d.h % 360) + 360) % 360 : 180;
-    const team = mode === 'ctf' ? (+d.tm === 1 ? 1 : 0) : mode === 'infect' ? (GS.inf.includes(p.id) ? 1 : 0) : mode === 'prophunt' ? (GS.hunt.includes(p.id) ? 1 : 0) : -1;
+    const team = mode === 'infect' ? (GS.inf.includes(p.id) ? 1 : 0) : mode === 'prophunt' ? (GS.hunt.includes(p.id) ? 1 : 0) : -1;
     const thr = teamMode() && team === myTeam;
     const blighted = mode === 'infect' && team === 1;
     const nm = String(d.n || 'Pilot').replace(/[\u0000-\u001f]/g, '').slice(0, 14) || 'Pilot';
@@ -8504,18 +8305,18 @@ let presT = 0;
 function buildPresence() {
   const p = player.pos;
   const o = {
-    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet !== 'none' && mode !== 'prophunt' ? settings.pet : '', cn: clanTag, cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, mk: mechOn ? 1 : 0, pp: myPropType ? [PROP_IDS.indexOf(myPropType), r2(propLock ?? player.yaw)] : null, cd: cardPres(), vp: settings.vpose, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
+    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet !== 'none' && mode !== 'prophunt' ? settings.pet : '', cn: clanTag, cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, mk: mechOn ? 1 : 0, pp: myPropType ? [PROP_IDS.indexOf(myPropType), r2(propLock ?? player.yaw)] : null, cd: cardPres(), vp: settings.vpose, ab: abList.length ? abList : null, md: mode,
     st: state === 'menu' || state === 'editor' ? 'm' : state === 'dead' ? 'x' : 'p', al: player.alive ? 1 : 0,
     x: r2(p.x), y: r2(p.y), z: r2(p.z), yw: r2(player.yaw), wp: WIDS.indexOf(curW), lv: ggLv, f: frags, d: deaths, s: score,
     hp: Math.max(0, Math.round(player.hp)), mh: maxHp(), dn: player.downed ? 1 : 0, rp: reviveTarget && reviveT > 0 ? [reviveTarget, r2(reviveT)] : null,
     dm: dmgOut, edm, sh: lastShot, rk: lastRocket, gn: lastNade, ct: lastChat, kb: killRec, em: lastEmote, pid: PID,
-    vz: document.hidden ? 0 : 1, hs: isHost ? 1 : 0, en: null, ob: null, bs: null, ek: null, ev: null, bd: null, wt: null, wr: null, wv: null, wst: null, fl: null, cs: null, ph: null, pw: null, pwid: null, gm: null, inf: null, it: null, ip: null, bhp: null, bp: null,
+    vz: document.hidden ? 0 : 1, hs: isHost ? 1 : 0, en: null, ob: null, bs: null, ek: null, ev: null, bd: null, wt: null, wr: null, wv: null, wst: null, ph: null, pw: null, pwid: null, gm: null, inf: null, it: null, ip: null, bhp: null, bp: null,
   };
   if (isHost) {
     o.en = [...ents.values()].filter(e => !(mode === 'royale' && e.kind === 'bot' && !e.alive && time - (e.deadT || -99) > 4)).map(e => e.kind === 'drone'
       ? ['d', e.id, DTYPES.indexOf(e.type), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), Math.round(e.hp), Math.round((e.charge || 0) * 10), ...(isBoss(e) || e.type === 'qclone' ? [e.bst | 0, r2(e.yaw || 0)] : [])]
       : ['b', e.id, Math.max(0, BOT_NAMES.indexOf(e.name)), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), r2(e.yaw), Math.round(e.hp), e.team, e.alive ? 1 : 0, WIDS.indexOf(e.wp), e.lv || 0, e.f || 0, e.d || 0]);
-    Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, fl: GS.fl, cs: GS.cs, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
+    Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
     if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral });
   }
   if (mode === 'royale') Object.assign(o, { rs: RL.seed, rk: RY.picked, rco: RY.opened, rx: RY.drops, ri: player.alive ? royaleInvCodes() : RY.lastInv });
@@ -8568,13 +8369,11 @@ function buildTop() {
   else if (mode === 'mission') t.innerHTML = `<div><span class="lbl">MISSION</span><span class="val sm" id="hMn">—</span></div><div><span class="lbl">OBJECTIVE</span><span class="val" id="hMo">—</span></div><div><span class="lbl">COINS</span><span class="val" id="hCoins">0</span></div>`;
   else if (mode === 'prophunt') t.innerHTML = `<div><span class="lbl">PROPS LEFT</span><span class="val" id="hPl">0</span></div><div><span class="lbl">TIME</span><span class="val" id="hTm">0:00</span></div><div><span class="lbl">YOU ARE</span><span class="val sm" id="hPr">—</span></div>`;
   else if (mode === 'royale') t.innerHTML = `<div><span class="lbl">ALIVE</span><span class="val" id="hAl">0</span></div><div><span class="lbl">STORM</span><span class="val" id="hZn">—</span></div><div><span class="lbl">KILLS</span><span class="val" id="hK">0</span></div>`;
-  else if (mode === 'hub') t.innerHTML = `<div><span class="lbl">HUB PLAZA</span><span class="val sm" id="hHub">—</span></div>`;
   else if (mode === 'ffa') t.innerHTML = `<div><span class="lbl">KILLS</span><span class="val" id="hK">0/${FFA_GOAL}</span></div><div><span class="lbl">LEADER</span><span class="val sm" id="hLead">—</span></div>`;
   else if (mode === 'gungame') t.innerHTML = `<div><span class="lbl">LEVEL</span><span class="val" id="hLv">1/8</span></div><div><span class="lbl">WEAPON</span><span class="val sm" id="hGun">—</span></div><div><span class="lbl">LEADER</span><span class="val sm" id="hLead">—</span></div>`;
-  else t.innerHTML = `<div class="red"><span class="lbl">RED</span><span class="val" id="hR">0</span><span class="fs" id="hFR">HOME</span></div><div class="vs">FIRST TO 3</div><div class="blue"><span class="lbl">BLUE</span><span class="val" id="hB">0</span><span class="fs" id="hFB">HOME</span></div>`;
+  else t.innerHTML = '';
   $('hint').className = ''; $('hint').style.color = ''; $('hint').textContent = '';
 }
-const flagWord = f => f[0] === 0 ? 'HOME' : f[0] === 1 ? 'TAKEN' : 'DROPPED';
 function updateHUD() {
   const hp = Math.max(0, Math.ceil(player.hp));
   setText('hpnum', player.over >= 1 ? `${hp}+${Math.floor(player.over)}` : String(hp));
@@ -8619,8 +8418,6 @@ function updateHUD() {
     setText('hAl', String(GS.rph === 1 ? GS.ral || allActors().filter(a => a.alive).length : allActors().length)); setText('hZn', GS.rph === 1 ? (GS.zk === 1 ? 'MOVING' : fmt(GS.ztm || 0)) : '—'); setText('hK', String(frags));
     setText('hint', GS.ph === 1 ? '' : GS.rph === 0 ? (GS.rtm ? `THE DROP STARTS IN ${GS.rtm}` : 'WAITING FOR PLAYERS') : out ? '⚠ YOU ARE IN THE STORM · GET TO THE CIRCLE' : RY.glide ? 'GLIDING · STEER WITH WASD' : GS.zk === 1 ? 'THE CIRCLE IS SHRINKING' : `THE CIRCLE SHRINKS IN ${GS.ztm}s`);
     $('hint').style.color = out ? '#c07dff' : '';
-  } else if (mode === 'hub') {
-    setText('hHub', `${peers.size + 1} HERE`); setText('hint', hubNear ? '' : 'WALK INTO A PORTAL TO PLAY');
   } else if (mode === 'gungame') {
     setText('hLv', `${Math.min(ggLv + 1, LADDER.length)}/${LADDER.length}`); setText('hGun', WEAPONS[curW].name);
     let lead = { n: settings.name, lv: ggLv };
@@ -8628,14 +8425,6 @@ function updateHUD() {
     for (const e of ents.values()) if (e.kind === 'bot' && (e.lv || 0) > lead.lv) lead = { n: e.name, lv: e.lv };
     setText('hLead', `${lead.n} · ${Math.min(lead.lv + 1, LADDER.length)}`);
     setText('hint', ggLv === LADDER.length - 1 ? 'BLADE KILL TO WIN' : '');
-  } else {
-    setText('hR', String(GS.cs[0])); setText('hB', String(GS.cs[1]));
-    for (const [i, id] of [[0, 'hFR'], [1, 'hFB']]) { const w = flagWord(GS.fl[i]); setText(id, w); const el = $(id); if (el) el.className = 'fs ' + w.toLowerCase(); }
-    const carrying = GS.fl[1 - myTeam][0] === 1 && GS.fl[1 - myTeam][1] === myId;
-    const mineTaken = GS.fl[myTeam][0] === 1;
-    setText('hint', carrying ? (GS.fl[myTeam][0] === 0 ? 'YOU HAVE THE FLAG · RETURN TO BASE' : 'YOU HAVE THE FLAG · RECOVER YOUR FLAG TO SCORE') : mineTaken ? 'YOUR FLAG IS TAKEN' : `YOU ARE ${TEAM_NAME[myTeam]} TEAM`);
-    $('hint').className = carrying || mineTaken ? 'alert' : '';
-    $('hint').style.color = carrying || mineTaken ? '' : TEAM_CSS[myTeam];
   }
   const W = WEAPONS[curW], rRar = mode === 'royale' ? royaleRar(curW) : null, rRes = mode === 'royale' && AMMO_OF[curW] ? RY.ammo[AMMO_OF[curW]] : null;
   setText('ammolbl', reloadT > 0 ? 'RELOADING' : rRar != null ? `${RAR[rRar].n.toUpperCase()} ${W.name.toUpperCase()}` : W.name.toUpperCase());
@@ -8708,23 +8497,10 @@ function updateHUD() {
     const left = Math.max(0, respawnAt - time);
     $('respawn').disabled = left > 0; $('respawn').textContent = left === Infinity ? (mode === 'royale' ? 'NEXT MATCH SOON' : 'WAITING FOR THE NEXT ROUND') : left > 0 ? `REDEPLOY (${Math.ceil(left)})` : 'REDEPLOY';
   }
-  $('hud').classList.toggle('nogun', mode === 'hub' || isPropPlayer());
+  $('hud').classList.toggle('nogun', isPropPlayer());
   // mission objective marker
   { const el = $('mwp'), mk = mode === 'mission' && state !== 'menu' ? missionMarker() : null;
     if (!mk) el.hidden = true; else { const v = tA.copy(mk[0]).setY(mk[0].y + 3).project(camera); let x = v.x, y = v.y; if (v.z > 1) { x = -x; y = -1; } x = clamp(x, -0.9, 0.9); y = clamp(y, -0.62, 0.8); el.hidden = false; el.style.left = ((x + 1) / 2 * innerWidth) + 'px'; el.style.top = ((1 - y) / 2 * innerHeight) + 'px'; el.textContent = `${mk[1]} · ${Math.round(mk[0].distanceTo(player.pos))}m`; } }
-  // flag waypoints
-  for (const i of [0, 1]) {
-    const el = $('wp' + i);
-    if (mode !== 'ctf' || state === 'menu') { el.hidden = true; continue; }
-    const f = GS.fl[i]; if (f[0] === 1 && f[1] === myId) { el.hidden = true; continue; }
-    const fp = flags[i].pos, v = tA.copy(fp).setY(fp.y + 3).project(camera);
-    let x = v.x, y = v.y; if (v.z > 1) { x = -x; y = -1; }
-    x = clamp(x, -0.9, 0.9); y = clamp(y, -0.62, 0.8);
-    el.hidden = false; el.style.color = TEAM_CSS[i];
-    el.style.left = ((x + 1) / 2 * innerWidth) + 'px'; el.style.top = ((1 - y) / 2 * innerHeight) + 'px';
-    const dist = Math.round(fp.distanceTo(player.pos));
-    el.textContent = `${i === myTeam ? 'DEFEND' : 'CAPTURE'} · ${flagWord(f)} · ${dist}m`;
-  }
 }
 function renderBoard() {
   const rows = [{ me: true, id: myId, n: clanTag ? `[${clanTag}] ${settings.name}` : settings.name, f: frags, d: deaths, s: score, lv: ggLv, t: myTeam, c: settings.cls, al: player.alive }];
@@ -8735,15 +8511,14 @@ function renderBoard() {
   else if (mode === 'ffa') { cols = [['Pilot', r => r.n], ['Kills', r => r.f, 'n'], ['Deaths', r => r.d, 'n']]; rows.sort((a, b) => b.f - a.f || a.d - b.d); }
   else if (mode === 'duel') { cols = [['Pilot', r => r.n], ['Role', r => { const i = GS.dp.indexOf(r.id); return i >= 0 ? `Duelist · ${GS.ds[i]} rounds` : 'Watching'; }], ['Kills', r => r.f, 'n']]; }
   else if (mode === 'prophunt') { cols = [['Pilot', r => r.n], ['Team', r => r.t === 1 ? 'Hunter' : 'Prop'], ['Points', r => r.s, 'n'], ['Kills', r => r.f, 'n']]; rows.sort((a, b) => b.s - a.s); }
-  else if (mode === 'hub') { cols = [['Pilot', r => r.n]]; }
   else if (mode === 'royale') { cols = [['Pilot', r => r.n], ['Status', r => GS.rph === 1 ? (r.al ? 'Alive' : 'Out') : 'Lobby'], ['Kills', r => r.f, 'n']]; rows.sort((a, b) => (+!!b.al) - (+!!a.al) || b.f - a.f); }
   else if (mode === 'infect') { cols = [['Pilot', r => r.n], ['Status', r => r.t === 1 ? 'Infected' : 'Survivor'], ['Kills', r => r.f, 'n'], ['Deaths', r => r.d, 'n']]; rows.sort((a, b) => a.t - b.t || b.f - a.f); }
   else if (mode === 'gungame') { cols = [['Pilot', r => r.n], ['Level', r => `${Math.min(r.lv + 1, LADDER.length)} · ${WEAPONS[LADDER[Math.min(r.lv, LADDER.length - 1)]].name}`], ['Frags', r => r.f, 'n'], ['Deaths', r => r.d, 'n']]; rows.sort((a, b) => b.lv - a.lv || b.f - a.f); }
-  else { cols = [['Pilot', r => r.n], ['Team', r => TEAM_NAME[r.t] || '—'], ['Frags', r => r.f, 'n'], ['Deaths', r => r.d, 'n']]; rows.sort((a, b) => a.t - b.t || b.f - a.f); }
+  else { cols = [['Pilot', r => r.n], ['Kills', r => r.f, 'n'], ['Deaths', r => r.d, 'n']]; rows.sort((a, b) => b.f - a.f); }
   $('boardhead').innerHTML = '<tr>' + cols.map(c => `<th class="${c[2] || ''}">${c[0]}</th>`).join('') + '</tr>';
   const tb = $('boardbody'); tb.textContent = '';
   for (const r of rows) {
-    const tr = document.createElement('tr'); tr.className = (r.me ? 'me ' : '') + (mode === 'ctf' ? 't' + r.t : '');
+    const tr = document.createElement('tr'); tr.className = (r.me ? 'me ' : '') + '';
     cols.forEach((c, i) => {
       const td = document.createElement('td'); td.textContent = c[1](r); if (c[2]) td.className = c[2];
       if (i === 0 && (r.me || r.bot)) { const s = document.createElement('span'); s.className = 'bot'; s.textContent = r.me ? 'YOU' : 'BOT'; td.appendChild(s); }
@@ -8751,28 +8526,8 @@ function renderBoard() {
     });
     tb.appendChild(tr);
   }
-  $('boardtitle').textContent = `${{ duel: `1V1 DUEL · ${GS.ds[0]}–${GS.ds[1]}`, mission: `MISSIONS · ${(MISSIONS[GS.mi] || MISSIONS[0]).name.toUpperCase()}`, prophunt: 'PROP HUNT', hub: 'HUB PLAZA', royale: `BATTLE ROYALE · ${GS.rph === 1 ? (GS.ral || 0) + ' ALIVE' : 'LOBBY'}`, waves: 'SQUAD WAVES', boss: `BOSS RAID · ROUND ${GS.wv || 1}`, infect: 'INFECTION', ffa: `FREE-FOR-ALL · FIRST TO ${FFA_GOAL}`, gungame: 'GUN GAME', ctf: `CAPTURE THE FLAG · ${GS.cs[0]}–${GS.cs[1]}` }[mode]} · ROOM ${settings.room.toUpperCase()}`;
+  $('boardtitle').textContent = `${{ duel: `1V1 DUEL · ${GS.ds[0]}–${GS.ds[1]}`, mission: `MISSIONS · ${(MISSIONS[GS.mi] || MISSIONS[0]).name.toUpperCase()}`, prophunt: 'PROP HUNT', royale: `BATTLE ROYALE · ${GS.rph === 1 ? (GS.ral || 0) + ' ALIVE' : 'LOBBY'}`, waves: 'SQUAD WAVES', boss: `BOSS RAID · ROUND ${GS.wv || 1}`, infect: 'INFECTION', ffa: `FREE-FOR-ALL · FIRST TO ${FFA_GOAL}`, gungame: 'GUN GAME' }[mode]} · ROOM ${settings.room.toUpperCase()}`;
 }
-function updateFlags(dt) {
-  if (mode !== 'ctf') return;
-  for (const i of [0, 1]) {
-    const f = GS.fl[i], fl = flags[i];
-    let pos = null;
-    if (f[0] === 1) {
-      if (f[1] === myId) pos = player.pos;
-      else if (peers.get(f[1])) pos = peers.get(f[1]).pos;
-      else if (ents.get(f[1])) pos = ents.get(f[1]).pos;
-    }
-    if (pos) fl.pos.set(pos.x, pos.y + 0.6, pos.z); else fl.pos.set(+f[2] || 0, +f[3] || 0, +f[4] || 0);
-    fl.g.position.copy(fl.pos); fl.g.visible = !(f[0] === 1 && f[1] === myId);
-    fl.beam.position.set(fl.pos.x, 30, fl.pos.z);
-    fl.beam.material.opacity = f[0] === 0 ? 0.3 : 0.55 + Math.sin(time * 8) * 0.2;
-    const p = fl.cloth.geometry.attributes.position;
-    for (let k = 0; k < p.count; k++) { const x = p.getX(k); p.setZ(k, Math.sin(x * 4 - time * 7 + i) * 0.12 * x); }
-    p.needsUpdate = true;
-  }
-}
-
 // ================= post-processing / quality =================
 let composer = null, gradePass = null;
 const GradeShader = {
@@ -8894,19 +8649,12 @@ document.addEventListener('pointerlockchange', () => {
     if (state === 'playing' && !fallbackLook) { if (chatOpen) { closeChat(); toast('Click to aim again'); } else pauseGame(); }
   }
 });
-function chooseTeam() {
-  if (settings.team === '0' || settings.team === '1') return +settings.team;
-  const cnt = [0, 0];
-  for (const o of peers.values()) if (o.team === 0 || o.team === 1) cnt[o.team]++;
-  return cnt[0] === cnt[1] ? (Math.random() < 0.5 ? 0 : 1) : cnt[0] < cnt[1] ? 0 : 1;
-}
 function startGame() {
   // Battle Royale: you're only in a match if you dropped into it, so a fresh start looks for a lobby again from BR1
   if (settings.mode === 'royale') { brInst = 1; RY.inMatch = false; }
   initAudio(); endKillCam();
   mode = settings.mode; joinRoom();
-  for (const o of ctfObjs) o.visible = mode === 'ctf';
-  const newTeam = mode === 'ctf' ? chooseTeam() : mode === 'infect' ? (amInfected() ? 1 : 0) : mode === 'prophunt' ? (amHunter() ? 1 : 0) : -1;
+  const newTeam = mode === 'infect' ? (amInfected() ? 1 : 0) : mode === 'prophunt' ? (amHunter() ? 1 : 0) : -1;
   if (newTeam !== myTeam) { myTeam = newTeam; for (const id of [...peers.keys()]) removePeer(id); for (const e of ents.values()) if (e.kind === 'bot') e.visTeam = null; }
   if (!kit().guns.includes(curW) || state === 'menu' || state === 'paused') curW = coop() || !kit().guns.includes(settings.gun) ? kit().guns[0] : settings.gun;
   if (state === 'menu' || state === 'paused') { score = 0; frags = 0; deaths = 0; ggLv = 0; runCoins = 0; resetStreaks(); bumpStat('gp'); }
@@ -8914,8 +8662,7 @@ function startGame() {
   player.downed = false; clearReviveUI();
   buildTop(); $('feed').textContent = '';
   spawnPlayer(); state = 'playing'; requestLock();
-  if (mode === 'ctf') announce(`${TEAM_NAME[myTeam]} TEAM`, 'Grab their flag · bring it home', TEAM_CSS[myTeam]);
-  else if (mode === 'gungame') announce('GUN GAME', `Level 1 · ${WEAPONS[LADDER[ggLv]].name}`, '#5ff2ff');
+  if (mode === 'gungame') announce('GUN GAME', `Level 1 · ${WEAPONS[LADDER[ggLv]].name}`, '#5ff2ff');
   else if (mode === 'ffa') announce('FREE-FOR-ALL', `First to ${FFA_GOAL} kills`, '#5ff2ff');
   else if (mode === 'boss') announce('BOSS RAID', '7 bosses take turns, and each lap they come back stronger', '#ff8a3d');
   else if (mode === 'infect') announce('INFECTION', amInfected() ? 'You are infected' : 'Survive for 3 minutes', '#7dff4a');
@@ -8923,7 +8670,6 @@ function startGame() {
   else if (mode === 'mission') announce('MISSIONS', (MISSIONS[GS.mst >= 0 ? GS.mi : settings.mission | 0] || MISSIONS[0]).name, '#74ffb5');
   else if (mode === 'prophunt') announce('PROP HUNT', GS.pph ? (amHunter() ? 'You are a hunter' : 'You are a prop · click a prop to become it') : 'Waiting for the round', '#ffd23a');
   else if (mode === 'royale') announce('BATTLE ROYALE', GS.rph === 1 ? 'A match is running · you drop in next round' : 'Wait in the sky lobby · the drop starts soon', '#ffbf6b');
-  else if (mode === 'hub') announce('HUB PLAZA', `Walk into a portal and press ${bindLabel('use').toUpperCase()} to play`, '#5ff2ff');
 }
 function redeploy() {
   if (KC.on) { endKillCam(); return; }
@@ -8944,7 +8690,6 @@ function toMenu() {
   saveBest(GS.wv);
   state = 'menu'; player.alive = false; $('dead').hidden = true; $('hud').hidden = true; $('scope').hidden = true;
   $('play').textContent = 'Deploy'; $('menuEyebrow').textContent = 'Live sky arena · up to 8 players'; $('menu').hidden = false;
-  if (isHost && mode === 'ctf') dropIfCarrying(myId);
 }
 function resumeGame() {
   initAudio();
@@ -8984,7 +8729,7 @@ function addChatLine(name, text, team, me) {
   if (!opts.chat) return;
   const el = document.createElement('div'), b = document.createElement('b');
   b.textContent = name + ': ';
-  b.style.color = mode === 'ctf' && (team === 0 || team === 1) ? TEAM_CSS[team] : me ? 'var(--cyan)' : 'var(--amber)';
+  b.style.color = me ? 'var(--cyan)' : 'var(--amber)';
   el.append(b, document.createTextNode(text)); $('chatlog').appendChild(el);
   while ($('chatlog').children.length > 8) $('chatlog').firstChild.remove();
   setTimeout(() => el.classList.add('old'), 10000);
@@ -9009,7 +8754,7 @@ function actionDown(a) {
     case 'jump': tryJump(); break;
     case 'dash': tryDash(); break;
     case 'reload': if (isPropPlayer()) { propLock = propLock == null ? player.yaw : null; toast(propLock == null ? 'Rotation unlocked' : 'Rotation locked'); break; } startReload(); break;
-    case 'use': if (HUB) hubUse(); else if (mode === 'royale') royaleUse(); else if (isPropPlayer() && GS.pph === 2) propTaunt(); break;
+    case 'use': if (mode === 'royale') royaleUse(); else if (isPropPlayer() && GS.pph === 2) propTaunt(); break;
     case 'pulse': { const c = player.pulseCd; useAbility(); if (player.pulseCd > c) chal('ability'); break; }
     case 'nade': { const n = nadeCount; throwNade(); if (nadeCount < n) chal('gadget'); break; }
     case 'streak': useStreak(); break;
@@ -10020,7 +9765,7 @@ function updateRoyale(dt) {
 // Every game keeps the last few seconds of where everyone was (and the shots it drew). When someone takes you out,
 // that clip plays back from their eyes, with a stand-in for you, before the respawn screen.
 function kcRecord(dt) {
-  if (coop() || mode === 'hub' || state === 'menu' || state === 'editor' || KC.on) { if (!KC.on) { KC.rec.length = 0; KC.shots.length = 0; } return; }
+  if (coop() || state === 'menu' || state === 'editor' || KC.on) { if (!KC.on) { KC.rec.length = 0; KC.shots.length = 0; } return; }
   KC.recT -= dt; if (KC.recT > 0) return; KC.recT = 1 / 20;
   const s = { t: time, a: {} };
   s.a[myId] = [player.pos.x, player.pos.y, player.pos.z, player.yaw, player.alive ? 1 : 0];
@@ -10040,7 +9785,7 @@ function kcUI() {
   return (KC.ui = box);
 }
 function startKillCam(killer) {
-  if (!opts.killcam || coop() || mode === 'hub' || !killer) return false;
+  if (!opts.killcam || coop() || !killer) return false;
   const k = String(killer).startsWith('e:') ? String(killer).slice(2) : String(killer);
   if (k === myId || (!peers.has(k) && !ents.has(k))) return false;
   const recs = KC.rec.filter(s => s.a[k] && s.a[myId]);
@@ -10080,38 +9825,6 @@ function killCam(dt) {
   for (const s of KC.shots) if (!s.done && s.t <= pt) { s.done = true; KC.replay = true; tracer(s.a, s.b, s.c, s.w, s.d); KC.replay = false; }
   return true;
 }
-// ================= Hub Plaza =================
-let hubNear = null, hubTrophyT = store.get('trophyday', '');
-function updateHub(dt) {
-  if (!HUB || state !== 'playing') { if (hubNear) { hubNear = null; $('useUI').hidden = true; } return; }
-  hubNear = null;
-  for (const s of hubSpots) { const dy = player.pos.y - (s.y || 0); if (Math.hypot(player.pos.x - s.pos.x, player.pos.z - s.pos.z) < s.r && dy > -1 && dy < 3) { hubNear = s; break; } }
-  if (hubNear && hubNear.kind === 'trophy') { const day = new Date().toDateString(); if (hubTrophyT !== day) { hubTrophyT = day; store.set('trophyday', day); addCoins(25); announce('TOWER CLIMBED', '+25 coins · come back tomorrow for more', '#ffd86b'); sfx.win(); } else if (!hubNear.told) { hubNear.told = 1; toast('You already got today\'s trophy reward'); } }
-  const show = hubNear && hubNear.kind !== 'trophy';
-  $('useUI').hidden = !show;
-  if (show) setText('useTxt', `PRESS ${bindLabel('use').toUpperCase()} · ${hubNear.kind === 'portal' ? (hubNear.mode === 'editor' ? 'OPEN THE MAP EDITOR' : 'PLAY ' + hubNear.label) : hubNear.kind === 'shop' ? 'OPEN THE SHOP' : hubNear.kind === 'maps' ? 'BROWSE COMMUNITY MAPS' : hubNear.kind === 'friends' ? 'FRIENDS & PARTY' : 'SEE THE LEADERBOARD'}`);
-}
-function hubUse() {
-  const s = hubNear; if (!s) return;
-  if (s.kind === 'portal') {
-    if (s.mode === 'editor') return switchMap('editor');
-    settings.mode = s.mode; store.set('mode', s.mode); store.set('autostart', 1);
-    const map = s.mode === 'prophunt' ? 'store' : s.mode === 'hub' ? 'hub' : s.mode === 'royale' ? 'royale' : MAPS[store.get('prevmap', 'prism')] ? store.get('prevmap', 'prism') : 'prism';
-    store.set('map', map); toast(`Heading to ${MODE_NAME[s.mode]}…`); setTimeout(() => location.reload(), 150);
-    return;
-  }
-  pauseGame();
-  if (s.kind === 'shop') setMenuTab('shop'); else if (s.kind === 'friends') setMenuTab('friends'); else if (s.kind === 'board') setMenuTab('lb'); else if (s.kind === 'maps') openMaps();
-}
-// the leaderboard statue shows the top Squad Waves players
-let hubBoard = null, hubBoardT = 0;
-function updateHubBoard() {
-  if (!HUB || time < hubBoardT) return; hubBoardT = time + 5;
-  const list = (store.get('lbcache', []) || []).slice(0, 3);
-  if (hubBoard) { for (const s of hubBoard) { scene.remove(s); s.material.map.dispose(); s.material.dispose(); } }
-  hubBoard = list.map((r, i) => { const s = nameSprite(`${['🥇', '🥈', '🥉'][i]} ${r.n} · wave ${r.w}`, ['#ffd86b', '#e0e0f0', '#e0a070'][i], true); s.position.set(0, 4.2 + (2 - i) * 1.1, 13); s.scale.multiplyScalar(2.2); scene.add(s); return s; });
-}
-
 function playerFrozen() { return (mode === 'duel' && GS.drs !== 1 && inDuel()) || (mode === 'prophunt' && amHunter() && GS.pph === 1); }
 function updateDuel() { if (mode === 'duel' && state === 'playing' && GS.dp.length === 2 && !inDuel()) duelRoundStart(); }
 // bot hunters only notice a prop that moves, taunts or is right next to them
@@ -10139,13 +9852,13 @@ function duelFriend(pid) {
   if (!social()) { toast('Duels with friends need the website version'); return; }
   const room = 'd' + Math.random().toString(36).slice(2, 8);
   settings.room = room; store.set('room', room); $('roomcode').value = room;
-  if (HUB || STORE || ROYALE) { store.set('mode', 'duel'); store.set('autostart', 1); const back = MAPS[store.get('prevmap', 'prism')] ? store.get('prevmap', 'prism') : 'prism'; netSend({ t: 'invite', to: pid, mode: 'duel', map: back, room, n: settings.name }); store.set('map', back); setTimeout(() => location.reload(), 300); return; }
+  if (STORE || ROYALE) { store.set('mode', 'duel'); store.set('autostart', 1); const back = MAPS[store.get('prevmap', 'prism')] ? store.get('prevmap', 'prism') : 'prism'; netSend({ t: 'invite', to: pid, mode: 'duel', map: back, room, n: settings.name }); store.set('map', back); setTimeout(() => location.reload(), 300); return; }
   settings.mode = 'duel'; store.set('mode', 'duel'); menuChanged();
   setTimeout(() => { netSend({ t: 'invite', to: pid, mode: 'duel', map: settings.map, room, n: settings.name }); toast('Duel invite sent'); }, 600);
   if (state !== 'menu') toMenu(); setMenuTab('play'); startGame();
 }
 // ================= party, friends, invites, profiles =================
-const MODE_NAME = { waves: 'Squad Waves', boss: 'Boss Raid', ffa: 'Free-for-All', gungame: 'Gun Game', ctf: 'Capture the Flag', infect: 'Infection', duel: '1v1 Duel', mission: 'Missions', prophunt: 'Prop Hunt', hub: 'Hub Plaza', royale: 'Battle Royale' };
+const MODE_NAME = { waves: 'Squad Waves', boss: 'Boss Raid', ffa: 'Free-for-All', gungame: 'Gun Game', infect: 'Infection', duel: '1v1 Duel', mission: 'Missions', prophunt: 'Prop Hunt', royale: 'Battle Royale' };
 const PID_OK = /^P-[a-z0-9]{10,24}$/;
 let friends = store.get('friends', []); if (!Array.isArray(friends)) friends = [];
 friends = friends.filter(f => f && PID_OK.test(f.pid)).slice(0, 60);
@@ -10167,7 +9880,7 @@ setInterval(askWho, 12000);
 function parseRoom(r) {
   const m = /^pa-([a-z]+)-(.+)$/.exec(String(r || '')); if (!m || !MODES.includes(m[1])) return null;
   let rest = m[2], map = 'prism';
-  for (const k of [...Object.keys(MAPS), 'store', 'hub', 'royale']) if (k !== 'prism' && rest.startsWith(k + '-')) { map = k; rest = rest.slice(k.length + 1); }
+  for (const k of [...Object.keys(MAPS), 'store', 'royale']) if (k !== 'prism' && rest.startsWith(k + '-')) { map = k; rest = rest.slice(k.length + 1); }
   const cm = /^(c-[a-z0-9]{4,16})-(.+)$/.exec(rest); if (map === 'prism' && cm) { map = cm[1]; rest = cm[2]; }
   return { mode: m[1], map, room: rest };
 }
@@ -10222,7 +9935,7 @@ function acceptInvite(inv) {
 function goToRoom(m, map, room) {
   if (!MODES.includes(m)) return;
   settings.mode = m; settings.room = cleanRoom(room); store.set('mode', m); store.set('room', settings.room); $('roomcode').value = settings.room;
-  { const need = m === 'prophunt' ? 'store' : m === 'hub' ? 'hub' : m === 'royale' ? 'royale' : null; if (need && settings.map !== need) { store.set('autostart', 1); switchMap(need); return; } }
+  { const need = m === 'prophunt' ? 'store' : m === 'royale' ? 'royale' : null; if (need && settings.map !== need) { store.set('autostart', 1); switchMap(need); return; } }
   if (map !== settings.map && MAPS[map]) { toast(`Switching to ${MAPS[map]}… press Deploy when it loads`); switchMap(map); return; }
   if (map !== settings.map && /^c-/.test(map)) { playMap(map); return; }
   if (state !== 'menu') toMenu();
@@ -10610,7 +10323,7 @@ const OFFICIAL_CMAPS = [];
 let mapList = [], mapPending = '', mapTab = 'all';
 let myMaps = store.get('mymaps', {}); if (!myMaps || typeof myMaps !== 'object') myMaps = {};
 let mapCache = store.get('mapcache', {}); if (!mapCache || typeof mapCache !== 'object') mapCache = {};
-function mapName(id) { return MAPS[id] || (id === 'hub' ? 'Hub Plaza' : id === 'store' ? 'Prism Mart' : id === 'royale' ? 'Battle Royale Island' : id === 'editor' ? 'Map Editor' : (CMAP && CMAP.id === id ? CMAP.name : (mapCache[id] || myMaps[id] || OFFICIAL_CMAPS.find(m => m.id === id) || {}).name || 'Community map')); }
+function mapName(id) { return MAPS[id] || (id === 'store' ? 'Prism Mart' : id === 'royale' ? 'Battle Royale Island' : id === 'editor' ? 'Map Editor' : (CMAP && CMAP.id === id ? CMAP.name : (mapCache[id] || myMaps[id] || OFFICIAL_CMAPS.find(m => m.id === id) || {}).name || 'Community map')); }
 function openMaps() { $('mapsBox').hidden = false; renderMapsBox(); netSend({ t: 'maplist' }); }
 function renderMapsBox() {
   document.querySelectorAll('#mapTabs button').forEach(b => b.classList.toggle('sel', b.dataset.t === mapTab));
@@ -10706,9 +10419,9 @@ function frame(now) {
   // in a multiplayer match the pause menu doesn't stop you: you keep falling, sliding and taking hits (you just can't move or shoot)
   if (state === 'playing' || (state === 'paused' && inMatch())) updatePlayer(dt);
   if (state === 'playing') { stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
-  updateOrbs(dt); updateHazards(dt); updateMech(dt); updateSlots(dt); updateMission(dt); updatePropHunt(dt); updateDuel(); updateHub(dt); updateRoyale(dt); kcRecord(dt); updateHubBoard(); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
+  updateOrbs(dt); updateHazards(dt); updateMech(dt); updateSlots(dt); updateMission(dt); updatePropHunt(dt); updateDuel(); updateRoyale(dt); kcRecord(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
-  updateWeapon(dt); updateFlags(dt); updateMyPet(dt);
+  updateWeapon(dt); updateMyPet(dt);
   sendPresence(dt);
   updateFX(dt);
   labelT -= dt; if (labelT <= 0) { labelT = 1; updateNetLabel(); if (menuOpenNow()) renderParty(); }
@@ -10775,13 +10488,11 @@ function frame(now) {
   if (now - fpsT > 500) { if (opts.fps) $('fps').textContent = Math.round(fpsN * 1000 / (now - fpsT)) + ' FPS'; fpsN = 0; fpsT = now; }
 }
 rebuildBinds(); renderMenu(); renderParty(); buildTop(); saveWallet();
-for (const o of ctfObjs) o.visible = mode === 'ctf';
 setWeapon(settings.gun, true);
 buildShowcase();
 requestAnimationFrame(rafLoop);
 $('play').disabled = false; $('play').textContent = 'Deploy';
 wireMapUI();
-$('hubBtn').addEventListener('click', () => pickMode('hub', true));
 if (EDITOR) startEditor(); else netInit();
 if (!EDITOR && store.get('autostart', 0)) { store.set('autostart', 0); setTimeout(() => { if (state === 'menu') startGame(); }, 700); }
 // read-only peek for debugging in the browser console

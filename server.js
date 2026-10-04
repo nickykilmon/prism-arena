@@ -204,7 +204,7 @@ function page() {
   const body = fs.readFileSync(GAME_FILE, 'utf8');
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
-    '<meta name="description" content="Prism Arena: a first-person sky arena shooter. Squad Waves, Boss Raid, Free-for-All, Gun Game, Capture the Flag and Infection.">' +
+    '<meta name="description" content="Prism Arena: a first-person sky arena shooter. Battle Royale, Squad Waves, Boss Raid, Free-for-All, Gun Game, Infection, Prop Hunt and more.">' +
     '<style>body{margin:0}[hidden]{display:none!important}</style></head><body>' + body + '</body></html>';
 }
 
