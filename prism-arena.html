@@ -1115,6 +1115,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'pause-live', date: '2026-10-04', title: 'No More Pause Freezing', lines: ["Opening the menu in a multiplayer match no longer freezes you in place: you keep falling, the storm still hurts and you can still be hit"] },
   { id: 'br-lobbies', date: '2026-10-04', title: 'Battle Royale Lobbies', lines: ["In the public room, if a Battle Royale match has already started you're sent to the next lobby (BR2, BR3 and so on) instead of joining halfway", 'Getting knocked out and pressing Play again puts you in a fresh lobby. You can no longer sneak back into the match you were knocked out of', 'In a private room you still watch until the next match starts'] },
   { id: 'shop-rotation', date: '2026-10-04', title: 'Hourly Item Shop & Island Legends', lines: ['The shop now changes every hour: 12 suits (half with their own model), 6 hats, 4 gun finishes, 5 pets, 5 emotes and 2 sprays. Seasonal items are always there, and anything you own stays in Customize', 'New Island Legends skins, all in the shop this hour: Peelo, Fishstik, Cuddle Squad Leader, Tomatoface, The Dark Knight, Skul Trooper and Meowsclez', 'Battle Royale bots now wait in the sky lobby with you, then drop and glide down when the match starts', 'Battle Royale bots no longer stand around: they keep moving while they loot'] },
   { id: 'royale2', date: '2026-10-04', title: 'Bigger Battle Royale', lines: ['Every Battle Royale match now has 50 players: bots fill whatever spots real people don\'t', 'The island is far bigger, with four new places: New Town, The Ruins, Sunny Ranch and Dusty Camp, plus lots more huts, trees, chests and loot', 'The storm takes much longer to close in (7 rings, about 13 minutes)', 'No pulse ability in Battle Royale', 'Fixed the purple tint over the Rail Lance scope'] },
@@ -9974,7 +9975,7 @@ function updateRoyale(dt) {
   RL.cullT -= dt;
   if (RL.cullT <= 0) { RL.cullT = 0.3; const cp = camera.position; for (const it of RL.items.values()) it.g.visible = Math.abs(it.pos.x - cp.x) < 80 && Math.abs(it.pos.z - cp.z) < 80; for (const c of RL.chests) c.g.visible = Math.abs(c.pos.x - cp.x) < 110 && Math.abs(c.pos.z - cp.z) < 110; }
   for (const c of RL.chests) { if (c.open) c.lid.rotation.x = damp(c.lid.rotation.x, 1.9, 7, dt); else if (c.g.visible) c.glow.scale.y = 0.9 + Math.sin(time * 3 + c.pos.x) * 0.15; }
-  const me = state === 'playing' && player.alive;
+  const me = (state === 'playing' || (state === 'paused' && inMatch())) && player.alive;
   // in the lobby: fall off and you're put back
   if (me && GS.rph === 0 && player.pos.y < LOBBY_Y - 25) { player.pos.copy(royaleSpawn()); player.vel.set(0, 0, 0); }
   // gliding down after the drop
@@ -10702,7 +10703,9 @@ function frame(now) {
   if (isHost && !EDITOR) hostTick(dt);
   syncInfect(); runTimers();
   onGSChange();
-  if (state === 'playing') { updatePlayer(dt); stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
+  // in a multiplayer match the pause menu doesn't stop you: you keep falling, sliding and taking hits (you just can't move or shoot)
+  if (state === 'playing' || (state === 'paused' && inMatch())) updatePlayer(dt);
+  if (state === 'playing') { stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
   updateOrbs(dt); updateHazards(dt); updateMech(dt); updateSlots(dt); updateMission(dt); updatePropHunt(dt); updateDuel(); updateHub(dt); updateRoyale(dt); kcRecord(dt); updateHubBoard(); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
   updateWeapon(dt); updateFlags(dt); updateMyPet(dt);
