@@ -364,6 +364,48 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
 .inv{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--amber);border-radius:6px;padding:8px 10px;font-size:14px;background:rgba(255,191,107,.08)}
 #invite{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:7;background:var(--panel-solid);border:1px solid var(--amber);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:14px;box-shadow:0 0 24px rgba(255,191,107,.25);max-width:calc(100vw - 32px)}
 #invite b{color:var(--amber)}
+#tradeOffer{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:8;background:var(--panel-solid);border:1px solid var(--good);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:14px;max-width:min(560px,92vw)}
+#tradeOffer b{color:var(--good)}
+.modal{position:fixed;inset:0;z-index:9;background:rgba(6,4,14,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+.mbox{background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:14px;width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:10px}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--display);letter-spacing:.06em}
+.mtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mtools .seg{display:flex;flex-wrap:wrap}.mtools input{flex:1;min-width:160px}
+.mrow{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,.03)}
+.mrow i{height:44px;border-radius:6px;background:var(--mp)}.mrow b{display:block}.mrow small{color:var(--dim)}
+.mapbtns{margin-top:6px}
+.gitems{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px;max-height:46vh;overflow:auto}
+.gitem{display:flex;flex-direction:column;gap:3px;padding:6px;border:1px solid var(--line);border-radius:6px;background:rgba(255,255,255,.04);color:var(--fg);cursor:pointer;text-align:left;font:inherit;min-width:0}
+.gitem i{height:38px;border-radius:4px;background:var(--pv);display:grid;place-items:center;font-style:normal;font-size:22px}
+.gitem b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gitem small{font-size:10px;color:var(--dim)}
+.gitem.sel{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan)}.gitem.poor{opacity:.45;cursor:default}
+.tcols{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:560px){.tcols{grid-template-columns:1fr}}
+.pcard{position:relative;border-radius:10px;overflow:hidden;width:min(320px,100%);background:var(--bn);box-shadow:0 6px 24px rgba(0,0,0,.4);color:#fff}
+.pcard::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,6,18,.82),rgba(8,6,18,.35))}
+.pcin{position:relative;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.pctitle{font-family:var(--display);font-size:11px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase}
+.pcname{font-family:var(--display);font-size:22px;letter-spacing:.02em;line-height:1.1}
+.pcst{display:flex;gap:12px;margin-top:4px;font-family:var(--display);font-size:15px}.pcst i{display:block;font-style:normal;font-size:9px;letter-spacing:.14em;color:rgba(255,255,255,.65)}
+#pfCard{margin-bottom:10px}
+.bpick{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:8px 0}.bpick button{height:24px;border-radius:5px;border:2px solid transparent;cursor:pointer}.bpick button.sel{border-color:#fff}
+.cfields{display:flex;gap:10px;flex-wrap:wrap}.cfields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--dim);flex:1;min-width:140px}
+#joinCard{position:fixed;left:16px;bottom:120px;z-index:4;pointer-events:none;transform:translateX(-120%);transition:transform .35s ease;display:flex;flex-direction:column;gap:4px}
+#joinCard.on{transform:none}#joinCard small{font-family:var(--display);font-size:10px;letter-spacing:.2em;color:var(--good)}
+#specLbl{position:fixed;left:50%;top:calc(96px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:4;pointer-events:none;font-family:var(--display);letter-spacing:.14em;font-size:13px;background:rgba(8,6,18,.6);border:1px solid var(--line);border-radius:4px;padding:5px 12px;white-space:nowrap}
+#podTxt{position:fixed;left:50%;bottom:16%;transform:translateX(-50%);z-index:4;pointer-events:none;text-align:center;font-family:var(--display)}
+#podTxt small{display:block;letter-spacing:.3em;color:var(--amber);font-size:14px}#podTxt b{font-size:clamp(30px,6vw,56px);text-shadow:0 0 30px rgba(255,216,107,.7)}
+#dead.spec{background:none;align-items:flex-end;padding-bottom:6vh;pointer-events:none}#dead.spec .slab{pointer-events:auto;background:rgba(8,6,18,.72);padding:12px 18px;border-radius:10px}#dead.spec #deadstats{display:none}
+#editor{position:fixed;inset:0;z-index:6;pointer-events:none}
+.edpanel{pointer-events:auto;position:absolute;left:12px;top:12px;bottom:44px;width:290px;background:rgba(14,11,30,.92);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+.edtop{display:flex;justify-content:space-between;align-items:center;font-family:var(--display);letter-spacing:.08em}.edtop span{color:var(--dim);font-size:12px}
+.edlbl{font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:4px}
+.edcats{display:flex;flex-wrap:wrap;gap:4px}.edcats button{font:inherit;font-size:11px;padding:3px 7px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--dim);cursor:pointer}.edcats button.sel{color:var(--fg);border-color:var(--cyan)}
+.editems{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.edi{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:1px solid var(--line);border-radius:6px;background:rgba(255,255,255,.04);color:var(--fg);cursor:pointer;font:inherit}
+.edi i{font-style:normal;font-size:22px}.edi span{font-size:10px;text-align:center;line-height:1.1}.edi.sel{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan);background:rgba(95,242,255,.1)}
+.edcolors{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.edcolors button{height:22px;border-radius:4px;border:2px solid transparent;cursor:pointer}.edcolors button.sel{border-color:#fff}
+.edinspect{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px;font-size:13px}.edinspect label{display:flex;flex-direction:column;font-size:12px;color:var(--dim)}.edinspect label span{color:var(--fg)}
+.edrow{display:flex;flex-wrap:wrap;gap:4px}.edrow button,.edbtns button{font:inherit;font-size:11px;letter-spacing:.06em;padding:5px 8px;border-radius:4px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:pointer}
+.edrow button.bad{border-color:var(--bad);color:var(--bad)}.edbtns{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:auto}.edbtns .hot{background:var(--cyan);color:#0a0612;border-color:var(--cyan);font-weight:700}
+.edhelp{position:absolute;left:314px;right:12px;bottom:12px;font-size:12px;color:rgba(255,255,255,.8);text-shadow:0 1px 3px #000;pointer-events:none}
 .profhead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
 .profhead b{display:block;font-family:var(--display);font-size:30px;letter-spacing:.04em}
 .profhead code{font-family:var(--display);font-size:13px;color:var(--cyan);letter-spacing:.06em}
@@ -444,6 +486,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     </div>
     <div class="sect">Map</div>
     <div class="maps" id="maps"></div>
+    <div class="btnrow mapbtns"><button class="ghost" id="cmapsBtn">🌍 COMMUNITY MAPS</button><button class="ghost" id="editorBtn">🛠 MAP EDITOR</button></div>
     <div id="classBox" hidden>
       <div class="sect" style="margin-bottom:8px">Class <span style="letter-spacing:.08em;text-transform:none">· Q uses your ability · G throws your gadget · 1–2 switch guns</span></div>
       <div class="guns clsgrid" id="classes"></div>
@@ -493,6 +536,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="scol"><div class="srh"><span class="sect">Hats<span class="n" id="nhatItems"></span></span><span class="arrows" data-for="hatItems"></span></div><div class="items hrow" id="hatItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Pets<span class="n" id="npetItems"></span></span><span class="arrows" data-for="petItems"></span></div><div class="items hrow" id="petItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Emotes<span class="n" id="nemoteItems"></span></span><span class="arrows" data-for="emoteItems"></span></div><div class="items hrow" id="emoteItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Sprays · Y in a match<span class="n" id="nsprayItems"></span></span><span class="arrows" data-for="sprayItems"></span></div><div class="items hrow" id="sprayItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Gun finishes<span class="n" id="nfinishItems"></span></span><span class="arrows" data-for="finishItems"></span></div><div class="items hrow" id="finishItems"></div></div>
       </div>
       <p class="note">Things you buy go to <b>Customize</b>, where you put them on.</p>
@@ -505,6 +549,9 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="scol"><div class="srh"><span class="sect">Gun finishes<span class="n" id="ncFinishItems"></span></span><span class="arrows" data-for="cFinishItems"></span></div><div class="items hrow" id="cFinishItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Pets<span class="n" id="ncPetItems"></span></span><span class="arrows" data-for="cPetItems"></span></div><div class="items hrow" id="cPetItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Emotes · in a match press H, then 1–4<span class="n" id="ncEmoteItems"></span></span><span class="arrows" data-for="cEmoteItems"></span></div><div class="eslots" id="eslots"></div><div class="items hrow" id="cEmoteItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Sprays · press Y on a wall<span class="n" id="ncSprayItems"></span></span><span class="arrows" data-for="cSprayItems"></span></div><div class="items hrow" id="cSprayItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Player card · shown when you join a room</span></div><div id="myCardPrev"></div><div class="bpick" id="bannerPick"></div>
+          <div class="cfields"><label>Title <select id="titlePick"></select></label><label>Victory pose <select id="vposePick"></select></label></div></div>
         <div class="scol"><div class="srh"><span class="sect">Color</span></div><div class="swatches" id="swatches2"></div></div>
       </div>
     </div>
@@ -526,7 +573,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     </div>
     <div class="pane" id="profPane" hidden>
       <button class="ghost" id="profBack">‹ BACK</button>
-      <div class="profhead"><div><b id="pfName"></b><code id="pfId"></code></div><span id="pfStatus"></span></div>
+      <div id="pfCard"></div><div class="profhead"><div><b id="pfName"></b><code id="pfId"></code></div><span id="pfStatus"></span></div>
       <div class="pstats" id="pfStats"></div>
       <div class="btnrow" id="pfBtns"></div>
       <p class="note" id="pfNote"></p>
@@ -579,6 +626,35 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
 </div>
 
 <div id="toast"></div>
+<div id="specLbl" hidden></div>
+<div id="podTxt" hidden></div>
+<div id="joinCard"></div>
+<div id="tradeOffer" hidden><span id="toTxt"></span><div class="btnrow"><button class="ghost" id="toYes">ACCEPT</button><button class="ghost" id="toNo">DECLINE</button></div></div>
+<div id="mapsBox" class="modal" hidden><div class="mbox">
+  <div class="mhead"><b>🌍 COMMUNITY MAPS</b><button class="ghost" id="mapsClose">✕</button></div>
+  <div class="mtools"><div class="seg" id="mapTabs"><button data-t="all">NEWEST</button><button data-t="top">MOST PLAYED</button><button data-t="official">OFFICIAL</button><button data-t="mine">MY MAPS</button></div><input id="mapSearch" placeholder="Search maps or creators" autocomplete="off"><button class="ghost" id="mapsEditor">🛠 MAKE A MAP</button></div>
+  <p class="note" id="mapNote"></p><div id="mapRows"></div></div></div>
+<div id="giftBox" class="modal" hidden><div class="mbox">
+  <div class="mhead"><span id="giftHead"></span><button class="ghost" id="giftClose">✕</button></div>
+  <div class="gitems" id="giftItems"></div>
+  <div class="btnrow" style="justify-content:flex-end"><button id="giftSend" class="ghost">PICK A GIFT</button></div></div></div>
+<div id="tradeBox" class="modal" hidden><div class="mbox">
+  <div class="mhead"><span id="tradeHead"></span><button class="ghost" id="tradeClose">✕</button></div>
+  <div class="tcols"><div><b class="sect">YOU GIVE</b><div class="gitems" id="tradeMine"></div></div><div><b class="sect">YOU GET</b><div class="gitems" id="tradeTheirs"></div></div></div>
+  <div class="btnrow" style="justify-content:flex-end"><button id="tradeSend" class="ghost">SEND OFFER</button></div></div></div>
+<div id="editor" hidden>
+  <div class="edpanel">
+    <div class="edtop"><b>🛠 MAP EDITOR</b><span id="edCount"></span></div>
+    <input id="edName" maxlength="24" placeholder="Map name" autocomplete="off">
+    <label class="edlbl">Sky & floor <select id="edTheme"></select></label>
+    <div class="edcats" id="edCats"></div>
+    <div class="editems" id="edItems"></div>
+    <div class="edlbl">Color</div><div class="edcolors" id="edColors"></div>
+    <div class="edinspect" id="edInspect"></div>
+    <div class="edbtns"><button id="edUndo">↶ UNDO</button><button id="edClear">CLEAR</button><button id="edTest">▶ TEST</button><button id="edPub" class="hot">🌍 PUBLISH</button><button id="edExit">EXIT</button></div>
+  </div>
+  <div class="edhelp">Right-drag to look · WASD fly · Space / C up and down · Shift faster · Click to place · R turn · Esc select · Del delete · Arrows / PgUp PgDn move · Ctrl+Z undo</div>
+</div>
 <div id="invite" hidden><span id="invTxt"></span><div class="btnrow"><button class="ghost" id="invJoin">JOIN · J</button><button class="ghost" id="invNo">✕</button></div></div>
 
 <div id="study" hidden>
@@ -732,7 +808,7 @@ const settings = {
   gun: store.get('gun', 'rifle'),
   team: store.get('team', 'auto'),
   map: store.get('map', 'prism'),
-  cls: store.get('cls', 'fighter'),
+  cls: store.get('cls', 'fighter'), spray: store.get('spray', 'prism'), banner: store.get('banner', 0), title: store.get('title', 'rookie'), vpose: store.get('vpose', 'wave'),
   skin: store.get('skin', 'standard'),
   finish: store.get('finish', 'factory'),
   hat: store.get('hat', 'none'),
@@ -755,8 +831,13 @@ const MAP_INFO = {
   pride: { season: 'pride', blurb: 'Rainbow arch, flags and falling confetti.', mp: 'linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
   summer: { season: 'summer', blurb: 'Sandcastles, palm trees and open sea.', mp: 'linear-gradient(180deg,#5fc8ff,#bfeaff 50%,#19c7d0 51%,#f6e0aa 75%)' },
 };
-const mapOpen = id => !!MAPS[id] && (!MAP_INFO[id].season || seasonActive(MAP_INFO[id].season));
+const mapOpen = id => id === 'editor' || /^c-[a-z0-9]{4,16}$/.test(id) || (!!MAPS[id] && (!MAP_INFO[id].season || seasonActive(MAP_INFO[id].season)));
 if (!mapOpen(settings.map)) settings.map = 'prism';
+// community maps and the map editor build their own arena
+const EDITOR = settings.map === 'editor';
+let CMAP = null;
+if (/^c-/.test(settings.map)) { CMAP = store.get('cmap', null); if (!CMAP || CMAP.id !== settings.map || !Array.isArray(CMAP.objs)) { CMAP = null; settings.map = 'prism'; } }
+const EDTHEME = EDITOR ? (store.get('mapdraft', null) || {}).theme : null;
 const FROST = settings.map === 'frost';
 const THEMES = {
   prism: { exp: 0.62, fog: [0xa17f9f, 140], sun: [15, 205], sky: [4.5, 2.4, 0.0012, 0.9], hemi: [0xffd4c4, 0x2c2450, 0.9], sunC: [0xffd2a8, 2.7], stone: [0x7a72a6, 0.72, 0.18, 0x8a82b6], tileRM: [0.42, 0.35], tiles: ['#3b355e', '#5a5190', '#7a6fb8'], under: [0.15, 1.2, 1.45], rim: [2.9, 0.45, 1.5], cone: [0.09, 0.07, 0.16, 0.12, 0.08, 0.12], isle: [[0.42, 0.36, 0.62], [0.12, 0.09, 0.2], 0.22, [0x5ff2ff, 0xff4fa3]], cloud: [0.88, 0.98, 0.45, 0.72, 0.86], fx: 'dust' },
@@ -770,7 +851,7 @@ const THEMES = {
   pride: { exp: 0.54, fog: [0xd6b8ff, 150], sun: [20, 200], sky: [3, 2.2, 0.004, 0.88], hemi: [0xffe6ff, 0x3a2a5a, 1.0], sunC: [0xfff0f8, 2.6], stone: [0xf4f0ff, 0.5, 0.1, 0xf8f4ff], tileRM: [0.35, 0.2], tiles: ['#ffffff', '#ffffff', '#ffffff'], rainbowTiles: true, under: [0.7, 0.5, 0.9], rim: [2.6, 2.6, 2.6], cone: [0.3, 0.2, 0.4, 0.4, 0.3, 0.4], isle: [[0.9, 0.85, 1.0], [0.3, 0.2, 0.4], 0.25, [0xff4f6e, 0x5ff2ff]], cloud: [0.75, 0.95, 0.5, 0.8, 0.92], fx: 'confetti' },
   summer: { exp: 0.48, fog: [0x8fd0ff, 230], sun: [50, 200], sky: [2.5, 1, 0.003, 0.8], hemi: [0xfff2d0, 0x3a7a8a, 0.8], sunC: [0xfff0c8, 2.4], stone: [0xe8cf96, 0.85, 0.02, 0xf0dcb0], tileRM: [0.9, 0], tiles: ['#dcbd7e', '#f6e0aa', '#19c7d0'], under: [0.2, 1.8, 2.4], rim: [0.3, 2.6, 2.9], cone: [0.55, 0.45, 0.3, 0.35, 0.3, 0.2], isle: [[0.95, 0.85, 0.6], [0.45, 0.38, 0.28], 0.25, [0x19c7d0, 0xff6f91]], cloud: [0, 1, 0, 0.94, 1], fx: 'dust', fxColor: 0x6a5a40, ocean: true },
 };
-const TH = THEMES[settings.map] || THEMES.prism;
+const TH = THEMES[EDTHEME || (CMAP && CMAP.theme) || settings.map] || THEMES.prism;
 if (!CLASSES[settings.cls]) settings.cls = 'fighter';
 // what this player carries in the current mode
 function kit() {
@@ -808,8 +889,8 @@ function onPayMessage(m, send) {
   if (m.t === 'pay' && m.gift && m.from === 'server' && /^gift-[a-z0-9-]{1,60}$/.test(String(m.id))) {
     // one-time gift from the game owner (only the server can send these: players can't forge the gift flag through the relay)
     const gifts = store.get('gifts', []), amount = Math.max(0, Math.min(1e10, Math.floor(+m.amount || 0)));
-    const item = /^(suit|hat|finish|pet|emote):[a-z0-9]{1,24}$/.test(String(m.item || '')) ? String(m.item) : '';
-    const [ik, iid] = item.split(':'), idef = item && { suit: SUITS, hat: HATS, finish: FINISHES, pet: PETS, emote: EMOTES }[ik]?.[iid];
+    const item = /^(suit|hat|finish|pet|emote|spray):[a-z0-9]{1,24}$/.test(String(m.item || '')) ? String(m.item) : '';
+    const [ik, iid] = item.split(':'), idef = item && { suit: SUITS, hat: HATS, finish: FINISHES, pet: PETS, emote: EMOTES, spray: SPRAYS }[ik]?.[iid];
     if (Array.isArray(gifts) && !gifts.includes(m.id) && (amount > 0 || idef)) {
       gifts.push(m.id); store.set('gifts', gifts);
       if (amount > 0) wallet.coins += amount;
@@ -891,8 +972,9 @@ function renderMenu() {
 
 function switchMap(id) {
   if (!mapOpen(id) || id === settings.map) return;
+  if (MAPS[settings.map]) store.set('prevmap', settings.map);
   store.set('map', id); settings.map = id; renderMenu();
-  toast(`Loading ${MAPS[id]}…`);
+  toast(`Loading ${mapName(id)}…`);
   setTimeout(() => location.reload(), 120);
 }
 // room names: the original map keeps the old naming so existing rooms still match
@@ -971,6 +1053,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'map-editor', date: '2026-10-04', title: 'Map Editor, Trading, Sprays & More',
+    lines: ['Build your own maps in the new Map Editor (Play tab) with blocks, ramps and props from every season, then publish them for everyone in Community Maps', 'Gift items to friends and trade cosmetics with them from the Friends tab', 'Player cards with titles and banners pop up when you join a room. Set yours in Customize', 'Pick a victory pose: the winner of a match shows it off on a podium', 'Sprays: press Y to tag a wall', 'Spectate teammates and other players while you\'re down or dead'] },
   { id: 'mech-heavy', date: '2026-10-04', title: 'Mechs Are Heavier', lines: ["Inside a mech you move slower and can't dash, but you can still jump and double jump"] },
   { id: 'balance-cards', date: '2026-10-04', title: 'Balance Pass & New Cards',
     lines: ['Sniper: Rail Lance damage up from 100 to 150', 'Mech Pilot: Twin Autocannon 24 → 18 damage, mech minigun 14 → 9', 'The Gambler now holds a real fanned-out hand of playing cards'] },
@@ -1314,7 +1398,18 @@ function setEmoteSlot(i, id) {
   if (j >= 0 && j !== i) s[j] = s[i];
   s[i] = id; emoteSaved = s; store.set('emotes', s);
 }
-const owns = (kind, id) => { const d = (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : kind === 'pet' ? PETS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
+// sprays: paint a picture on a wall or the floor (Y in a match)
+const SPRAYS = {
+  prism: { name: 'Prism', icon: '◆', price: 0, col: '#ff4fa3' }, gg: { name: 'GG', icon: 'GG', price: 0, col: '#5ff2ff' }, heart: { name: 'Love', icon: '❤️', price: 0, col: '#ff2f6e' },
+  cool: { name: 'Too Cool', icon: '😎', price: 150, col: '#ffd23a' }, skull: { name: 'Skull', icon: '💀', price: 150, col: '#cfc6e8' }, fire: { name: 'On Fire', icon: '🔥', price: 150, col: '#ff7a1f' },
+  crown: { name: 'King', icon: '👑', price: 250, col: '#ffd86b' }, goat: { name: 'GOAT', icon: '🐐', price: 250, col: '#b6ff5c' }, hundred: { name: '100', icon: '💯', price: 200, col: '#ff3d6e' },
+  clown: { name: 'Clown', icon: '🤡', price: 200, col: '#ff8fc4' }, bolt: { name: 'Zap', icon: '⚡', price: 150, col: '#ffe94a' }, pizza: { name: 'Pizza Time', icon: '🍕', price: 150, col: '#ffb060' }, ez: { name: 'EZ', icon: 'EZ', price: 300, col: '#74ffb5' },
+  jack: { name: 'Jack', icon: '🎃', price: 150, season: 'halloween', col: '#ff8a1f' }, flake: { name: 'Snowflake', icon: '❄️', price: 150, season: 'christmas', col: '#bfe6ff' }, cupid: { name: 'Cupid', icon: '💘', price: 150, season: 'valentine', col: '#ff6fa8' },
+  bunny: { name: 'Bunny', icon: '🐰', price: 150, season: 'easter', col: '#ffd6ec' }, sunny: { name: 'Sunny', icon: '🌞', price: 150, season: 'summer', col: '#ffd23a' }, gobble: { name: 'Gobble', icon: '🦃', price: 150, season: 'thanksgiving', col: '#d94a1f' },
+  power: { name: 'Power', icon: '✊🏿', price: 150, season: 'blackhistory', col: '#ffc83a' }, rainbow: { name: 'Rainbow', icon: '🌈', price: 150, season: 'pride', col: '#c47aff' },
+};
+for (const d of Object.values(SPRAYS)) d.pv = `radial-gradient(circle,${d.col}cc 0 46%,transparent 48%),rgba(255,255,255,.04)`;
+const owns = (kind, id) => { const d = (kind === 'spray' ? SPRAYS : kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : kind === 'pet' ? PETS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
 if (!owns('suit', settings.skin)) settings.skin = 'standard';
 if (!owns('finish', settings.finish)) settings.finish = 'factory';
 if (!HATS[settings.hat] || !owns('hat', settings.hat)) settings.hat = 'none';
@@ -1614,7 +1709,8 @@ function applyFinish(m1, m2, id) {
   }
 }
 applyFinish(vmMat, vmMat2, settings.finish);
-function saveWallet(fromServer) { store.set('wallet', wallet); $('coinTab').textContent = wallet.coins.toLocaleString(); $('coinBig').textContent = wallet.coins.toLocaleString(); if (!fromServer) walPush(); }
+let lastInvN = -1;
+function saveWallet(fromServer) { store.set('wallet', wallet); if (wallet.owned.length !== lastInvN) { if (lastInvN >= 0) setTimeout(() => sendProf(), 0); lastInvN = wallet.owned.length; } $('coinTab').textContent = wallet.coins.toLocaleString(); $('coinBig').textContent = wallet.coins.toLocaleString(); if (!fromServer) walPush(); }
 // ---------- linked accounts: the website server can join several player IDs into one shared wallet ----------
 // walState: s = total the server last confirmed, v = its version, fl = changes sent but not confirmed yet [[seq, coins]]
 let walLinked = false, walFirst = null, walOut = null, walState = store.get('walsync', null);
@@ -1644,7 +1740,7 @@ function walRecv(m) {
   if (+m.ack > 0) walState.fl = walState.fl.filter(x => x[0] > +m.ack);
   walState.s = Math.max(0, Math.floor(+m.coins || 0)); walState.v = Math.floor(+m.ver || 0);
   wallet.coins = Math.max(0, walState.s + walFlight() + unsent);
-  if (Array.isArray(m.owned)) for (const it of m.owned) if (typeof it === 'string' && /^(suit|hat|finish|pet|emote|addon):[a-z0-9]{1,24}$/.test(it) && !wallet.owned.includes(it)) wallet.owned.push(it);
+  if (Array.isArray(m.owned)) for (const it of m.owned) if (typeof it === 'string' && /^(suit|hat|finish|pet|emote|spray|addon):[a-z0-9]{1,24}$/.test(it) && !wallet.owned.includes(it)) wallet.owned.push(it);
   walState.on = wallet.owned.length; walSave(); saveWallet(true);
   if (unsent) walPush();
   if (menuTab === 'shop' || menuTab === 'custom') renderShop();
@@ -1946,7 +2042,225 @@ function lightString(cols) {
   for (let i = 0; i < n; i++) { const a = i / n * 6.283, r = ARENA_R - 0.6; m4.makeTranslation(Math.cos(a) * r, 0.35 + Math.abs(Math.sin(i * 0.5)) * 0.3, Math.sin(a) * r); im.setMatrixAt(i, m4); im.setColorAt(i, c.set(cols[i % cols.length]).multiplyScalar(2.2)); }
   scene.add(im); decor.push(im);
 }
-if (FROST) {
+// ================= community maps: building blocks =================
+// A map object is [type, x, y, z, rot (0-3, quarter turns), w, h, d, color]. Shapes use w/h/d; props use w as their scale.
+const MAP_COLORS = [null, 0xf2f0ea, 0x22202a, 0xd8343c, 0xff8a2a, 0xffd23a, 0x4fbf4a, 0x2fc8c0, 0x3f7fe0, 0x8a5ad8, 0xff6fb5, 0x8a5a34];
+const pendingPads = [];
+const MAP_LIMIT = 300, hitBoxGeo = new THREE.BoxGeometry(1, 1, 1), hitBoxMat = new THREE.MeshBasicMaterial();
+const shapeMats = new Map(), glowMats = new Map();
+const shapeMat = c => { if (!c) return stoneMat; if (!shapeMats.has(c)) shapeMats.set(c, new THREE.MeshStandardMaterial({ color: MAP_COLORS[c] || 0xffffff, roughness: 0.55, metalness: 0.08 })); return shapeMats.get(c); };
+const glowMatC = c => { if (!glowMats.has(c)) { const col = new THREE.Color(MAP_COLORS[c] || 0x5ff2ff); if (!c) col.set(0x5ff2ff); glowMats.set(c, new THREE.MeshBasicMaterial({ color: col.multiplyScalar(2.6) })); } return glowMats.get(c); };
+const propCol = c => MAP_COLORS[c] || null;
+function rampGeo(w, h, d) {
+  const sh = new THREE.Shape(); sh.moveTo(-d / 2, 0); sh.lineTo(d / 2, 0); sh.lineTo(-d / 2, h); sh.closePath();
+  return new THREE.ExtrudeGeometry(sh, { depth: w, bevelEnabled: false }).translate(0, 0, -w / 2).rotateY(-Math.PI / 2);
+}
+function pine(s = 1) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 2.4, 8).translate(0, 1.2, 0), PM(0x5a3a22, { roughness: 1 })));
+  const nd = PM(0x1f6a3a, { roughness: 0.9 });
+  for (const [r, h, y] of [[2.4, 3.2, 3.4], [1.8, 2.8, 5.0], [1.1, 2.3, 6.6]]) g.add(new THREE.Mesh(new THREE.ConeGeometry(r, h, 10).translate(0, y, 0), nd));
+  const cols = [0xff3d4f, 0xffd23a, 0x3f7fe0, 0xf2f0ea];
+  for (let i = 0; i < 10; i++) { const a = i * 2.4, y = 3 + (i % 5) * 0.75, r = 2.0 - (y - 3) * 0.42; const b = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 6), PM(cols[i % 4], { emissive: cols[i % 4], emissiveIntensity: 0.4 })); b.position.set(Math.cos(a) * r, y, Math.sin(a) * r); g.add(b); }
+  const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.4, 0.6) })); star.position.y = 8; g.add(star);
+  return g;
+}
+function leafy(trunkCol, leafCol, h = 4, r = 2.2) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, h, 8).translate(0, h / 2, 0), PM(trunkCol, { roughness: 1 })));
+  const lm = PM(leafCol, { roughness: 0.9, flatShading: true });
+  for (const [x, y, z, k] of [[0, h + 0.8, 0, 1], [r * 0.5, h + 0.2, 0.3, 0.7], [-r * 0.5, h + 0.3, -0.2, 0.75], [0.2, h + 0.1, r * 0.5, 0.7], [-0.2, h + 0.5, -r * 0.5, 0.65]]) { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(r * k, 0), lm); b.position.set(x, y, z); g.add(b); }
+  return g;
+}
+function palmTree() {
+  const g = new THREE.Group(), trunk = PM(0x8a6a42, { roughness: 1 }), leaf = PM(0x2f9a4a, { side: THREE.DoubleSide, roughness: 0.8 });
+  for (let i = 0; i < 6; i++) { const s = new THREE.Mesh(new THREE.CylinderGeometry(0.28 - i * 0.02, 0.34 - i * 0.02, 1.05, 8), trunk); s.position.set(Math.sin(i * 0.25) * 0.3 * i * 0.3, 0.5 + i * 1.0, 0); s.rotation.z = -i * 0.04; g.add(s); }
+  for (let k = 0; k < 7; k++) { const l = new THREE.Mesh(new THREE.ConeGeometry(0.5, 3.4, 4).translate(0, 1.7, 0), leaf); l.position.set(0.6, 6.1, 0); l.rotation.set(0, k / 7 * Math.PI * 2, 1.15); l.scale.z = 0.25; g.add(l); }
+  for (let k = 0; k < 3; k++) { const c = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), PM(0x6a4a22)); c.position.set(0.6 + Math.cos(k * 2) * 0.3, 5.8, Math.sin(k * 2) * 0.3); g.add(c); }
+  return g;
+}
+function snowmanProp() {
+  const g = new THREE.Group(), snow = PM(0xf6f9ff, { roughness: 0.95 }), coal = PM(0x111111);
+  [[0.95, 0.9], [0.7, 2.25], [0.5, 3.25]].forEach(([r, y]) => { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), snow); b.position.y = y; g.add(b); });
+  const n = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.5, 8).rotateX(-Math.PI / 2), PM(0xff8a1f)); n.position.set(0, 3.25, -0.6); g.add(n);
+  for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 4), coal); e.position.set(sx * 0.17, 3.4, -0.45); g.add(e); }
+  const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.6, 14), coal); hat.position.y = 3.95; g.add(hat);
+  const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.06, 16), coal); brim.position.y = 3.66; g.add(brim);
+  return g;
+}
+function eggProp(c) {
+  const g = new THREE.Group(), base = propCol(c) || 0xffb0d8;
+  const e = new THREE.Mesh(new THREE.SphereGeometry(0.9, 24, 18), PM(base, { roughness: 0.4 })); e.scale.y = 1.35; e.position.y = 1.22; g.add(e);
+  for (const [y, col] of [[0.9, 0xffffff], [1.5, 0xffd23a]]) { const b = new THREE.Mesh(new THREE.TorusGeometry(0.88 - Math.abs(y - 1.2) * 0.25, 0.08, 6, 28).rotateX(Math.PI / 2), PM(col)); b.position.y = y; g.add(b); }
+  return g;
+}
+function bushProp() {
+  const g = new THREE.Group(), b = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 1), PM(0x3f8f3a, { roughness: 0.9, flatShading: true }));
+  b.scale.y = 0.75; b.position.y = 0.9; g.add(b);
+  const cols = [0xff6fa8, 0xffd23a, 0xffffff, 0xb48cff];
+  for (let i = 0; i < 8; i++) { const f = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), PM(cols[i % 4])); const a = i * 2.3; f.position.set(Math.cos(a) * 0.9, 1.2 + (i % 3) * 0.2, Math.sin(a) * 0.9); g.add(f); }
+  return g;
+}
+function umbrellaProp(c) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2, 8).translate(0, 1.6, 0), PM(0xf2f0ea)));
+  const can = new THREE.Mesh(new THREE.ConeGeometry(2.4, 0.9, 12, 1, true), PM(propCol(c) || 0xff5a5a, { side: THREE.DoubleSide })); can.position.y = 3.2; g.add(can);
+  return g;
+}
+function castleProp() {
+  const g = new THREE.Group(), sand = PM(0xe8cf96, { roughness: 1 });
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.2, 2.6).translate(0, 0.6, 0), sand));
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 2, 10).translate(sx * 1.2, 1, sz * 1.2), sand)); g.add(new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.8, 10).translate(sx * 1.2, 2.4, sz * 1.2), sand)); }
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.32), PM(0xff4f6e, { side: THREE.DoubleSide })); fl.position.set(1.45, 3.05, 1.2); g.add(fl);
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 4).translate(1.2, 2.9, 1.2), PM(0x3a2a1a)));
+  return g;
+}
+function hayProp() {
+  const g = new THREE.Group(), b = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 2.2, 16).rotateZ(Math.PI / 2), PM(0xd9b24a, { roughness: 1 }));
+  b.position.y = 0.8; g.add(b);
+  for (const x of [-0.6, 0.6]) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.81, 0.04, 6, 24).rotateY(Math.PI / 2), PM(0x8a5a2a)); r.position.set(x, 0.8, 0); g.add(r); }
+  return g;
+}
+function torchProp() {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 3, 8).translate(0, 1.5, 0), PM(0x3a2a1a)));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.2, 0.35, 10).translate(0, 3.1, 0), PM(0xffc83a, { metalness: 0.9, roughness: 0.25 })));
+  const f1 = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.9, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.2, 0.2) })); f1.position.y = 3.7; g.add(f1);
+  const f2 = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.6, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.4, 0.8) })); f2.position.y = 3.6; g.add(f2);
+  g.userData.flicker = [f1, f2];
+  return g;
+}
+function baobabProp() {
+  const g = new THREE.Group(), bark = PM(0x8a6a52, { roughness: 1 });
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.4, 5, 10).translate(0, 2.5, 0), bark));
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, br = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.25, 2.2, 6).translate(0, 1.1, 0), bark); br.position.set(Math.cos(a) * 0.5, 4.8, Math.sin(a) * 0.5); br.rotation.set(Math.sin(a) * 0.9, 0, -Math.cos(a) * 0.9); g.add(br); }
+  const can = new THREE.Mesh(new THREE.CylinderGeometry(3, 2.4, 0.9, 12), PM(0x4f7a2a, { roughness: 0.9, flatShading: true })); can.position.y = 6.4; g.add(can);
+  return g;
+}
+function flagProp(c) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 6, 8).translate(0, 3, 0), PM(0xd8d8e0, { metalness: 0.8, roughness: 0.3 })));
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.5), c ? PM(propCol(c), { side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ map: prideTex(), side: THREE.DoubleSide, roughness: 0.6 }));
+  f.position.set(1.25, 5.1, 0); g.add(f); g.userData.wave = f;
+  return g;
+}
+function archProp() {
+  const g = new THREE.Group();
+  PRIDE6.forEach((c, i) => { const r = 5 - i * 0.42, arc = new THREE.Mesh(new THREE.TorusGeometry(r, 0.22, 8, 40, Math.PI), new THREE.MeshStandardMaterial({ color: c, roughness: 0.4, emissive: c, emissiveIntensity: 0.35 })); g.add(arc); });
+  return g;
+}
+function crateProp() {
+  const g = new THREE.Group(), wood = PM(0x9a6a3a, { roughness: 0.9 }), dark = PM(0x5a3a1a, { roughness: 1 });
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6).translate(0, 0.8, 0), wood));
+  for (const [x, y, z, w, h, d] of [[0, 0.8, -0.81, 1.62, 0.16, 0.02], [0, 0.8, 0.81, 1.62, 0.16, 0.02], [-0.81, 0.8, 0, 0.02, 0.16, 1.62], [0.81, 0.8, 0, 0.02, 0.16, 1.62], [0, 1.61, 0, 1.62, 0.02, 0.16], [0, 1.61, 0, 0.16, 0.02, 1.62]]) g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d).translate(x, y, z), dark));
+  return g;
+}
+function barrelProp(c) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 1.6, 16).translate(0, 0.8, 0), PM(propCol(c) || 0x7a4a26, { roughness: 0.7 })));
+  for (const y of [0.25, 0.8, 1.35]) g.add(new THREE.Mesh(new THREE.TorusGeometry(0.59, 0.04, 6, 24).rotateX(Math.PI / 2).translate(0, y, 0), PM(0x3a3a42, { metalness: 0.8, roughness: 0.4 })));
+  return g;
+}
+function lampProp() {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.14, 4, 8).translate(0, 2, 0), PM(0x2a2630, { metalness: 0.7 })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10).translate(0, 4.2, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.6, 1.6) })));
+  return g;
+}
+function rockProp() {
+  const g = new THREE.Group(), r = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2, 0), PM(0x7a7480, { roughness: 1, flatShading: true }));
+  r.scale.set(1.1, 0.75, 0.95); r.position.y = 0.85; r.rotation.set(0.3, 0.7, 0.1); g.add(r);
+  return g;
+}
+function heartProp(c) {
+  const g = new THREE.Group(), h = heartMesh(1.3, PM(propCol(c) || 0xff2f6e, { roughness: 0.3, emissive: propCol(c) || 0xff2f6e, emissiveIntensity: 0.3 }));
+  h.position.y = 2.2; g.add(h); g.userData.spin = h;
+  return g;
+}
+function crystalProp(c) {
+  const g = new THREE.Group(), m = crystal(0, 1.6, 0, 1, propCol(c) || 0x9feaff); g.add(m);
+  return g;
+}
+function padProp() {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.55, 0.12, 28).translate(0, 0.06, 0), stoneMat));
+  const d = new THREE.Mesh(new THREE.CircleGeometry(1.1, 28), amberGlow); d.rotation.x = -Math.PI / 2; d.position.y = 0.125; g.add(d);
+  const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.7, 3).rotateX(-Math.PI / 2), amberGlow); arrow.position.set(0, 0.2, -0.6); g.add(arrow);
+  return g;
+}
+// type: [name, category, icon, builder(color, scale), collider [w, h, d] at scale 1 (null = walk-through)]
+const MAP_CATALOG = {
+  box: ['Block', 'Shapes', '⬛', null, null, 1], cyl: ['Pillar', 'Shapes', '⚪', null, null, 1], ramp: ['Ramp', 'Shapes', '📐', null, null, 1], ball: ['Sphere', 'Shapes', '🔵', null, null, 1], neon: ['Neon Bar', 'Shapes', '💡', null, null, 1],
+  pad: ['Jump Pad', 'Gameplay', '⏫', () => padProp(), null],
+  crate: ['Crate', 'Props', '📦', () => crateProp(), [1.6, 1.6, 1.6]], barrel: ['Barrel', 'Props', '🛢️', c => barrelProp(c), [1.2, 1.6, 1.2]], rock: ['Rock', 'Props', '🪨', () => rockProp(), [2.4, 1.7, 2.2]],
+  lamp: ['Lamp Post', 'Props', '🏮', () => lampProp(), [0.4, 4.4, 0.4]], crystal: ['Crystal', 'Props', '💎', c => crystalProp(c), null], tree: ['Oak Tree', 'Props', '🌳', () => leafy(0x5a3a22, 0x3f8f3a), [1.2, 4, 1.2]],
+  pumpkin: ['Jack-o\'-lantern', 'Halloween', '🎃', () => { const g = new THREE.Group(), p = bigPumpkin(1.2); p.position.y = 1.1; g.add(p); return g; }, [2.3, 2.2, 2.3]],
+  tomb: ['Tombstone', 'Halloween', '🪦', () => tombstone(PM(0x8a8698, { roughness: 0.9 })), [1.4, 1.9, 1.4]], deadtree: ['Dead Tree', 'Halloween', '🌲', () => leafy(0x2a2026, 0x2a2026, 5, 0.5), [1, 5, 1]],
+  xtree: ['Christmas Tree', 'Christmas', '🎄', () => pine(), [1.4, 3, 1.4]], present: ['Present', 'Christmas', '🎁', c => present(1.6, PM(propCol(c) || 0xd8343c), PM(0xffd23a, { metalness: 0.4 }), 0, 0), [1.6, 1.9, 1.6]],
+  cane: ['Candy Cane', 'Christmas', '🍭', () => candyCane(4, 0, 0), [0.8, 4.6, 0.8]], snowman: ['Snowman', 'Christmas', '⛄', () => snowmanProp(), [2, 3.4, 2]],
+  heart: ['Floating Heart', 'Valentine', '💖', c => heartProp(c), null], rosebush: ['Rose Bush', 'Valentine', '🌹', () => { const g = bushProp(); g.traverse(o => { if (o.material && o.geometry.type === 'SphereGeometry') o.material = PM(0xd8203a); }); return g; }, [2.2, 1.8, 2.2]],
+  egg: ['Giant Egg', 'Easter', '🥚', c => eggProp(c), [1.8, 2.6, 1.8]], bush: ['Flower Bush', 'Easter', '🌷', () => bushProp(), [2.2, 1.8, 2.2]],
+  palm: ['Palm Tree', 'Summer', '🌴', () => palmTree(), [0.9, 6, 0.9]], umbrella: ['Beach Umbrella', 'Summer', '⛱️', c => umbrellaProp(c), [0.4, 3.2, 0.4]], castle: ['Sandcastle', 'Summer', '🏰', () => castleProp(), [3.2, 2.6, 3.2]],
+  hay: ['Hay Bale', 'Harvest', '🌾', () => hayProp(), [2.4, 1.6, 1.7]], autumn: ['Autumn Tree', 'Harvest', '🍂', () => leafy(0x5a3a22, 0xe0782a), [1.2, 4, 1.2]], harvpump: ['Pumpkin', 'Harvest', '🟠', () => { const g = new THREE.Group(), p = bigPumpkin(0.8, false); p.position.y = 0.7; g.add(p); return g; }, [1.6, 1.4, 1.6]],
+  torch: ['Monument Flame', 'Heritage', '🔥', () => torchProp(), [0.5, 3.4, 0.5]], baobab: ['Baobab Tree', 'Heritage', '🌳', () => baobabProp(), [2.4, 5, 2.4]],
+  flag: ['Flag', 'Pride', '🏳️‍🌈', c => flagProp(c), [0.3, 6, 0.3]], arch: ['Rainbow Arch', 'Pride', '🌈', () => archProp(), null],
+};
+const MAP_CATS = ['Shapes', 'Gameplay', 'Props', 'Halloween', 'Christmas', 'Valentine', 'Easter', 'Summer', 'Harvest', 'Heritage', 'Pride'];
+const isShape = t => !!MAP_CATALOG[t] && MAP_CATALOG[t][5] === 1;
+// turn a local rectangle by quarter turns
+function rotRect(x0, z0, x1, z1, r) { const pts = [[x0, z0], [x1, z1]].map(([x, z]) => { for (let i = 0; i < (r & 3); i++) [x, z] = [z, -x]; return [x, z]; }); return [Math.min(pts[0][0], pts[1][0]), Math.min(pts[0][1], pts[1][1]), Math.max(pts[0][0], pts[1][0]), Math.max(pts[0][1], pts[1][1])]; }
+// build one object: returns its mesh group and the solid boxes it adds (in world space)
+function buildMapObj(o) {
+  const [t, x, y, z, r, w, h, d, c] = o, C = MAP_CATALOG[t];
+  if (!C) return null;
+  const g = new THREE.Group(), boxes = [];
+  g.position.set(x, y, z); g.rotation.y = -(r & 3) * Math.PI / 2;
+  const box = (x0, z0, x1, z1, y0, y1) => { const [a, b, cc, dd] = rotRect(x0, z0, x1, z1, r); boxes.push({ min: new V3(x + a, y + y0, z + b), max: new V3(x + cc, y + y1, z + dd) }); };
+  if (t === 'box') { const m = new THREE.Mesh(c ? new THREE.BoxGeometry(w, h, d) : boxGeo(w, h, d), shapeMat(c)); m.position.y = h / 2; g.add(m); box(-w / 2, -d / 2, w / 2, d / 2, 0, h); }
+  else if (t === 'cyl') { const m = new THREE.Mesh(new THREE.CylinderGeometry(w / 2, w / 2, h, 20), shapeMat(c)); m.position.y = h / 2; g.add(m); box(-w / 2, -w / 2, w / 2, w / 2, 0, h); }
+  else if (t === 'ball') { const m = new THREE.Mesh(new THREE.SphereGeometry(w / 2, 24, 16), shapeMat(c)); m.position.y = w / 2; g.add(m); box(-w * 0.35, -w * 0.35, w * 0.35, w * 0.35, 0, w * 0.85); }
+  else if (t === 'ramp') {
+    g.add(new THREE.Mesh(rampGeo(w, h, d), shapeMat(c)));
+    // walkable as small steps rising toward the back
+    const n = Math.max(1, Math.ceil(h / 0.3));
+    for (let i = 0; i < n; i++) box(-w / 2, -d / 2, w / 2, -d / 2 + d * (1 - i / n), 0, h * (i + 1) / n);
+  }
+  else if (t === 'neon') { const m = new THREE.Mesh(new THREE.BoxGeometry(w, Math.min(h, 0.3), Math.min(d, 0.3)), glowMatC(c)); m.position.y = Math.min(h, 0.3) / 2; g.add(m); }
+  else {
+    const s = clamp(w || 1, 0.4, 4), m = C[3](c, s); m.scale.setScalar(s); g.add(m);
+    if (C[4]) box(-C[4][0] * s / 2, -C[4][2] * s / 2, C[4][0] * s / 2, C[4][2] * s / 2, 0, C[4][1] * s);
+  }
+  g.traverse(k => { if (k.isMesh) { k.castShadow = true; k.receiveShadow = true; } });
+  return { g, boxes };
+}
+function cleanMapObjs(list) {
+  const out = [];
+  if (!Array.isArray(list)) return out;
+  for (const o of list.slice(0, MAP_LIMIT)) {
+    if (!Array.isArray(o) || !MAP_CATALOG[o[0]]) continue;
+    const n = (v, lo, hi) => clamp(Math.round((+v || 0) * 100) / 100, lo, hi);
+    const x = n(o[1], -ARENA_R, ARENA_R), z = n(o[3], -ARENA_R, ARENA_R);
+    if (Math.hypot(x, z) > ARENA_R - 0.5) continue;
+    out.push([o[0], x, n(o[2], 0, 40), z, (o[4] | 0) & 3, n(o[5] || 1, 0.3, 40), n(o[6] || 1, 0.1, 30), n(o[7] || 1, 0.3, 40), clamp(o[8] | 0, 0, MAP_COLORS.length - 1)]);
+  }
+  return out;
+}
+// play a community map: the arena floor and sky come from its theme; everything else is the creator's
+function buildCustomWorld(map) {
+  for (const o of cleanMapObjs(map.objs)) {
+    if (o[0] === 'pad') { const a = -(o[4] & 3) * Math.PI / 2; pendingPads.push([o[1], o[3], 24, new V3(-Math.sin(a), 0, -Math.cos(a)).multiplyScalar(10)]); continue; }
+    const b = buildMapObj(o); if (!b) continue;
+    scene.add(b.g);
+    for (const bx of b.boxes) colliders.push(bx);
+    // bullets: shapes are hit exactly; props are hit by an invisible box the size of their solid part
+    if (isShape(o[0])) { if (o[0] !== 'neon') b.g.children.forEach(k => worldMeshes.push(k)); }
+    else for (const bx of b.boxes) { const sz = tA.subVectors(bx.max, bx.min), hb = new THREE.Mesh(hitBoxGeo, hitBoxMat); hb.scale.copy(sz); hb.position.addVectors(bx.min, bx.max).multiplyScalar(0.5); hb.visible = false; scene.add(hb); hb.updateMatrixWorld(); worldMeshes.push(hb); }
+    b.g.traverse(k => { if (k.userData.flicker) animProps.push(t => { for (const f of k.userData.flicker) f.scale.y = 1 + Math.sin(t * 13 + f.id) * 0.15; }); if (k.userData.spin) animProps.push(t => { k.userData.spin.rotation.y = t * 0.8; }); if (k.userData.wave) animProps.push(t => { k.userData.wave.rotation.y = Math.sin(t * 2) * 0.15; }); });
+  }
+}
+if (CMAP) buildCustomWorld(CMAP);
+else if (EDITOR) {}
+else if (FROST) {
   // Frostfall: an ice keep in the middle, stair-cut daises on the diagonals, pillar gates on the axes, igloo bunkers and ice spires on the rim
   block(0, 0, 13, 1.2, 13, 0, iceGlow);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) block(sx * 5.2, sz * 5.2, 2.2, 4.2, 2.2, 1.2, frostGlow);
@@ -2011,6 +2325,7 @@ for (let k = 0; k < 3; k++) crystal(Math.cos(k * 2.1) * 3.6, 10.5, Math.sin(k * 
 }
 
 const pads = [];
+for (const a of pendingPads) pad(...a);
 function pad(x, z, up, push) {
   const base = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.55, 0.12, 28), stoneMat); base.position.set(x, 0.06, z); base.receiveShadow = true; scene.add(base);
   const disc = new THREE.Mesh(new THREE.CircleGeometry(1.1, 28), amberGlow); disc.rotation.x = -Math.PI / 2; disc.position.set(x, 0.125, z); scene.add(disc);
@@ -2018,8 +2333,8 @@ function pad(x, z, up, push) {
   const rings = [0, 1, 2].map(() => { const r = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.04, 6, 32), ringMat.clone()); r.rotation.x = Math.PI / 2; r.position.set(x, 0, z); scene.add(r); return r; });
   pads.push({ x, z, up, push, rings });
 }
-for (const [x, z] of FROST ? [[9.5, 0], [-9.5, 0], [0, 9.5], [0, -9.5]] : [[6, 0], [-6, 0], [0, 6], [0, -6]]) pad(x, z, FROST ? 21 : 25, new V3(-x, 0, -z).normalize().multiplyScalar(FROST ? 5 : 4.2));
-for (const a of [0, 90, 180, 270]) {
+if (!CMAP && !EDITOR) for (const [x, z] of FROST ? [[9.5, 0], [-9.5, 0], [0, 9.5], [0, -9.5]] : [[6, 0], [-6, 0], [0, 6], [0, -6]]) pad(x, z, FROST ? 21 : 25, new V3(-x, 0, -z).normalize().multiplyScalar(FROST ? 5 : 4.2));
+if (!CMAP && !EDITOR) for (const a of [0, 90, 180, 270]) {
   const r = THREE.MathUtils.degToRad(a), x = Math.cos(r) * 47, z = Math.sin(r) * 47;
   pad(x, z, 19, new V3(-x, 0, -z).normalize().multiplyScalar(14));
 }
@@ -2400,7 +2715,7 @@ const ACTIONS = [
   ['left', 'Move left', ['KeyA', 'ArrowLeft']], ['right', 'Move right', ['KeyD', 'ArrowRight']],
   ['jump', 'Jump / double jump', ['Space', null]], ['dash', 'Dash', ['ShiftLeft', 'ShiftRight']],
   ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Ability (pulse / class)', ['KeyQ', null]], ['nade', 'Grenade / gadget', ['KeyG', null]],
-  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]],
+  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]], ['spray', 'Spray', ['KeyY', null]],
   ['panic', 'Panic screen', ['Backquote', null]],
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
 ];
@@ -2494,7 +2809,7 @@ let shake = 0, recoilP = 0, vmKick = 0, bobT = 0, landDip = 0, fovKick = 0, dmgF
 let score = 0, streak = 0, lastKill = -99, mult = 1, frags = 0, deaths = 0, ggLv = 0, myTeam = 0;
 let respawnAt = 0;
 // shared match state; the host writes it, everyone else mirrors it from the host's presence
-const GS = { wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0 };
+const GS = { wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0 };
 let prevGS = JSON.parse(JSON.stringify(GS));
 
 // ================= physics =================
@@ -2882,7 +3197,7 @@ function wsAdapter(name) {
   const pm = new Map(); let id = null, ws = null, alive = true, mine = {};
   function connect() {
     try { ws = new WebSocket(base + '/ws'); } catch { return; }
-    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); ws.send(JSON.stringify({ t: 'join', room: name })); for (const k of Object.keys(LBD)) ws.send(JSON.stringify({ t: 'lb', board: k, entries: lbPayload(true, k) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
+    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); if (Object.keys(myMaps).length) ws.send(JSON.stringify({ t: 'mapmine', ids: Object.keys(myMaps) })); ws.send(JSON.stringify({ t: 'join', room: name })); for (const k of Object.keys(LBD)) ws.send(JSON.stringify({ t: 'lb', board: k, entries: lbPayload(true, k) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
     ws.onmessage = e => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'hello') id = m.id;
@@ -2891,6 +3206,8 @@ function wsAdapter(name) {
       else if (m.t === 'bye') pm.delete(m.id);
       else if (m.t === 'lbtop') onLBTop(m.list, m.board || 'waves');
       else if (m.t === 'pay' || m.t === 'ack') onPayMessage(m, o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
+      else if (/^(gift|giftack|trade|tradeacc|tradedone|tradeno)$/.test(m.t)) onTrade(m);
+      else if (/^map/.test(m.t)) onMaps(m);
       else if (m.t === 'linked') walHello(o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
       else if (m.t === 'wal') walRecv(m);
       else if (m.t === 'whois' || m.t === 'invite' || m.t === 'profile' || m.t === 'invsent') onSocial(m);
@@ -3915,6 +4232,7 @@ function equip(kind, id) {
     if (curW === 'lmg') setWeapon('lmg', true);
     preview.addon = null; buildShowcase(); renderShop(); return;
   }
+  if (kind === 'spray') { settings.spray = id; store.set('spray', id); toast(`${SPRAYS[id].icon} ${SPRAYS[id].name} spray equipped · press ${bindLabel('spray').toUpperCase()} in a match`); renderShop(); return; }
   if (kind === 'suit') { settings.skin = id; store.set('skin', id); } else if (kind === 'hat') { settings.hat = id; store.set('hat', id); } else if (kind === 'pet') { settings.pet = id; store.set('pet', id); } else { settings.finish = id; store.set('finish', id); }
   preview[kind] = null; refreshPreview(); renderShop();
 }
@@ -3943,7 +4261,7 @@ function shopItem(kind, id, def, cur, el) {
   sm.textContent = eq ? 'EQUIPPED' : slot >= 0 ? `KEY ${slot + 1}` : own ? (kind === 'emote' ? `PUT ON KEY ${emoteSel + 1}` : 'OWNED · EQUIP') : closed ? `${SEASONS[def.season].name.toUpperCase()} ONLY` : def.bundle ? `WITH ${SUITS[def.bundle].name.toUpperCase()} SUIT` : def.price.toLocaleString();
   b.append(pv, nm, sm);
   if (def.season) { const t = document.createElement('span'); t.className = 'tagS'; t.textContent = `${SEASONS[def.season].icon} ${kind.toUpperCase()}`; b.insertBefore(t, nm); }
-  if (kind !== 'emote') {
+  if (kind !== 'emote' && kind !== 'spray') {
     b.addEventListener('mouseenter', () => { preview[kind] = id; refreshPreview(); });
     b.addEventListener('mouseleave', () => { preview[kind] = null; refreshPreview(); });
   }
@@ -3974,6 +4292,7 @@ function renderShop() {
     if (!cnt) { const m = document.createElement('div'); m.className = 'emptyrow'; m.textContent = el.id.startsWith('c') ? 'Nothing here yet. Get some in the Shop.' : 'You own all of these. Put them on in Customize.'; el.appendChild(m); }
   }
   setupShopRows();
+  renderCardPick();
   for (const el of document.querySelectorAll('.hrow')) if (el.id && keep[el.id]) { el.style.scrollBehavior = 'auto'; el.scrollLeft = keep[el.id]; el.style.scrollBehavior = ''; }
 }
 function renderShopInner() {
@@ -3984,11 +4303,11 @@ function renderShopInner() {
     const S = SEASONS[k], left = seasonDaysLeft(k), box = document.createElement('div'); box.className = 'seasonbox'; box.style.setProperty('--sc', S.css);
     box.innerHTML = `<div class="seasonhead"><b>${S.icon} ${S.name.toUpperCase()} SHOP</b><span>Leaves in ${left} day${left === 1 ? '' : 's'} · yours forever once bought</span></div>`;
     const el = document.createElement('div'); el.className = 'items hrow'; box.appendChild(el); boxes.appendChild(box);
-    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet], ['emote', EMOTES, '']])
+    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet], ['emote', EMOTES, ''], ['spray', SPRAYS, settings.spray]])
       for (const [id, def] of Object.entries(defs)) if (def.season === k) shopItem(kind, id, def, cur, el);
   }
   // Shop rows only list what you can still buy; Customize lists everything you own
-  for (const [kind, defs, box, cbox, cur] of [['suit', SUITS, 'suitItems', 'cSuitItems', settings.skin], ['hat', HATS, 'hatItems', 'cHatItems', settings.hat], ['finish', FINISHES, 'finishItems', 'cFinishItems', settings.finish], ['pet', PETS, 'petItems', 'cPetItems', settings.pet], ['emote', EMOTES, 'emoteItems', 'cEmoteItems', '']]) {
+  for (const [kind, defs, box, cbox, cur] of [['suit', SUITS, 'suitItems', 'cSuitItems', settings.skin], ['hat', HATS, 'hatItems', 'cHatItems', settings.hat], ['finish', FINISHES, 'finishItems', 'cFinishItems', settings.finish], ['pet', PETS, 'petItems', 'cPetItems', settings.pet], ['spray', SPRAYS, 'sprayItems', 'cSprayItems', settings.spray], ['emote', EMOTES, 'emoteItems', 'cEmoteItems', '']]) {
     const el = $(box), cel = $(cbox); el.textContent = ''; cel.textContent = '';
     for (const [id, def] of Object.entries(defs)) {
       if (owns(kind, id)) shopItem(kind, id, def, cur, cel);
@@ -4575,7 +4894,8 @@ function resetMatchWorld() {
   while (deploys.length) removeDeploy(0); for (const r of reflects) { scene.remove(r.m); r.m.material.dispose(); } reflects.length = 0; teamFx.rallyUntil = teamFx.wallUntil = teamFx.frenzyUntil = teamFx.tripleUntil = 0; slotUI = null; while (drops.length) disposeMech(drops.pop().m);
   for (const k of pickups) scene.remove(k.m); pickups.length = 0;
   for (const id of [...peers.keys()]) removePeer(id);
-  Object.assign(GS, { wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', gm: 0, inf: [], it: INF_TIME, ip: mode === 'infect' ? INF_PRE : 0, bhp: 0, bp: 0 });
+  stopPodium(); clearSprays();
+  Object.assign(GS, { wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: mode === 'infect' ? INF_PRE : 0, bhp: 0, bp: 0 });
   H.I = { pre: INF_PRE, alive: new Map(), last: '' };
   prevGS = JSON.parse(JSON.stringify(GS));
   H.ob = []; H.bs = []; H.ek = []; H.ev = []; H.bd = {}; H.seen.clear(); H.W = { queue: [], spawnT: 0, timer: 3 };
@@ -4988,8 +5308,8 @@ function hostInfect(dt) {
   I.t = Math.max(0, I.t - dt); GS.it = Math.ceil(I.t);
   const surv = acts.filter(a => !GS.inf.includes(a.id));
   if (surv.length === 1 && I.last !== surv[0].id && acts.length > 1) { I.last = surv[0].id; hostEvent(`${surv[0].name} is the last survivor`); }
-  if (!surv.length) { GS.ph = 1; GS.pw = 'THE INFECTED WIN'; H.phT = 8; hostEvent('Everyone was infected'); }
-  else if (GS.it <= 0) { GS.ph = 1; GS.pw = surv.length === 1 ? `${surv[0].name} SURVIVED` : 'SURVIVORS WIN'; H.phT = 8; hostEvent(`${surv.length} survivor${surv.length === 1 ? '' : 's'} made it`); }
+  if (!surv.length) { GS.ph = 1; GS.pw = 'THE INFECTED WIN'; GS.pwid = mvpOf(a => GS.inf.includes(a.id)); H.phT = 8; hostEvent('Everyone was infected'); }
+  else if (GS.it <= 0) { GS.ph = 1; GS.pw = surv.length === 1 ? `${surv[0].name} SURVIVED` : 'SURVIVORS WIN'; GS.pwid = mvpOf(a => a.alive && !GS.inf.includes(a.id)); H.phT = 8; hostEvent(`${surv.length} survivor${surv.length === 1 ? '' : 's'} made it`); }
 }
 function infectActor(a, zero) {
   if (GS.inf.includes(a.id)) return;
@@ -5233,7 +5553,7 @@ function hostCTF(dt) {
       if (GS.fl[c.team][0] === 0 && Math.hypot(c.pos.x - home.x, c.pos.z - home.z) < 2.6 && c.pos.y < 3) {
         GS.cs[c.team]++; returnFlag(i);
         hostEvent(`${c.name} captured the ${TEAM_NAME[i]} flag`);
-        if (GS.cs[c.team] >= 3) { GS.ph = 1; GS.pw = `${TEAM_NAME[c.team]} TEAM WINS`; H.phT = 9; }
+        if (GS.cs[c.team] >= 3) { GS.ph = 1; GS.pw = `${TEAM_NAME[c.team]} TEAM WINS`; GS.pwid = mvpOf(a => a.team === c.team); H.phT = 9; }
       }
     } else {
       for (const a of acts) {
@@ -5248,16 +5568,16 @@ function hostCTF(dt) {
 function hostPhase(dt) {
   if (mode === 'gungame' && GS.ph === 0) {
     const w = allActors().find(a => (a.me ? ggLv : a.ent ? a.ent.lv : +a.peer.d.lv || 0) >= LADDER.length);
-    if (w) { GS.ph = 1; GS.pw = `${w.name} WINS`; H.phT = 8; hostEvent(`${w.name} won the Gun Game`); }
+    if (w) { GS.ph = 1; GS.pw = `${w.name} WINS`; GS.pwid = w.id; H.phT = 8; hostEvent(`${w.name} won the Gun Game`); }
   }
   if (mode === 'ffa' && GS.ph === 0) {
     const w = allActors().find(a => (a.me ? frags : a.ent ? a.ent.f || 0 : +a.peer.d.f || 0) >= FFA_GOAL);
-    if (w) { GS.ph = 1; GS.pw = `${w.name} WINS`; H.phT = 8; hostEvent(`${w.name} won the free-for-all`); }
+    if (w) { GS.ph = 1; GS.pw = `${w.name} WINS`; GS.pwid = w.id; H.phT = 8; hostEvent(`${w.name} won the free-for-all`); }
   }
   if (GS.ph === 1) {
     H.phT -= dt;
     if (H.phT <= 0) {
-      GS.ph = 0; GS.pw = ''; GS.gm++; GS.cs = [0, 0]; returnFlag(0); returnFlag(1);
+      GS.ph = 0; GS.pw = ''; GS.pwid = ''; GS.gm++; GS.cs = [0, 0]; returnFlag(0); returnFlag(1);
       for (const e of ents.values()) if (e.kind === 'bot') { e.lv = 0; e.f = 0; e.d = 0; e.alive = false; e.respawnT = rand(0.2, 1); if (mode === 'gungame') e.wp = LADDER[0]; if (mode === 'infect') { e.team = 0; e.wp = e.gun || 'rifle'; } }
       if (mode === 'infect') { GS.inf = []; GS.ip = INF_PRE; GS.it = INF_TIME; H.I = { pre: INF_PRE, alive: new Map(), last: '' }; }
     }
@@ -5306,7 +5626,7 @@ function mirrorHost(hd) {
   const base = clientSeen.host !== hostId;
   const maxSeq = l => Array.isArray(l) && l.length ? Math.max(...l.map(x => +x[0] || 0)) : 0;
   if (base) { clientSeen.host = hostId; for (const k of ['ob', 'bs', 'ek', 'ev']) clientSeen[k] = maxSeq(hd[k]); clientSeen.bd = (hd.bd && hd.bd[peerKey(myId)]?.[0]) || 0; prevGS = null; }
-  for (const k of ['wv', 'wst', 'ph', 'pw', 'gm', 'it', 'ip', 'bhp', 'bp', 'wt', 'wr']) if (hd[k] !== undefined && hd[k] !== null) GS[k] = hd[k];
+  for (const k of ['wv', 'wst', 'ph', 'pw', 'pwid', 'gm', 'it', 'ip', 'bhp', 'bp', 'wt', 'wr']) if (hd[k] !== undefined && hd[k] !== null) GS[k] = hd[k];
   if (Array.isArray(hd.inf)) GS.inf = hd.inf.slice(0, 32).map(String);
   if (Array.isArray(hd.fl) && hd.fl.length === 2) GS.fl = hd.fl.map(f => Array.isArray(f) ? [...f] : [0, '', 0, 0, 0]);
   if (Array.isArray(hd.cs)) GS.cs = [+hd.cs[0] || 0, +hd.cs[1] || 0];
@@ -5375,6 +5695,8 @@ function onGSChange() {
     }
     if (GS.wv < p.wv) { if (state !== 'menu') saveBest(p.wv); announce('RAID FAILED', `Fell on round ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); if (state === 'playing' || state === 'paused') gameOver(p.wv); score = 0; streak = 0; runCoins = 0; }
   }
+  if (GS.ph !== 1 && podium) stopPodium();
+  if (GS.ph === 1 && GS.pwid && !podium && !coop()) startPodium();
   if (GS.ph === 1 && p.ph !== 1) {
     const mine = mode === 'ctf' ? GS.pw.startsWith(TEAM_NAME[myTeam]) : mode === 'infect' ? (GS.pw.startsWith('THE INFECTED') ? amInfected() : !amInfected()) : GS.pw === `${settings.name} WINS`;
     announce(GS.pw, mine ? 'Victory' : 'Next match starts shortly', mine ? '#74ffb5' : '#ffbf6b', true); sfx.win();
@@ -5935,6 +6257,7 @@ function applyAb(type, x, y, z, extra, who) {
     if (d.owner === myId) areaDrones(p, 6, e => damageEnt(e, 90, e.pos.clone(), true));
     return;
   }
+  if (type === 'spray') { if (Array.isArray(extra)) placeSpray(new V3(x, y, z), new V3(+extra[0] || 0, +extra[1] || 0, +extra[2] || 0).normalize(), String(extra[3]), String(extra[4]), +extra[5] || 0); return; }
   if (type === 'heat') {
     const from = new V3(x, y, z), dir = Array.isArray(extra) ? new V3(+extra[0] || 0, +extra[1] || 0, +extra[2] || -1).normalize() : new V3(0, 0, -1);
     const o = from.clone().addScaledVector(dir, 0.8);
@@ -6763,7 +7086,7 @@ function updateWeapon(dt) {
   { const sp = curGun().g.userData.spin; if (sp) { sp.userData.v = damp(sp.userData.v || 0, firing ? 32 : 2, 6, dt); sp.rotation.z += dt * sp.userData.v; } }
   const scoped = curW === 'rail' && ads && camera.fov < 34;
   if (scoped) $('scope').style.setProperty('--ch', scopeCharge.toFixed(2));
-  $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && !scoped;
+  $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && state !== 'editor' && !scoped && !specOn && !(podium && GS.ph === 1);
 }
 
 // ================= damage / death / scoring =================
@@ -6792,6 +7115,7 @@ function die(src) {
   if (isHost && ents.has(k)) { const b = ents.get(k); if (b.kind === 'bot') { b.f = (b.f || 0) + 1; if (mode === 'gungame') botLevelUp(b); } }
   if (mode === 'ctf' && isHost) dropIfCarrying(myId);
   const kname = k ? nameOf(k) : '';
+  specLock = k && (peers.has(k) || ents.has(k)) ? String(k) : ''; specIdx = 0;
   feedKill(k, settings.name, kWeapon);
   explosionFX(player.pos.clone().setY(player.pos.y + 1), ROSE, 1);
   if (mode === 'gungame' && kWeapon === 'blade' && ggLv > 0) { ggLv--; toast('Bladed! Down to level ' + (ggLv + 1)); }
@@ -6806,7 +7130,7 @@ function die(src) {
 let reviveT = 0, reviveTarget = null, beingRevived = 0, lastRunWave = 0;
 function goDown(src) {
   if (!player.alive) return;
-  player.alive = false; player.downed = true; player.hp = 0; deaths++; firing = false; clearAds(); closeEmotes(); bumpStat('d');
+  player.downT = time; player.alive = false; player.downed = true; player.hp = 0; deaths++; firing = false; clearAds(); closeEmotes(); bumpStat('d');
   closeChat(); feedHTML(`<em>${esc(settings.name)}</em> <i>is down</i>`);
   sfx.hurt(); tone(300, 90, 0.6, 0.2, 'sawtooth'); shake = 0.35;
   announce('DOWNED', humans().some(a => a.alive && !a.me) ? `Hold on. A teammate can revive you with ${bindLabel('use')}.` : 'Nobody left standing…', '#ff4d6a');
@@ -7041,6 +7365,7 @@ function updatePeers(dt, list) {
       const a = makeAvatar(avatarLook(team, hue), nm, thr, sk, fn, cl, ht, pt);
       o = Object.assign(a, { id: p.id, name: nm, team, thr, pt, sk, fn, cl, ht, hue, abSeen: Array.isArray(d.ab) && d.ab.length ? Math.max(...d.ab.map(x => +x[0] || 0)) : 0, pos: new V3(d.x, d.y, d.z), vel: new V3(), yaw: +d.yw || 0, dmgSeen: null, shSeen: Array.isArray(d.sh) ? d.sh[0] : 0, rkSeen: Array.isArray(d.rk) ? d.rk[0] : 0, gnSeen: Array.isArray(d.gn) ? d.gn[0] : 0, ctSeen: Array.isArray(d.ct) ? d.ct[0] : 0, kbSeen: Array.isArray(d.kb) ? d.kb[0] : 0, emSeen: Array.isArray(d.em) ? d.em[0] : 0 });
       o.body.userData.peer = p.id; peers.set(p.id, o); updateNetLabel();
+      if (!joinSeen.has(p.id)) { joinSeen.add(p.id); if (time > 4) showJoinCard(cardFromPres(nm, d.cd)); }
     }
     o.d = d;
     const px = o.pos.x, pz = o.pos.z;
@@ -7094,18 +7419,18 @@ let presT = 0;
 function buildPresence() {
   const p = player.pos;
   const o = {
-    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet !== 'none' ? settings.pet : '', cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, mk: mechOn ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
-    st: state === 'menu' ? 'm' : state === 'dead' ? 'x' : 'p', al: player.alive ? 1 : 0,
+    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet !== 'none' ? settings.pet : '', cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, mk: mechOn ? 1 : 0, cd: cardPres(), vp: settings.vpose, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
+    st: state === 'menu' || state === 'editor' ? 'm' : state === 'dead' ? 'x' : 'p', al: player.alive ? 1 : 0,
     x: r2(p.x), y: r2(p.y), z: r2(p.z), yw: r2(player.yaw), wp: WIDS.indexOf(curW), lv: ggLv, f: frags, d: deaths, s: score,
     hp: Math.max(0, Math.round(player.hp)), mh: maxHp(), dn: player.downed ? 1 : 0, rp: reviveTarget && reviveT > 0 ? [reviveTarget, r2(reviveT)] : null,
     dm: dmgOut, edm, sh: lastShot, rk: lastRocket, gn: lastNade, ct: lastChat, kb: killRec, em: lastEmote, pid: PID,
-    vz: document.hidden ? 0 : 1, hs: isHost ? 1 : 0, en: null, ob: null, bs: null, ek: null, ev: null, bd: null, wt: null, wr: null, wv: null, wst: null, fl: null, cs: null, ph: null, pw: null, gm: null, inf: null, it: null, ip: null, bhp: null, bp: null,
+    vz: document.hidden ? 0 : 1, hs: isHost ? 1 : 0, en: null, ob: null, bs: null, ek: null, ev: null, bd: null, wt: null, wr: null, wv: null, wst: null, fl: null, cs: null, ph: null, pw: null, pwid: null, gm: null, inf: null, it: null, ip: null, bhp: null, bp: null,
   };
   if (isHost) {
     o.en = [...ents.values()].map(e => e.kind === 'drone'
       ? ['d', e.id, DTYPES.indexOf(e.type), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), Math.round(e.hp), Math.round((e.charge || 0) * 10), ...(isBoss(e) || e.type === 'qclone' ? [e.bst | 0, r2(e.yaw || 0)] : [])]
       : ['b', e.id, Math.max(0, BOT_NAMES.indexOf(e.name)), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), r2(e.yaw), Math.round(e.hp), e.team, e.alive ? 1 : 0, WIDS.indexOf(e.wp), e.lv || 0, e.f || 0, e.d || 0]);
-    Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, fl: GS.fl, cs: GS.cs, ph: GS.ph, pw: GS.pw, gm: GS.gm });
+    Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, fl: GS.fl, cs: GS.cs, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
     if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr });
   }
   // keep within the 4 KB presence budget
@@ -7546,7 +7871,8 @@ function toggleStudy() {
 }
 function actionDown(a) {
   switch (a) {
-    case 'fire': firing = true; break;
+    case 'fire': if (player.downed && specOn) { specNext(); break; } firing = true; break;
+    case 'spray': doSpray(); break;
     case 'zoom': if (mechOn) mechSalvo(); else if (curW === 'dual') tryParry(); else adsKey = true; break;
     case 'zoomToggle': if (mechOn) mechSalvo(); else if (curW === 'dual') tryParry(); else adsToggle = !adsToggle; break;
     case 'jump': tryJump(); break;
@@ -7591,6 +7917,7 @@ addEventListener('keydown', e => {
   if (typing) return;
   if (!studyOn && !chatOpen && state === 'dead' && (e.code === 'Enter' || (e.code === 'Space' && !codeMap.get('Space')?.includes('chat')))) { e.preventDefault(); redeploy(); return; }
   if (e.code === 'Escape') { if (fallbackLook && state === 'playing') pauseGame(); return; }
+  if (specOn && (e.code === 'ArrowLeft' || e.code === 'ArrowRight')) { e.preventDefault(); specNext(e.code === 'ArrowLeft' ? -1 : 1); return; }
   if (emoteOpen && !e.repeat) {
     const i = Math.max(EKEYS.indexOf(e.code), EKEYS_NP.indexOf(e.code)), list = emoteSlots();
     if (i >= 0) { e.preventDefault(); if (list[i]) playEmote(list[i]); return; }
@@ -7601,20 +7928,280 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { if (releaseCode(e.code) && state === 'playing') e.preventDefault(); });
 addEventListener('blur', () => { for (const k in held) held[k] = false; firing = false; clearAds(); });
 
+// ================= sprays =================
+const sprayTex = id => canvasTex('spray-' + id, x => {
+  const d = SPRAYS[id] || SPRAYS.prism, c = d.col || '#5ff2ff';
+  // a rough paint splat with drips, then the picture on top
+  x.globalAlpha = 0.85; x.fillStyle = c;
+  x.beginPath(); for (let i = 0; i <= 40; i++) { const a = i / 40 * Math.PI * 2, r = 92 + Math.sin(i * 7.3) * 10 + (i % 5 === 0 ? 14 : 0); x.lineTo(128 + Math.cos(a) * r, 128 + Math.sin(a) * r); } x.fill();
+  for (let i = 0; i < 6; i++) { const px = 70 + i * 22 + Math.sin(i * 3) * 8; x.fillRect(px, 190, 6, 30 + (i * 17) % 34); x.beginPath(); x.arc(px + 3, 222 + (i * 17) % 34, 5, 0, 7); x.fill(); }
+  for (let i = 0; i < 60; i++) { const a = Math.random() * 6.283, r = 100 + Math.random() * 26; x.globalAlpha = 0.5; x.beginPath(); x.arc(128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 1 + Math.random() * 3, 0, 7); x.fill(); }
+  x.globalAlpha = 1; x.textAlign = 'center'; x.textBaseline = 'middle';
+  if (/^[A-Z0-9]{1,3}$/.test(d.icon)) { x.font = '900 104px Arial Black, Impact, sans-serif'; x.lineWidth = 10; x.strokeStyle = '#140a1e'; x.strokeText(d.icon, 128, 132); x.fillStyle = '#fff'; x.fillText(d.icon, 128, 132); }
+  else if (d.icon === '◆') { x.fillStyle = '#fff'; x.beginPath(); x.moveTo(128, 50); x.lineTo(186, 128); x.lineTo(128, 206); x.lineTo(70, 128); x.closePath(); x.fill(); x.fillStyle = c; x.font = '900 70px Arial Black, sans-serif'; x.fillText('P', 128, 132); }
+  else { x.font = '118px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif'; x.fillText(d.icon, 128, 138); }
+});
+const sprays = new Map(), sprayGeo = new THREE.PlaneGeometry(1.8, 1.8);
+let sprayCd = 0;
+function doSpray() {
+  if (!player.alive || time < sprayCd) return;
+  const dir = new V3(0, 0, -1).applyQuaternion(camera.quaternion);
+  raycaster.set(camera.position, dir); raycaster.far = 7;
+  const h = raycaster.intersectObjects(worldMeshes, true)[0];
+  let p, n;
+  if (h && h.face) { p = h.point.clone(); n = h.face.normal.clone().transformDirection(h.object.matrixWorld); }
+  else { const gT = dir.y < 0 ? -camera.position.y / dir.y : Infinity; if (gT > 7) { toast('Get closer to a wall or the floor to spray'); return; } p = camera.position.clone().addScaledVector(dir, gT); n = new V3(0, 1, 0); }
+  sprayCd = time + 2;
+  const ex = [r2(n.x), r2(n.y), r2(n.z), settings.spray, myId, r2(player.yaw)];
+  pushAb('spray', p, ex); applyAb('spray', p.x, p.y, p.z, ex, settings.name);
+}
+function placeSpray(p, n, id, owner, yaw) {
+  const old = sprays.get(owner); if (old) { scene.remove(old); old.material.dispose(); sprays.delete(owner); }
+  const m = new THREE.Mesh(sprayGeo, new THREE.MeshBasicMaterial({ map: sprayTex(SPRAYS[id] ? id : 'prism'), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, color: 0xdddddd }));
+  m.position.copy(p).addScaledVector(n, 0.03); m.lookAt(tA.copy(m.position).add(n));
+  if (Math.abs(n.y) > 0.8) m.rotateZ(-(yaw || 0));
+  scene.add(m); sprays.set(owner, m);
+  while (sprays.size > 24) { const [k, v] = sprays.entries().next().value; scene.remove(v); v.material.dispose(); sprays.delete(k); }
+  const pf = panFor(p); noise(0.45, 0.14 * Math.max(0.2, pf.v), 6000, 'highpass', 0.6, pf.pan); noise(0.1, 0.1 * Math.max(0.2, pf.v), 2500, 'bandpass', 1, pf.pan, 0.42);
+}
+function clearSprays() { for (const v of sprays.values()) { scene.remove(v); v.material.dispose(); } sprays.clear(); }
+// ================= player cards =================
+const BANNERS = [
+  ['Neon', 'linear-gradient(120deg,#5ff2ff,#b48cff 50%,#ff4fa3)'], ['Sunset', 'linear-gradient(120deg,#ffcf9a,#ff8fc4 45%,#6a3a9a)'], ['Midnight', 'linear-gradient(120deg,#0e0b1e,#2a2456 60%,#3a8aff)'],
+  ['Toxic', 'linear-gradient(120deg,#0a1a0a,#2a6a1a 50%,#b6ff5c)'], ['Inferno', 'linear-gradient(120deg,#2a0606,#c8321a 50%,#ffd23a)'], ['Frost', 'linear-gradient(120deg,#cfe6ff,#5fa8ff 50%,#1a2a5a)'],
+  ['Royal', 'linear-gradient(120deg,#2a1036,#7a2a9a 50%,#ffd86b)'], ['Candy', 'repeating-linear-gradient(135deg,#ff5a8a 0 14px,#ffe6ee 14px 28px)'], ['Gold', 'linear-gradient(120deg,#7a5a10,#ffd86b 45%,#fff3c4 55%,#b88a2a)'],
+  ['Pride', 'linear-gradient(90deg,#e40303,#ff8c00,#ffed00,#008026,#004dff,#750787)'], ['Kente', 'repeating-linear-gradient(90deg,#ffc83a 0 10px,#1f8a3a 10px 16px,#c41e1e 16px 22px,#111 22px 28px)'],
+  ['Galaxy', 'radial-gradient(circle at 20% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 60%,#fff 0 1px,transparent 2px),radial-gradient(circle at 45% 80%,#fff 0 1px,transparent 2px),linear-gradient(120deg,#0a0420,#3a1060 50%,#0a2a5a)'],
+];
+const TITLES = [
+  ['rookie', 'Rookie', () => true, 'Everyone starts here'],
+  ['hunter', 'Drone Hunter', () => stats.k >= 200, 'Get 200 kills'],
+  ['slayer', 'Boss Slayer', () => stats.bk >= 5, 'Defeat 5 bosses'],
+  ['legend', 'Raid Legend', () => bestBoss.wave >= 8, 'Reach round 8 in Boss Raid'],
+  ['survivor', 'Wave Survivor', () => best.wave >= 10, 'Reach wave 10'],
+  ['champ', 'Champion', () => stats.w >= 10, 'Win 10 matches'],
+  ['vet', 'Veteran', () => stats.gp >= 100, 'Play 100 matches'],
+  ['zero', 'Patient Zero', () => stats.inf >= 25, 'Infect 25 players'],
+  ['grinder', 'Daily Grinder', () => stats.ch >= 20, 'Finish 20 daily challenges'],
+  ['roller', 'High Roller', () => wallet.coins >= 10000, 'Hold 10,000 coins'],
+  ['collector', 'Collector', () => wallet.owned.length >= 30, 'Own 30 items'],
+  ['maker', 'Map Maker', () => (stats.mp || 0) >= 1, 'Publish a map'],
+  ['generous', 'Generous', () => (stats.gs || 0) >= 3, 'Gift 3 items'],
+  ['trader', 'Trader', () => (stats.tr || 0) >= 3, 'Make 3 trades'],
+];
+const titleOk = id => { const t = TITLES.find(x => x[0] === id); return !!t && t[2](); };
+const myCard = () => ({ n: settings.name, t: titleOk(settings.title) ? settings.title : 'rookie', b: clamp(settings.banner | 0, 0, BANNERS.length - 1), k: stats.k, w: stats.w, bw: best.wave, br: bestBoss.wave });
+function cardHTML(c) {
+  const t = TITLES.find(x => x[0] === c.t) || TITLES[0], b = BANNERS[clamp(c.b | 0, 0, BANNERS.length - 1)];
+  return `<div class="pcard" style="--bn:${b[1]}"><div class="pcin"><span class="pctitle">${esc(t[1])}</span><b class="pcname">${esc(c.n || 'Pilot')}</b>
+    <div class="pcst"><span><i>KILLS</i>${(+c.k || 0).toLocaleString()}</span><span><i>WINS</i>${+c.w || 0}</span><span><i>WAVE</i>${+c.bw || 0}</span><span><i>RAID</i>${+c.br || 0}</span></div></div></div>`;
+}
+const cardPres = () => { const c = myCard(); return [TITLES.findIndex(x => x[0] === c.t), c.b, c.k, c.w, c.bw, c.br]; };
+const cardFromPres = (n, a) => Array.isArray(a) ? { n, t: (TITLES[a[0] | 0] || TITLES[0])[0], b: a[1] | 0, k: +a[2] || 0, w: +a[3] || 0, bw: +a[4] || 0, br: +a[5] || 0 } : null;
+const joinQ = [];
+let joinT = 0;
+function showJoinCard(c) { if (!c || menuOpenNow()) return; joinQ.push(c); if (joinQ.length > 3) joinQ.shift(); if (!joinT) nextJoinCard(); }
+function nextJoinCard() {
+  const c = joinQ.shift(), el = $('joinCard');
+  if (!c) { el.classList.remove('on'); joinT = 0; return; }
+  el.innerHTML = `<small>JOINED THE ROOM</small>${cardHTML(c)}`; el.classList.add('on');
+  joinT = setTimeout(() => { el.classList.remove('on'); joinT = setTimeout(() => { joinT = 0; nextJoinCard(); }, 450); }, 4200);
+}
+function renderCardPick() {
+  const el = $('myCardPrev'); if (!el) return;
+  el.innerHTML = cardHTML(myCard());
+  const bp = $('bannerPick'); bp.textContent = '';
+  BANNERS.forEach(([nm, bg], i) => { const b = document.createElement('button'); b.style.background = bg; b.title = nm; b.className = (settings.banner | 0) === i ? 'sel' : ''; b.addEventListener('click', () => { settings.banner = i; store.set('banner', i); renderCardPick(); sendProf(); }); bp.appendChild(b); });
+  const tp = $('titlePick');
+  tp.innerHTML = TITLES.map(([id, nm, ok, how]) => `<option value="${id}" ${ok() ? '' : 'disabled'} ${settings.title === id ? 'selected' : ''}>${esc(nm)}${ok() ? '' : ' · 🔒 ' + esc(how)}</option>`).join('');
+  const vp = $('vposePick');
+  vp.innerHTML = ownedEmotes().map(id => `<option value="${id}" ${settings.vpose === id ? 'selected' : ''}>${EMOTES[id].icon} ${esc(EMOTES[id].name)}</option>`).join('');
+}
+// ================= victory podium =================
+let podium = null;
+function mvpOf(filter) {
+  let bestA = null, bf = -1;
+  for (const a of allActors()) { if (!filter(a)) continue; const f = a.me ? frags : a.ent ? a.ent.f || 0 : +a.peer.d.f || 0; if (f > bf) { bf = f; bestA = a; } }
+  return bestA ? bestA.id : '';
+}
+function startPodium() {
+  stopPodium();
+  const id = GS.pwid; if (!id) return;
+  let av = null, pose = 'wave', name = '';
+  if (id === myId) { const h = settings.hue, look = { col: new THREE.Color().setHSL(h / 360, 0.65, 0.55), gl: new THREE.Color().setHSL(h / 360, 1, 0.6).multiplyScalar(2.6), css: `hsl(${h},100%,72%)` }; av = makeAvatar(look, settings.name, false, mode === 'infect' && amInfected() ? 'infected' : settings.skin, settings.finish, '', settings.hat, settings.pet); pose = settings.vpose; name = settings.name; }
+  else if (peers.has(id)) { const o = peers.get(id); av = makeAvatar(avatarLook(o.team, o.hue), o.name, false, o.sk, o.fn, '', o.ht, o.pt); pose = EMOTES[o.d.vp] ? o.d.vp : 'wave'; name = o.name; }
+  else if (ents.has(id)) { const e = ents.get(id); av = makeAvatar(avatarLook(e.team, (hashStr(e.id) * 37) % 360), e.name, false, mode === 'infect' && e.team === 1 ? 'infected' : 'standard'); const free = Object.keys(EMOTES).filter(k => !EMOTES[k].season && !EMOTES[k].price); pose = free[hashStr(e.id) % free.length]; name = e.name; }
+  if (!av) return;
+  if (!EMOTES[pose]) pose = 'wave';
+  const g = new THREE.Group(), Y = 26; g.position.set(0, Y, 0); scene.add(g);
+  const gold = new THREE.MeshStandardMaterial({ color: 0xffd86b, metalness: 0.9, roughness: 0.25 }), dark = new THREE.MeshStandardMaterial({ color: 0x1a1626, metalness: 0.6, roughness: 0.4 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.6, 1.2, 32), dark); base.position.y = -0.6; g.add(base);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.4, 0.6, 32), gold); top.position.y = 0.0; g.add(top);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3.3, 0.06, 8, 64).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.4, 0.9) })); ring.position.y = -0.05; g.add(ring);
+  av.av.position.set(0, Y + 0.3, 0); av.label.visible = false;
+  podium = { g, av, pose, name, mats: [gold, dark, ring.material], t0: time, confT: 0 };
+  startEmote(av, pose);
+  $('podTxt').innerHTML = `<small>${esc(GS.pw)}</small><b>${esc(name)}</b>`; $('podTxt').hidden = false;
+}
+function stopPodium() {
+  if (!podium) return;
+  scene.remove(podium.g); podium.g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); for (const m of podium.mats) m.dispose();
+  disposeAvatar(podium.av); podium = null; $('podTxt').hidden = true;
+}
+function podiumCam(dt) {
+  const P = podium, Y = 26;
+  if (!P.av.emote || time > P.av.emote.until - 0.05) startEmote(P.av, P.pose);
+  P.av.av.rotation.y = Math.PI * 0.25 + Math.sin(time * 0.4) * 0.3; avatarFX(P.av);
+  P.confT -= dt; if (P.confT <= 0) { P.confT = 0.12; const c = new THREE.Color().setHSL(Math.random(), 1, 0.6).multiplyScalar(2.5); burst(tA.set(rand(-4, 4), Y + 7, rand(-4, 4)), 3, c, 2, 2.5, 0.14, 3); }
+  const a = (time - P.t0) * 0.35 + 0.8, k = 1 - Math.exp(-3 * dt);
+  camera.position.lerp(tB.set(Math.cos(a) * 7.5, Y + 2.8, Math.sin(a) * 7.5), k);
+  camHelper.position.copy(camera.position); camHelper.lookAt(0, Y + 1.4, 0); camera.quaternion.slerp(camHelper.quaternion, k);
+  camera.fov = damp(camera.fov, 55, 4, dt);
+}
+// ================= spectating =================
+let specIdx = 0, specLock = '', specOn = false;
+function specList() { const a = allActors().filter(x => x.alive && !x.me); return coop() ? a.filter(x => !x.ent) : a; }
+function wantSpec() { return state === 'dead' || (state === 'playing' && player.downed && time - (player.downT || 0) > 1.2); }
+function specNext(d = 1) { specLock = ''; specIdx += d; tone(900, 1100, 0.04, 0.04, 'triangle'); }
+function specCam(dt) {
+  const L = specList(); if (!L.length) return false;
+  let t = specLock && L.find(x => x.id === specLock);
+  if (!t) { specIdx = ((specIdx % L.length) + L.length) % L.length; t = L[specIdx]; }
+  const yaw = t.peer ? t.peer.yaw : t.ent ? t.ent.yaw || 0 : 0, head = tC.copy(t.pos).setY(t.pos.y + 1.6);
+  const want = tB.set(Math.sin(yaw) * 4.6, 1.4, Math.cos(yaw) * 4.6).add(head);
+  // pull in if a wall is in the way
+  const dir = tD.subVectors(want, head), len = dir.length(); dir.normalize();
+  raycaster.set(head, dir); raycaster.far = len; const w = raycaster.intersectObjects(worldMeshes, true)[0];
+  if (w) want.copy(head).addScaledVector(dir, Math.max(0.6, w.distance - 0.3));
+  const k = 1 - Math.exp(-8 * dt);
+  camera.position.lerp(want, k);
+  camHelper.position.copy(camera.position); camHelper.lookAt(head); camera.quaternion.slerp(camHelper.quaternion, Math.min(1, k * 1.5));
+  camera.fov = damp(camera.fov, opts.fov, 6, dt);
+  setText('specLbl', `SPECTATING ${t.name}${L.length > 1 ? ' · CLICK OR ← → FOR NEXT' : ''}`);
+  return true;
+}
+// ================= gifts and trades =================
+const KIND_DEFS = { suit: () => SUITS, hat: () => HATS, finish: () => FINISHES, pet: () => PETS, emote: () => EMOTES, spray: () => SPRAYS };
+const ITEM_OK = /^(suit|hat|finish|pet|emote|spray):[a-z0-9]{1,24}$/;
+function itemDef(it) { const [k, id] = String(it).split(':'); const D = KIND_DEFS[k]; return D ? D()[id] || null : null; }
+const tradeable = it => { const d = itemDef(it); return !!d && d.price > 0 && !d.bundle && ITEM_OK.test(it); };
+const itemLabel = it => { const d = itemDef(it); return d ? `${d.icon ? d.icon + ' ' : ''}${d.name}` : it; };
+function fixEquipped() {
+  if (!owns('suit', settings.skin)) { settings.skin = 'standard'; store.set('skin', 'standard'); }
+  if (!owns('hat', settings.hat)) { settings.hat = 'none'; store.set('hat', 'none'); }
+  if (!owns('finish', settings.finish)) { settings.finish = 'factory'; store.set('finish', 'factory'); }
+  if (!owns('pet', settings.pet)) { settings.pet = 'none'; store.set('pet', 'none'); }
+  if (!owns('spray', settings.spray)) { settings.spray = 'prism'; store.set('spray', 'prism'); }
+}
+let giftOut = store.get('giftout', []); if (!Array.isArray(giftOut)) giftOut = [];
+let giftRecv = store.get('giftrecv', []); if (!Array.isArray(giftRecv)) giftRecv = [];
+let tradeOut = null, tradeIn = null, tradeView = null, giftView = null;
+function flushGifts() { for (const g of giftOut.slice(0, 10)) netSend({ t: 'gift', to: g.to, id: g.id, item: g.item, n: settings.name }); }
+setInterval(() => { if (giftOut.length) flushGifts(); }, 8000);
+function openGift(pid, name) { giftView = { pid, name, pick: '' }; netSend({ t: 'profget', pid }); $('giftBox').hidden = false; renderGift(); }
+function renderGift() {
+  if (!giftView) return;
+  const theirs = new Set(profCache[giftView.pid]?.inv || []);
+  $('giftHead').innerHTML = `Gift to <b>${esc(giftView.name || giftView.pid)}</b> · you have <span class="coin">${wallet.coins.toLocaleString()}</span>`;
+  const el = $('giftItems'); el.textContent = '';
+  for (const [k, D] of Object.entries(KIND_DEFS)) for (const [id, d] of Object.entries(D())) {
+    const it = k + ':' + id; if (!d.price || d.bundle || (d.season && !seasonActive(d.season))) continue;
+    const b = document.createElement('button'), has = theirs.has(it);
+    b.className = 'gitem' + (giftView.pick === it ? ' sel' : '') + (has ? ' poor' : ''); b.style.setProperty('--pv', d.pv || 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))');
+    b.innerHTML = `<i>${d.icon || ''}</i><b>${esc(d.name)}</b><small>${has ? 'THEY OWN IT' : d.price.toLocaleString()}</small>`;
+    if (!has) b.addEventListener('click', () => { giftView.pick = it; renderGift(); });
+    el.appendChild(b);
+  }
+  const d = itemDef(giftView.pick);
+  $('giftSend').disabled = !d || wallet.coins < (d?.price || 0);
+  $('giftSend').textContent = d ? `SEND ${d.name.toUpperCase()} · ${d.price.toLocaleString()}` : 'PICK A GIFT';
+}
+function sendGift() {
+  const v = giftView, d = v && itemDef(v.pick); if (!d) return;
+  if (wallet.coins < d.price) { toast('Not enough coins'); return; }
+  wallet.coins -= d.price; saveWallet(); bumpStat('gs');
+  giftOut.push({ id: `g${PID.slice(2, 8)}${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`, to: v.pid, item: v.pick }); store.set('giftout', giftOut.slice(-50));
+  flushGifts(); $('giftBox').hidden = true; giftView = null;
+  toast(`🎁 ${d.name} is on its way to ${v.name || 'your friend'} (delivered when you're both online)`); sfx.pickup();
+}
+function openTrade(pid, name) {
+  if (!frInfo[pid]?.on) { toast('Trades need your friend to be online'); return; }
+  tradeView = { pid, name, give: new Set(), want: new Set() }; netSend({ t: 'profget', pid }); $('tradeBox').hidden = false; renderTrade();
+}
+function renderTrade() {
+  if (!tradeView) return;
+  const T = tradeView, theirs = (profCache[T.pid]?.inv || []).filter(it => tradeable(it) && !wallet.owned.includes(it));
+  const mine = wallet.owned.filter(tradeable);
+  $('tradeHead').innerHTML = `Trade with <b>${esc(T.name || T.pid)}</b> · pick up to 6 each`;
+  const fill = (el, list, set) => {
+    el.textContent = '';
+    if (!list.length) { const p = document.createElement('p'); p.className = 'note'; p.textContent = 'Nothing to trade here yet.'; el.appendChild(p); }
+    for (const it of list) { const d = itemDef(it), b = document.createElement('button'); b.className = 'gitem' + (set.has(it) ? ' sel' : ''); b.style.setProperty('--pv', d.pv || 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))'); b.innerHTML = `<i>${d.icon || ''}</i><b>${esc(d.name)}</b><small>${it.split(':')[0].toUpperCase()}</small>`; b.addEventListener('click', () => { if (set.has(it)) set.delete(it); else if (set.size < 6) set.add(it); renderTrade(); }); el.appendChild(b); }
+  };
+  fill($('tradeMine'), mine, T.give); fill($('tradeTheirs'), theirs, T.want);
+  $('tradeSend').disabled = !T.give.size && !T.want.size;
+}
+function sendTradeOffer() {
+  const T = tradeView; if (!T || (!T.give.size && !T.want.size)) return;
+  tradeOut = { id: `t${PID.slice(2, 8)}${Date.now().toString(36)}`, to: T.pid, give: [...T.give], want: [...T.want] };
+  netSend({ t: 'trade', to: T.pid, id: tradeOut.id, give: tradeOut.give, want: tradeOut.want, n: settings.name });
+  $('tradeBox').hidden = true; tradeView = null; toast('Trade offer sent');
+}
+const ownsAll = list => list.every(it => wallet.owned.includes(it));
+function swapItems(lose, gain) { wallet.owned = wallet.owned.filter(it => !lose.includes(it)); for (const it of gain) if (ITEM_OK.test(it) && !wallet.owned.includes(it)) wallet.owned.push(it); fixEquipped(); saveWallet(); bumpStat('tr'); buildShowcase(); if (menuTab === 'shop' || menuTab === 'custom') renderShop(); }
+function onTrade(m) {
+  const from = String(m.from || ''); if (!PID_OK.test(from)) return;
+  const clean = l => Array.isArray(l) ? l.filter(it => typeof it === 'string' && ITEM_OK.test(it)).slice(0, 6) : [];
+  if (m.t === 'gift') {
+    const id = String(m.id || '').slice(0, 60), it = String(m.item || '');
+    if (!ITEM_OK.test(it) || !id) return;
+    if (!giftRecv.includes(id)) {
+      giftRecv.push(id); giftRecv = giftRecv.slice(-300); store.set('giftrecv', giftRecv);
+      const d = itemDef(it), nm = String(m.n || 'A friend').slice(0, 14);
+      if (wallet.owned.includes(it) && d) { wallet.coins += d.price; toast(`🎁 ${nm} sent you ${d.name}, but you already had it: +${d.price} coins instead`); }
+      else { wallet.owned.push(it); toast(`🎁 ${nm} sent you ${d ? d.name : 'a gift'}! It's in Customize`); }
+      saveWallet(); initAudio(); sfx.levelup(); if (menuTab === 'shop' || menuTab === 'custom') renderShop();
+    }
+    netSend({ t: 'giftack', to: from, id });
+  } else if (m.t === 'giftack') { giftOut = giftOut.filter(g => g.id !== m.id); store.set('giftout', giftOut); }
+  else if (m.t === 'trade') {
+    tradeIn = { id: String(m.id || '').slice(0, 60), from, n: String(m.n || 'A friend').slice(0, 14), give: clean(m.give), want: clean(m.want) };
+    $('tradeOffer').hidden = false;
+    $('toTxt').innerHTML = `<b>${esc(tradeIn.n)}</b> wants to trade<br>You get: ${tradeIn.give.map(itemLabel).map(esc).join(', ') || 'nothing'}<br>You give: ${tradeIn.want.map(itemLabel).map(esc).join(', ') || 'nothing'}`;
+    initAudio(); tone(660, 990, 0.15, 0.08, 'triangle');
+  } else if (m.t === 'tradeacc') {
+    // they said yes: if I still have everything, finish my side and tell them to finish theirs
+    if (tradeOut && tradeOut.id === m.id && ownsAll(tradeOut.give)) { swapItems(tradeOut.give, tradeOut.want); netSend({ t: 'tradedone', to: from, id: m.id, ok: 1 }); toast('Trade complete!'); sfx.levelup(); }
+    else netSend({ t: 'tradedone', to: from, id: m.id, ok: 0 });
+    tradeOut = null;
+  } else if (m.t === 'tradedone') {
+    if (tradeIn && tradeIn.id === m.id && m.ok && ownsAll(tradeIn.want)) { swapItems(tradeIn.want, tradeIn.give); toast('Trade complete!'); sfx.levelup(); }
+    else toast('The trade didn\'t go through');
+    tradeIn = null; $('tradeOffer').hidden = true;
+  } else if (m.t === 'tradeno') { if (tradeOut && tradeOut.id === m.id) { toast('They declined your trade'); tradeOut = null; } }
+}
+function answerTrade(yes) {
+  const T = tradeIn; if (!T) return;
+  if (yes && !ownsAll(T.want)) { toast('You don\'t have those items anymore'); yes = false; }
+  netSend({ t: yes ? 'tradeacc' : 'tradeno', to: T.from, id: T.id });
+  if (!yes) { tradeIn = null; $('tradeOffer').hidden = true; } else $('toTxt').innerHTML += '<br><small>Finishing the trade…</small>';
+}
+
 // ================= party, friends, invites, profiles =================
 const MODE_NAME = { waves: 'Squad Waves', boss: 'Boss Raid', ffa: 'Free-for-All', gungame: 'Gun Game', ctf: 'Capture the Flag', infect: 'Infection' };
 const PID_OK = /^P-[a-z0-9]{10,24}$/;
 let friends = store.get('friends', []); if (!Array.isArray(friends)) friends = [];
 friends = friends.filter(f => f && PID_OK.test(f.pid)).slice(0, 60);
 let profCache = store.get('profcache', {}); if (!profCache || typeof profCache !== 'object') profCache = {};
-const frInfo = {}, invites = [];
+const frInfo = {}, invites = [], joinSeen = new Set();
 let profView = null, lastProfSent = '';
 const social = () => !!(conn && conn.send && conn.connected());
 const netSend = o => { if (!social()) return false; conn.send(o); return true; };
 const menuOpenNow = () => state === 'menu' || (state === 'paused' && !$('menu').hidden);
 function myProfile() {
   return { n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet, cl: settings.cls, since: stats.since,
-    st: { k: stats.k, d: stats.d, w: stats.w, bk: stats.bk, inf: stats.inf, gp: stats.gp, pt: Math.round(stats.pt), ch: stats.ch, bw: best.wave, bs: best.score, br: bestBoss.wave } };
+    st: { k: stats.k, d: stats.d, w: stats.w, bk: stats.bk, inf: stats.inf, gp: stats.gp, pt: Math.round(stats.pt), ch: stats.ch, bw: best.wave, bs: best.score, br: bestBoss.wave, mp: stats.mp || 0, gs: stats.gs || 0, tr: stats.tr || 0 },
+    inv: wallet.owned.filter(it => /^(suit|hat|finish|pet|emote|spray):/.test(it)).slice(0, 400), cd: { t: myCard().t, b: myCard().b } };
 }
 function sendProf() { const p = myProfile(), j = JSON.stringify(p); if (j !== lastProfSent && netSend({ t: 'prof', p })) lastProfSent = j; }
 setInterval(sendProf, 60000);
@@ -7624,9 +8211,10 @@ function parseRoom(r) {
   const m = /^pa-([a-z]+)-(.+)$/.exec(String(r || '')); if (!m || !MODES.includes(m[1])) return null;
   let rest = m[2], map = 'prism';
   for (const k of Object.keys(MAPS)) if (k !== 'prism' && rest.startsWith(k + '-')) { map = k; rest = rest.slice(k.length + 1); }
+  const cm = /^(c-[a-z0-9]{4,16})-(.+)$/.exec(rest); if (map === 'prism' && cm) { map = cm[1]; rest = cm[2]; }
   return { mode: m[1], map, room: rest };
 }
-const placeText = pr => pr ? `${MODE_NAME[pr.mode]} · ${MAPS[pr.map]} · room ${pr.room}` : '';
+const placeText = pr => pr ? `${MODE_NAME[pr.mode]} · ${mapName(pr.map)} · room ${pr.room}` : '';
 function saveFriends() { store.set('friends', friends); }
 function addFriend(pid, n) {
   pid = 'P-' + String(pid || '').trim().replace(/^p-/i, '').toLowerCase();
@@ -7651,8 +8239,9 @@ function onSocial(m) {
     }
     frInfo[m.pid] = Object.assign(frInfo[m.pid] || {}, { on: !!m.on, room: String(m.room || '') });
     if (profView && profView.pid === m.pid) { profView.p = profCache[m.pid] || null; profView.loaded = true; renderProfile(); if (menuTab === 'prof') buildShowcase(); }
+    if (giftView && giftView.pid === m.pid) renderGift(); if (tradeView && tradeView.pid === m.pid) renderTrade();
   } else if (m.t === 'invite' && PID_OK.test(m.from)) {
-    const inv = { from: m.from, n: String(m.n || 'A friend').replace(/[\u0000-\u001f]/g, '').slice(0, 14), mode: String(m.mode), map: MAPS[m.map] ? String(m.map) : 'prism', room: cleanRoom(m.room), t: Date.now() };
+    const inv = { from: m.from, n: String(m.n || 'A friend').replace(/[\u0000-\u001f]/g, '').slice(0, 14), mode: String(m.mode), map: MAPS[m.map] || /^c-[a-z0-9]{4,16}$/.test(String(m.map)) ? String(m.map) : 'prism', room: cleanRoom(m.room), t: Date.now() };
     if (!MODES.includes(inv.mode)) return;
     for (let i = invites.length - 1; i >= 0; i--) if (invites[i].from === inv.from) invites.splice(i, 1);
     invites.unshift(inv); invites.length = Math.min(invites.length, 5);
@@ -7677,6 +8266,7 @@ function goToRoom(m, map, room) {
   if (!MODES.includes(m)) return;
   settings.mode = m; settings.room = cleanRoom(room); store.set('mode', m); store.set('room', settings.room); $('roomcode').value = settings.room;
   if (map !== settings.map && MAPS[map]) { toast(`Switching to ${MAPS[map]}… press Deploy when it loads`); switchMap(map); return; }
+  if (map !== settings.map && /^c-/.test(map)) { playMap(map); return; }
   if (state !== 'menu') toMenu();
   menuChanged(); setMenuTab('play'); startGame();
 }
@@ -7716,6 +8306,8 @@ function renderFriends() {
     const bs = document.createElement('div'); bs.className = 'btnrow';
     if (info?.on) bs.appendChild(btn('INVITE', () => invite(f.pid)));
     if (pr) bs.appendChild(btn('JOIN', () => goToRoom(pr.mode, pr.map, pr.room)));
+    bs.append(btn('🎁 GIFT', () => openGift(f.pid, f.n || profCache[f.pid]?.n)));
+    if (info?.on) bs.append(btn('⇄ TRADE', () => openTrade(f.pid, f.n || profCache[f.pid]?.n)));
     bs.append(btn('PROFILE', () => openProfile(f.pid, f.n)), btn('REMOVE', () => removeFriend(f.pid)));
     row.append(dot, nm, id, st, bs); fl.appendChild(row);
   }
@@ -7741,8 +8333,9 @@ function renderProfile() {
   const pr = info?.on ? parseRoom(info.room) : null;
   $('pfStatus').textContent = me ? 'This is you' : info ? (info.on ? (pr ? `Online · ${placeText(pr)}` : 'Online') : 'Offline') : '';
   const h = Math.floor((st.pt || 0) / 3600), mm = Math.floor((st.pt || 0) % 3600 / 60);
-  const cells = [['KILLS', st.k], ['DEATHS', st.d], ['K/D', st.d ? (st.k / st.d).toFixed(2) : (st.k || 0).toFixed(2)], ['WINS', st.w], ['BEST WAVE', st.bw], ['TITANS', st.bk],
+  const cells = [['KILLS', st.k], ['DEATHS', st.d], ['K/D', st.d ? (st.k / st.d).toFixed(2) : (st.k || 0).toFixed(2)], ['WINS', st.w], ['BEST WAVE', st.bw], ['BOSSES', st.bk],
     ['INFECTIONS', st.inf], ['MATCHES', st.gp], ['TIME PLAYED', `${h}h ${mm}m`], ['BEST RAID ROUND', st.br], ['FAVORITE CLASS', CLASSES[P?.cl]?.name || '—'], ['PLAYING SINCE', P?.since ? new Date(+P.since).toLocaleDateString() : '—']];
+  $('pfCard').innerHTML = P ? cardHTML(me ? myCard() : { n: P.n, t: P.cd?.t || 'rookie', b: P.cd?.b || 0, k: st.k, w: st.w, bw: st.bw, br: st.br }) : '';
   $('pfStats').innerHTML = P ? cells.map(([a, b]) => `<div><span>${a}</span><b>${esc(b ?? 0)}</b></div>`).join('') : '';
   const bs = $('pfBtns'); bs.textContent = '';
   if (me) bs.appendChild(btn('COPY MY ID', () => { try { navigator.clipboard.writeText(PID).then(() => toast('Player ID copied')); } catch {} }));
@@ -7810,6 +8403,249 @@ function updateMyPet(dt) {
 }
 
 // ================= main loop =================
+// ================= map editor =================
+const ED = { objs: [], meshes: [], tool: 'box', sel: -1, cat: 'Shapes', color: 0, rot: 0, scale: 1, undo: [], yaw: 0.785, pitch: -0.42, pos: new V3(34, 24, 34), look: false, ghost: null, ghostKey: '', place: null, hover: -1, mx: 0, my: 0, name: '', theme: 'prism', pubId: '', helper: null };
+const ED_DIMS = { box: [4, 2, 4], cyl: [1.5, 4, 1.5], ramp: [4, 2, 6], ball: [3, 3, 3], neon: [6, 0.25, 0.25] };
+const edKeys = {};
+const ghostMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.2, 2.6), transparent: true, opacity: 0.45, depthWrite: false });
+function edLoad() {
+  const d = store.get('mapdraft', null) || {};
+  ED.name = String(d.name || '').slice(0, 24); ED.theme = THEMES[d.theme] ? d.theme : 'prism'; ED.pubId = /^c-[a-z0-9]{4,16}$/.test(d.pubId || '') ? d.pubId : ''; ED.objs = cleanMapObjs(d.objs);
+}
+function edSave() { store.set('mapdraft', { v: 1, name: ED.name, theme: ED.theme, pubId: ED.pubId, objs: ED.objs }); }
+function edSnapshot() { ED.undo.push(JSON.stringify(ED.objs)); if (ED.undo.length > 40) ED.undo.shift(); }
+function edBuild(i) {
+  if (ED.meshes[i]) { scene.remove(ED.meshes[i]); ED.meshes[i] = null; }
+  const b = buildMapObj(ED.objs[i]); if (!b) return;
+  b.g.userData.ei = i; b.g.traverse(k => { k.userData.ei = i; });
+  scene.add(b.g); ED.meshes[i] = b.g;
+}
+function edRebuildAll() { for (const m of ED.meshes) if (m) scene.remove(m); ED.meshes = []; ED.objs.forEach((o, i) => edBuild(i)); edSelect(ED.sel < ED.objs.length ? ED.sel : -1); }
+function edChanged() { edSave(); edPanel(); }
+function startEditor() {
+  state = 'editor'; edLoad();
+  // editing happens in a private room so nobody else turns up
+  settings.room = 'ed' + PID.slice(2, 8);
+  $('menu').hidden = true; $('hud').hidden = true; $('editor').hidden = false;
+  edRebuildAll(); edPalette(); edPanel();
+  netInit();
+  toast('Map editor: right-drag to look, WASD to fly, click to place');
+}
+function edGhostFor() {
+  if (ED.tool === 'select') return null;
+  const d = ED_DIMS[ED.tool], o = isShape(ED.tool) ? [ED.tool, 0, 0, 0, ED.rot, ...d, ED.color] : [ED.tool, 0, 0, 0, ED.rot, ED.scale, 0, 0, ED.color];
+  return o;
+}
+function edUpdateGhost() {
+  const o = edGhostFor(), key = o ? JSON.stringify(o) : '';
+  if (key !== ED.ghostKey) {
+    ED.ghostKey = key;
+    if (ED.ghost) { scene.remove(ED.ghost); ED.ghost = null; }
+    if (o) { const b = buildMapObj(o); if (b) { b.g.traverse(k => { if (k.isMesh) { k.material = ghostMat; k.castShadow = false; } }); ED.ghost = b.g; scene.add(b.g); } }
+  }
+  if (ED.ghost) { ED.ghost.visible = !!ED.place; if (ED.place) ED.ghost.position.set(...ED.place); }
+}
+const edNdc = new THREE.Vector2();
+function edPick() {
+  const r = renderer.domElement.getBoundingClientRect();
+  edNdc.set((ED.mx - r.left) / r.width * 2 - 1, -(ED.my - r.top) / r.height * 2 + 1);
+  raycaster.setFromCamera(edNdc, camera); raycaster.far = 400;
+  const hits = raycaster.intersectObjects(ED.meshes.filter(Boolean), true).filter(h => h.object.isMesh && h.object.material !== ghostMat);
+  const ground = raycaster.ray.direction.y < 0 ? -raycaster.ray.origin.y / raycaster.ray.direction.y : Infinity;
+  return { hit: hits[0] && hits[0].distance < ground ? hits[0] : null, ground: ground < Infinity ? raycaster.ray.origin.clone().addScaledVector(raycaster.ray.direction, ground) : null };
+}
+const snap = (v, g = 0.5) => Math.round(v / g) * g;
+function edHover() {
+  const { hit, ground } = edPick();
+  ED.hover = hit ? hit.object.userData.ei ?? -1 : -1;
+  ED.place = null;
+  if (ED.tool !== 'select') {
+    let p = null, y = 0;
+    if (hit) {
+      const n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : new V3(0, 1, 0), base = ED.objs[ED.hover];
+      if (n.y > 0.6) { p = hit.point.clone(); y = hit.point.y; }
+      else { p = hit.point.clone().addScaledVector(n, isShape(ED.tool) ? ED_DIMS[ED.tool][0] / 2 : 0.8); y = base ? base[2] : 0; }
+    } else if (ground) p = ground;
+    if (p && Math.hypot(p.x, p.z) < ARENA_R - 1) ED.place = [snap(p.x), ED.tool === 'pad' ? 0 : Math.round(y * 100) / 100, snap(p.z)];
+  }
+  edUpdateGhost();
+  if (ED.helper) ED.helper.update();
+}
+function editorTick(dt) {
+  const fast = edKeys.ShiftLeft || edKeys.ShiftRight, sp = (fast ? 32 : 14) * dt;
+  const f = tA.set(-Math.sin(ED.yaw), 0, -Math.cos(ED.yaw)), r = tB.set(Math.cos(ED.yaw), 0, -Math.sin(ED.yaw));
+  if (edKeys.KeyW) ED.pos.addScaledVector(f, sp); if (edKeys.KeyS) ED.pos.addScaledVector(f, -sp);
+  if (edKeys.KeyD) ED.pos.addScaledVector(r, sp); if (edKeys.KeyA) ED.pos.addScaledVector(r, -sp);
+  if (edKeys.Space) ED.pos.y += sp; if (edKeys.KeyC || edKeys.ControlLeft) ED.pos.y -= sp;
+  ED.pos.y = clamp(ED.pos.y, 1.5, 90); const rr = Math.hypot(ED.pos.x, ED.pos.z); if (rr > 95) { ED.pos.x *= 95 / rr; ED.pos.z *= 95 / rr; }
+  camera.position.copy(ED.pos); camera.rotation.set(ED.pitch, ED.yaw, 0, 'YXZ'); camera.fov = damp(camera.fov, 70, 6, dt);
+  edHover();
+}
+function edSelect(i) {
+  ED.sel = i;
+  if (ED.helper) { scene.remove(ED.helper); ED.helper.dispose(); ED.helper = null; }
+  if (i >= 0 && ED.meshes[i]) { ED.helper = new THREE.BoxHelper(ED.meshes[i], 0x5ff2ff); scene.add(ED.helper); }
+  edPanel();
+}
+function edClick() {
+  if (ED.tool === 'select') { edSelect(ED.hover); return; }
+  if (!ED.place) return;
+  if (ED.objs.length >= MAP_LIMIT) { toast(`Maps can have up to ${MAP_LIMIT} things`); return; }
+  edSnapshot();
+  const o = edGhostFor(); o[1] = ED.place[0]; o[2] = ED.place[1]; o[3] = ED.place[2];
+  ED.objs.push(o); edBuild(ED.objs.length - 1); edChanged();
+  tone(700, 900, 0.05, 0.04, 'triangle');
+}
+function edModify(fn) { const i = ED.sel; if (i < 0 || !ED.objs[i]) return; edSnapshot(); fn(ED.objs[i]); ED.objs[i] = cleanMapObjs([ED.objs[i]])[0] || ED.objs[i]; edBuild(i); edSelect(i); edSave(); }
+function edDelete() { const i = ED.sel; if (i < 0) return; edSnapshot(); ED.objs.splice(i, 1); ED.sel = -1; edRebuildAll(); edChanged(); }
+function edUndo() { const s = ED.undo.pop(); if (!s) { toast('Nothing to undo'); return; } ED.objs = cleanMapObjs(JSON.parse(s)); ED.sel = -1; edRebuildAll(); edChanged(); }
+function edPalette() {
+  const cats = $('edCats'); cats.textContent = '';
+  for (const c of MAP_CATS) { const b = document.createElement('button'); b.textContent = c; b.className = c === ED.cat ? 'sel' : ''; b.addEventListener('click', () => { ED.cat = c; edPalette(); }); cats.appendChild(b); }
+  const items = $('edItems'); items.textContent = '';
+  const sel = document.createElement('button'); sel.className = 'edi' + (ED.tool === 'select' ? ' sel' : ''); sel.innerHTML = '<i>👆</i><span>Select</span>'; sel.addEventListener('click', () => { ED.tool = 'select'; edPalette(); }); items.appendChild(sel);
+  for (const [id, C] of Object.entries(MAP_CATALOG)) if (C[1] === ED.cat) {
+    const b = document.createElement('button'); b.className = 'edi' + (ED.tool === id ? ' sel' : ''); b.innerHTML = `<i>${C[2]}</i><span>${esc(C[0])}</span>`;
+    b.addEventListener('click', () => { ED.tool = id; edSelect(-1); edPalette(); }); items.appendChild(b);
+  }
+  const sw = $('edColors'); sw.textContent = '';
+  MAP_COLORS.forEach((c, i) => { const b = document.createElement('button'); b.style.background = i ? '#' + c.toString(16).padStart(6, '0') : 'linear-gradient(135deg,#7a72a6,#3b355e)'; b.title = i ? '' : 'Map stone'; b.className = (ED.sel >= 0 ? ED.objs[ED.sel][8] : ED.color) === i ? 'sel' : ''; b.addEventListener('click', () => { if (ED.sel >= 0) edModify(o => { o[8] = i; }); else { ED.color = i; edPalette(); } }); sw.appendChild(b); });
+}
+function edPanel() {
+  $('edCount').textContent = `${ED.objs.length} / ${MAP_LIMIT}`;
+  $('edName').value = ED.name; $('edTheme').value = ED.theme;
+  const ins = $('edInspect'), o = ED.objs[ED.sel];
+  if (!o) { ins.innerHTML = `<small>${ED.tool === 'select' ? 'Click something in the map to edit it.' : `Placing: <b>${esc(MAP_CATALOG[ED.tool][0])}</b> · R to turn it${isShape(ED.tool) ? '' : ' · scale <input type="range" id="edScaleNew" min="0.5" max="3" step="0.1" value="' + ED.scale + '">'}`}</small>`; const sn = $('edScaleNew'); if (sn) sn.addEventListener('input', () => { ED.scale = +sn.value; }); edPalette(); return; }
+  const C = MAP_CATALOG[o[0]];
+  let h = `<b>${C[2]} ${esc(C[0])}</b>`;
+  if (isShape(o[0])) for (const [k, lbl, max] of [[5, 'Width', 40], [6, 'Height', 30], [7, 'Depth', 40]]) { if (o[0] === 'ball' && k > 5) continue; h += `<label>${lbl} <span>${o[k]}</span><input type="range" data-k="${k}" min="${k === 6 ? 0.1 : 0.5}" max="${max}" step="0.5" value="${o[k]}"></label>`; }
+  else h += `<label>Scale <span>${o[5]}</span><input type="range" data-k="5" min="0.5" max="3" step="0.1" value="${o[5]}"></label>`;
+  h += `<div class="edrow"><button data-a="rot">⟳ TURN (R)</button><button data-a="up">▲ UP</button><button data-a="down">▼ DOWN</button><button data-a="dup">⧉ COPY</button><button data-a="del" class="bad">✕ DELETE</button></div>`;
+  ins.innerHTML = h;
+  ins.querySelectorAll('input[data-k]').forEach(inp => inp.addEventListener('change', () => edModify(x => { x[+inp.dataset.k] = +inp.value; })));
+  ins.querySelectorAll('button[data-a]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.a;
+    if (a === 'rot') edModify(x => { x[4] = (x[4] + 1) & 3; });
+    else if (a === 'up') edModify(x => { x[2] += 0.5; });
+    else if (a === 'down') edModify(x => { x[2] = Math.max(0, x[2] - 0.5); });
+    else if (a === 'del') edDelete();
+    else if (a === 'dup' && ED.objs.length < MAP_LIMIT) { edSnapshot(); const c = ED.objs[ED.sel].slice(); c[1] += 2; c[3] += 2; ED.objs.push(c); edBuild(ED.objs.length - 1); edSelect(ED.objs.length - 1); edSave(); }
+  }));
+  edPalette();
+}
+function edTest() {
+  edSave();
+  const id = 'c-t' + PID.slice(2, 12);
+  store.set('cmap', { id, name: ED.name || 'Untitled map', theme: ED.theme, objs: ED.objs, author: settings.name, test: 1 });
+  store.set('map', id); store.set('mode', 'ffa');
+  toast('Loading your map to test with bots…'); setTimeout(() => location.reload(), 150);
+}
+function edPublish() {
+  if (!social()) { toast('Publishing needs the website version (and a connection)'); return; }
+  const name = ED.name.trim();
+  if (name.length < 3) { toast('Give your map a name first (at least 3 letters)'); $('edName').focus(); return; }
+  if (ED.objs.length < 5) { toast('Add at least 5 things before you publish'); return; }
+  netSend({ t: 'mappub', map: { id: ED.pubId, name, theme: ED.theme, objs: ED.objs, author: settings.name } });
+  toast('Publishing…');
+}
+function edExit() { edSave(); const back = store.get('prevmap', 'prism'); store.set('map', MAPS[back] ? back : 'prism'); setTimeout(() => location.reload(), 100); }
+if (EDITOR) {
+  const typing = () => /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
+  addEventListener('keydown', e => {
+    if (state !== 'editor' || typing()) return;
+    edKeys[e.code] = true;
+    if (e.code === 'KeyR') { if (ED.sel >= 0) edModify(x => { x[4] = (x[4] + 1) & 3; }); else ED.rot = (ED.rot + 1) & 3; }
+    else if (e.code === 'Escape') { ED.tool = 'select'; edSelect(-1); }
+    else if ((e.code === 'Delete' || e.code === 'Backspace') && ED.sel >= 0) edDelete();
+    else if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) edUndo();
+    else if (ED.sel >= 0 && e.code.startsWith('Arrow')) { const dx = e.code === 'ArrowLeft' ? -0.5 : e.code === 'ArrowRight' ? 0.5 : 0, dz = e.code === 'ArrowUp' ? -0.5 : e.code === 'ArrowDown' ? 0.5 : 0; edModify(x => { x[1] += dx; x[3] += dz; }); }
+    else if (ED.sel >= 0 && e.code === 'PageUp') edModify(x => { x[2] += 0.5; });
+    else if (ED.sel >= 0 && e.code === 'PageDown') edModify(x => { x[2] = Math.max(0, x[2] - 0.5); });
+    else return;
+    e.preventDefault();
+  });
+  addEventListener('keyup', e => { edKeys[e.code] = false; });
+  addEventListener('blur', () => { for (const k in edKeys) edKeys[k] = false; ED.look = false; });
+  canvas.addEventListener('mousedown', e => { if (state !== 'editor') return; if (e.button === 2) ED.look = true; else if (e.button === 0) edClick(); });
+  addEventListener('mouseup', e => { if (e.button === 2) ED.look = false; });
+  addEventListener('mousemove', e => { if (state !== 'editor') return; ED.mx = e.clientX; ED.my = e.clientY; if (ED.look) { ED.yaw -= e.movementX * 0.004; ED.pitch = clamp(ED.pitch - e.movementY * 0.004, -1.5, 1.5); } });
+  canvas.addEventListener('wheel', e => { if (state !== 'editor') return; ED.pos.addScaledVector(new V3(0, 0, -1).applyQuaternion(camera.quaternion), -Math.sign(e.deltaY) * 3); e.preventDefault(); }, { passive: false });
+  $('edName').addEventListener('input', () => { ED.name = $('edName').value.slice(0, 24); edSave(); });
+  $('edTheme').innerHTML = Object.keys(THEMES).map(k => `<option value="${k}">${esc(MAPS[k] || k)}</option>`).join('');
+  $('edTheme').addEventListener('change', () => { ED.theme = $('edTheme').value; edSave(); toast('Changing the sky and floor…'); setTimeout(() => location.reload(), 150); });
+  $('edTest').addEventListener('click', edTest); $('edPub').addEventListener('click', edPublish); $('edExit').addEventListener('click', edExit);
+  $('edUndo').addEventListener('click', edUndo);
+  $('edClear').addEventListener('click', () => { if (!ED.objs.length) return; if (!$('edClear').dataset.sure) { $('edClear').dataset.sure = '1'; $('edClear').textContent = 'SURE?'; setTimeout(() => { delete $('edClear').dataset.sure; $('edClear').textContent = 'CLEAR'; }, 2500); return; } edSnapshot(); ED.objs = []; edRebuildAll(); edChanged(); });
+}
+// ================= community maps =================
+// Official community maps get baked in here (paste a published map's data to make it permanent)
+const OFFICIAL_CMAPS = [];
+let mapList = [], mapPending = '', mapTab = 'all';
+let myMaps = store.get('mymaps', {}); if (!myMaps || typeof myMaps !== 'object') myMaps = {};
+let mapCache = store.get('mapcache', {}); if (!mapCache || typeof mapCache !== 'object') mapCache = {};
+function mapName(id) { return MAPS[id] || (id === 'editor' ? 'Map Editor' : (CMAP && CMAP.id === id ? CMAP.name : (mapCache[id] || myMaps[id] || OFFICIAL_CMAPS.find(m => m.id === id) || {}).name || 'Community map')); }
+function openMaps() { $('mapsBox').hidden = false; renderMapsBox(); netSend({ t: 'maplist' }); }
+function renderMapsBox() {
+  document.querySelectorAll('#mapTabs button').forEach(b => b.classList.toggle('sel', b.dataset.t === mapTab));
+  const q = $('mapSearch').value.trim().toLowerCase(), el = $('mapRows'); el.textContent = '';
+  let list = mapTab === 'mine' ? Object.values(myMaps) : mapTab === 'official' ? OFFICIAL_CMAPS : mapList;
+  if (mapTab === 'top') list = mapList.slice().sort((a, b) => (b.plays || 0) - (a.plays || 0));
+  list = list.filter(m => !q || String(m.name).toLowerCase().includes(q) || String(m.author || '').toLowerCase().includes(q));
+  $('mapNote').textContent = !social() && mapTab !== 'mine' && mapTab !== 'official' ? 'Community maps need the website version.' : !list.length ? (mapTab === 'mine' ? 'You haven\'t published a map yet. Build one in the Map Editor.' : mapTab === 'official' ? 'No official community maps yet.' : 'No maps yet. Be the first to publish one!') : '';
+  for (const m of list.slice(0, 120)) {
+    const row = document.createElement('div'); row.className = 'mrow';
+    const th = document.createElement('i'); th.style.setProperty('--mp', (MAP_INFO[m.theme] || MAP_INFO.prism).mp);
+    const info = document.createElement('div'); info.innerHTML = `<b>${esc(m.name)}</b><small>by ${esc(m.author || 'someone')} · ${m.n ?? (m.objs ? m.objs.length : 0)} things · ${(m.plays || 0)} plays · ${esc(MAPS[m.theme] || '')}</small>`;
+    const bs = document.createElement('div'); bs.className = 'btnrow';
+    bs.appendChild(btn('PLAY', () => playMap(m.id)));
+    if (myMaps[m.id]) bs.appendChild(btn('DELETE', () => { if (!confirmTwice(row)) return; netSend({ t: 'mapdel', id: m.id }); delete myMaps[m.id]; store.set('mymaps', myMaps); mapList = mapList.filter(x => x.id !== m.id); renderMapsBox(); toast('Map removed'); }));
+    row.append(th, info, bs); el.appendChild(row);
+  }
+}
+function confirmTwice(row) { if (row.dataset.sure) return true; row.dataset.sure = '1'; toast('Press DELETE again to remove it for everyone'); setTimeout(() => { delete row.dataset.sure; }, 3000); return false; }
+function playMap(id) {
+  const m = mapCache[id] || myMaps[id] || OFFICIAL_CMAPS.find(x => x.id === id);
+  if (m && m.objs) return loadCustomMap(m);
+  if (!social()) { toast('Downloading maps needs the website version'); return; }
+  mapPending = id; netSend({ t: 'mapget', id }); toast('Downloading map…');
+}
+function loadCustomMap(m) {
+  store.set('cmap', m); mapCache[m.id] = m;
+  const keys = Object.keys(mapCache); while (keys.length > 15) delete mapCache[keys.shift()];
+  store.set('mapcache', mapCache); netSend({ t: 'mapplay', id: m.id });
+  if (MAPS[settings.map]) store.set('prevmap', settings.map);
+  store.set('map', m.id); toast(`Loading ${m.name}…`); setTimeout(() => location.reload(), 150);
+}
+function onMaps(m) {
+  if (m.t === 'maplist' && Array.isArray(m.list)) { mapList = m.list.filter(x => x && /^c-[a-z0-9]{4,16}$/.test(x.id)); if (!$('mapsBox').hidden) renderMapsBox(); }
+  else if (m.t === 'mapdata') {
+    if (m.map && /^c-[a-z0-9]{4,16}$/.test(m.map.id)) { mapCache[m.map.id] = m.map; if (mapPending === m.map.id) { mapPending = ''; loadCustomMap(m.map); } }
+    else if (mapPending) { toast('That map isn\'t available right now'); mapPending = ''; }
+  } else if (m.t === 'mappubok' && m.map) {
+    myMaps[m.map.id] = m.map; store.set('mymaps', myMaps);
+    if (EDITOR) { ED.pubId = m.map.id; edSave(); }
+    bumpStat('mp'); announce('MAP PUBLISHED', `${m.map.name} is live for everyone`, '#74ffb5'); sfx.levelup();
+  } else if (m.t === 'mapneed' && Array.isArray(m.ids)) { for (const id of m.ids) if (myMaps[id]) netSend({ t: 'mappub', map: myMaps[id], restore: 1 }); }
+  else if (m.t === 'maperr') toast(String(m.msg || 'Couldn\'t publish that map').slice(0, 120));
+}
+function wireMapUI() {
+  $('dead').addEventListener('mousedown', e => { if (specOn && e.target === $('dead')) specNext(); });
+  // the community map you're on (and a way back to the editor when testing)
+  for (const m of [...(CMAP && !OFFICIAL_CMAPS.some(o => o.id === CMAP.id) ? [CMAP] : []), ...OFFICIAL_CMAPS]) {
+    const b = document.createElement('button'); b.className = 'map' + (m.id === settings.map ? ' sel' : ''); b.dataset.map = m.id;
+    b.innerHTML = `<i style="--mp:${(MAP_INFO[m.theme] || MAP_INFO.prism).mp}"></i><b>${esc(m.name)} <span style="font-size:11px;color:var(--cyan)">${m.test ? '🛠 TEST' : OFFICIAL_CMAPS.includes(m) ? '★ COMMUNITY' : '🌍 COMMUNITY'}</span></b><span>${m.test ? 'Your map from the editor · click to go back and edit' : `By ${esc(m.author || 'someone')}`}</span>`;
+    b.addEventListener('click', () => m.test ? switchMap('editor') : m.id === settings.map ? null : loadCustomMap(m)); $('maps').appendChild(b);
+  }
+  $('cmapsBtn').addEventListener('click', openMaps); $('editorBtn').addEventListener('click', () => switchMap('editor'));
+  $('mapsClose').addEventListener('click', () => { $('mapsBox').hidden = true; });
+  $('mapsEditor').addEventListener('click', () => switchMap('editor'));
+  document.querySelectorAll('#mapTabs button').forEach(b => b.addEventListener('click', () => { mapTab = b.dataset.t; renderMapsBox(); if (mapTab !== 'mine') netSend({ t: 'maplist' }); }));
+  $('mapSearch').addEventListener('input', renderMapsBox);
+  $('giftClose').addEventListener('click', () => { $('giftBox').hidden = true; giftView = null; }); $('giftSend').addEventListener('click', sendGift);
+  $('tradeClose').addEventListener('click', () => { $('tradeBox').hidden = true; tradeView = null; }); $('tradeSend').addEventListener('click', sendTradeOffer);
+  $('toYes').addEventListener('click', () => answerTrade(true)); $('toNo').addEventListener('click', () => answerTrade(false));
+  for (const id of ['titlePick', 'vposePick']) $(id).addEventListener('change', () => { const k = id === 'titlePick' ? 'title' : 'vpose'; settings[k] = $(id).value; store.set(k, settings[k]); renderCardPick(); sendProf(); });}
+
 let hiddenDrawT = 0, last = performance.now(), boardT = 0, labelT = 0, fpsN = 0, fpsT = performance.now();
 function rafLoop(now) { requestAnimationFrame(rafLoop); if (!document.hidden) frame(now); }
 // background tabs get no animation frames; keep the match (and host duties) ticking anyway
@@ -7837,7 +8673,7 @@ function frame(now) {
   const list = netTick();
   updatePeers(dt, list);
   if (!isHost && hostId) { const hp = list.find(p => p.id === hostId); if (hp) mirrorHost(hp.d); }
-  if (isHost) hostTick(dt);
+  if (isHost && !EDITOR) hostTick(dt);
   syncInfect(); runTimers();
   onGSChange();
   if (state === 'playing') { updatePlayer(dt); stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
@@ -7848,6 +8684,9 @@ function frame(now) {
   updateFX(dt);
   labelT -= dt; if (labelT <= 0) { labelT = 1; updateNetLabel(); if (menuOpenNow()) renderParty(); }
 
+  // spectate someone while you're dead or downed
+  const sp = !podium && wantSpec() && specList().length > 0;
+  if (sp !== specOn) { specOn = sp; $('specLbl').hidden = !sp; $('dead').classList.toggle('spec', sp); }
   const menuOpen = state === 'menu' || (state === 'paused' && !$('menu').hidden);
   const closeUp = menuTab === 'shop' || menuTab === 'custom' || menuTab === 'prof';
   if (showcase) { showcase.av.visible = menuOpen && (closeUp || state === 'menu'); showYaw += dt * 0.5; showcase.av.rotation.y = showYaw; avatarFX(showcase); }
@@ -7872,6 +8711,12 @@ function frame(now) {
     camHelper.position.copy(camera.position); camHelper.lookAt(target);
     camera.quaternion.slerp(camHelper.quaternion, k);
     camera.fov = damp(camera.fov, fov, 4, dt);
+  } else if (state === 'editor') {
+    editorTick(dt);
+  } else if (podium && GS.ph === 1) {
+    podiumCam(dt);
+  } else if (specOn && specCam(dt)) {
+    /* following a teammate or another player */
   } else {
     landDip = damp(landDip, 0, 8, dt); fovKick = damp(fovKick, 0, 5, dt); shake = damp(shake, 0, 9, dt);
     const hs = Math.hypot(player.vel.x, player.vel.z), bob = player.onGround ? Math.sin(bobT) * 0.045 * Math.min(hs / 9.5, 1) : 0;
@@ -7901,7 +8746,8 @@ setWeapon(settings.gun, true);
 buildShowcase();
 requestAnimationFrame(rafLoop);
 $('play').disabled = false; $('play').textContent = 'Deploy';
-netInit();
+wireMapUI();
+if (EDITOR) startEditor(); else netInit();
 // read-only peek for debugging in the browser console
 window.__prism = { get info() { return { flying: grenades.map(n => n.kind + ':' + n.fuse.toFixed(1) + '@' + n.g.position.toArray().map(v => v.toFixed(1)).join(',')), cls: settings.cls, curW, gadgets: nadeCount, qcd: +player.pulseCd.toFixed(1), jetFuel: +jetFuel.toFixed(2), deploys: deploys.map(d => d.kind + (d.uses != null ? ':' + d.uses : '')), rally: teamFx.rallyUntil > time, wall: teamFx.wallUntil > time, py: +player.pos.y.toFixed(1), calls: renderer.info.render.calls, tris: renderer.info.render.triangles, q: settings.quality, dpr: renderer.getPixelRatio(), cam: camera.position.toArray().map(v => +v.toFixed(1)), fov: +camera.fov.toFixed(1), show: showcase ? [showcase.av.visible, showcase.av.position.toArray()] : null, menuTab, netKind, roomName, conn: !!conn, connected: !!(conn && conn.connected()), connId: conn && conn.myId(), state, mode, isHost, myId, hostId, peers: peers.size, ents: [...ents.values()].map(e => [e.kind, e.name || e.type, e.alive, Math.round(e.hp), e.lv || 0, e.f || 0]), ggLv, frags, deaths, score, hp: Math.round(player.hp), GS: JSON.parse(JSON.stringify(GS)) }; } };
 </script>

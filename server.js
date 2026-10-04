@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const GAME_FILE = path.join(__dirname, 'prism-arena.html');
 const PORT = process.env.PORT || 3000;
 const MAX_ROOM = 12;
-const MAX_MSG = 16 * 1024;
+const MAX_MSG = 64 * 1024;
 
 // Creator codes -> player IDs. Built-in defaults below; the host can add or override them with
 // CREATOR_CODES="AUSTEN:P-abc123...,BECKET:P-def456..." (quotes, spaces and letter case are forgiven).
@@ -41,7 +41,7 @@ function clientFor(pid) { for (const id of membersOf(pid)) { const set = byPid.g
 // Shared wallets, keyed by the group's main ID. Kept in memory: after a restart the devices re-seed it from their
 // last confirmed copy (the highest version wins), then replay any changes the server never confirmed.
 const WAL = new Map();
-const ITEM_RE = /^(suit|hat|finish|pet|emote|addon):[a-z0-9]{1,24}$/;
+const ITEM_RE = /^(suit|hat|finish|pet|emote|spray|addon):[a-z0-9]{1,24}$/;
 function walMessage(client, m) {
   const g = groupOf(client.pid); if (!g) return;
   const num = (v, max) => Math.max(-max, Math.min(max, Math.floor(+v || 0)));
@@ -90,16 +90,43 @@ function lbMerge(client, entries, LB = BOARDS.waves) {
 }
 // Player profiles (look + stats). Each player re-uploads their own whenever they connect.
 const PROF = new Map();
-const STAT_KEYS = ['k', 'd', 'w', 'bk', 'inf', 'gp', 'pt', 'ch', 'bw', 'bs', 'br'];
+const STAT_KEYS = ['k', 'd', 'w', 'bk', 'inf', 'gp', 'pt', 'ch', 'bw', 'bs', 'br', 'mp', 'gs', 'tr'];
 function cleanProfile(p) {
   if (!p || typeof p !== 'object') return null;
   const num = v => Math.max(0, Math.min(1e9, Math.floor(+v || 0)));
   const str = (v, n) => String(v || '').replace(/[\u0000-\u001f]/g, '').slice(0, n);
   const st = p.st && typeof p.st === 'object' ? p.st : {};
   return { n: str(p.n, 14) || 'Pilot', h: num(p.h) % 360, sk: str(p.sk, 16), fn: str(p.fn, 16), ht: str(p.ht, 16), pt: str(p.pt, 12), cl: str(p.cl, 12),
-    st: Object.fromEntries(STAT_KEYS.map(k => [k, num(st[k])])), since: Math.max(0, Math.min(Date.now(), Math.floor(+p.since || 0))) };
+    st: Object.fromEntries(STAT_KEYS.map(k => [k, num(st[k])])), since: Math.max(0, Math.min(Date.now(), Math.floor(+p.since || 0))),
+    // what they own (so friends can gift and trade) and their player card
+    inv: Array.isArray(p.inv) ? p.inv.filter(x => typeof x === 'string' && /^(suit|hat|finish|pet|emote|spray):[a-z0-9]{1,24}$/.test(x)).slice(0, 400) : [],
+    cd: p.cd && typeof p.cd === 'object' ? { t: str(p.cd.t, 12).replace(/[^a-z]/g, ''), b: Math.min(30, num(p.cd.b)) } : null };
 }
 const seen = new Map();  // player ID -> { name, last, room } for the /players lookup page
+// ---------- community maps ----------
+// Published maps live in memory and in data/maps.json (best effort; free hosts can wipe the disk). Creators' browsers keep
+// their own maps too and quietly re-publish any the server has lost.
+const CMAPS = new Map(), MAPS_FILE = path.join(__dirname, 'data', 'maps.json');
+try { for (const m of JSON.parse(fs.readFileSync(MAPS_FILE, 'utf8'))) if (m && /^c-[a-z0-9]{4,16}$/.test(m.id)) CMAPS.set(m.id, m); } catch {}
+let mapsDirty = false;
+setInterval(() => { if (!mapsDirty) return; mapsDirty = false; try { fs.mkdirSync(path.dirname(MAPS_FILE), { recursive: true }); fs.writeFileSync(MAPS_FILE, JSON.stringify([...CMAPS.values()])); } catch {} }, 15000);
+const MAP_THEMES = ['prism', 'frost', 'haunted', 'xmas', 'valentine', 'easter', 'summer', 'harvest', 'heritage', 'pride'];
+const MAP_TYPES = new Set(['box', 'cyl', 'ramp', 'ball', 'neon', 'pad', 'crate', 'barrel', 'rock', 'lamp', 'crystal', 'tree', 'pumpkin', 'tomb', 'deadtree', 'xtree', 'present', 'cane', 'snowman', 'heart', 'rosebush', 'egg', 'bush', 'palm', 'umbrella', 'castle', 'hay', 'autumn', 'harvpump', 'torch', 'baobab', 'flag', 'arch']);
+function cleanMapObjs(list) {
+  const out = []; if (!Array.isArray(list)) return out;
+  const n = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round((+v || 0) * 100) / 100));
+  for (const o of list.slice(0, 300)) {
+    if (!Array.isArray(o) || !MAP_TYPES.has(o[0])) continue;
+    out.push([o[0], n(o[1], -58, 58), n(o[2], 0, 40), n(o[3], -58, 58), (o[4] | 0) & 3, n(o[5] || 1, 0.3, 40), n(o[6] || 1, 0.1, 30), n(o[7] || 1, 0.3, 40), Math.max(0, Math.min(15, o[8] | 0))]);
+  }
+  return out;
+}
+const mapSummary = m => ({ id: m.id, name: m.name, author: m.author, theme: m.theme, n: m.objs.length, plays: m.plays || 0, ts: m.ts });
+function newMapId() { let id; do { id = 'c-' + crypto.randomBytes(4).toString('hex').slice(0, 6); } while (CMAPS.has(id)); return id; }
+function mapsPage() {
+  const rows = [...CMAPS.values()].sort((a, b) => b.ts - a.ts).map(m => `<tr><td>${esc(m.name)}</td><td>${esc(m.author)}</td><td><code>${esc(m.id)}</code></td><td><code>${esc(m.pid)}</code></td><td>${m.objs.length}</td><td>${m.plays || 0}</td><td>${new Date(m.ts).toLocaleString()}</td><td><a href="/maps/${esc(m.id)}.json">data</a></td></tr>`).join('');
+  return `<!doctype html><meta charset="utf-8"><title>Prism Arena · community maps</title><style>body{font:14px system-ui;background:#0e0b1e;color:#eee;padding:20px}table{border-collapse:collapse}td,th{padding:6px 10px;border-bottom:1px solid #333;text-align:left}code{color:#5ff2ff}a{color:#ffbf6b}</style><h1>Community maps (${CMAPS.size})</h1><p>To make one official, send its map ID (or its data link) to whoever runs the game.</p><table><tr><th>Name</th><th>By</th><th>Map ID</th><th>Player ID</th><th>Objects</th><th>Plays</th><th>Published</th><th></th></tr>${rows}</table>`;
+}
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function playersPage() {
   const now = Date.now();
@@ -149,6 +176,12 @@ const server = http.createServer((req, res) => {
   } else if (url === '/players') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(playersPage());
+  } else if (url === '/maps') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(mapsPage());
+  } else if (/^\/maps\/c-[a-z0-9]{4,16}\.json$/.test(url) && CMAPS.has(url.slice(6, -5))) {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify(CMAPS.get(url.slice(6, -5))));
   } else if (url === '/health') {
     res.writeHead(200, { 'Content-Type': 'text/plain' }); res.end('ok');
   } else {
@@ -186,6 +219,37 @@ wss.on('connection', ws => {
       seen.set(m.pid, { ...(seen.get(m.pid) || {}), last: Date.now() });
       sendGifts(client);
       if (groupOf(m.pid)) send(ws, JSON.stringify({ t: 'linked', main: groupOf(m.pid)[0] }));
+    } else if (m.t === 'mappub' && client.pid && m.map && typeof m.map === 'object') {
+      const mm = m.map, objs = cleanMapObjs(mm.objs), name = String(mm.name || '').replace(/[ -]/g, '').trim().slice(0, 24);
+      if (name.length < 3 || objs.length < 5) { send(ws, JSON.stringify({ t: 'maperr', msg: 'Maps need a name and at least 5 things' })); return; }
+      const old = /^c-[a-z0-9]{4,16}$/.test(mm.id || '') ? CMAPS.get(mm.id) : null;
+      if (old && !sameGroup(old.pid, client.pid)) { send(ws, JSON.stringify({ t: 'maperr', msg: 'That map belongs to someone else' })); return; }
+      // restoring a map the server forgot keeps its old ID
+      const id = old ? old.id : m.restore && /^c-[a-z0-9]{4,16}$/.test(mm.id || '') ? mm.id : newMapId();
+      if (!old && [...CMAPS.values()].filter(x => sameGroup(x.pid, client.pid)).length >= 20) { send(ws, JSON.stringify({ t: 'maperr', msg: 'You can publish up to 20 maps. Delete one first.' })); return; }
+      const map = { id, name, author: String(mm.author || 'Pilot').replace(/[ -]/g, '').slice(0, 14), pid: client.pid, theme: MAP_THEMES.includes(mm.theme) ? mm.theme : 'prism', objs, ts: old ? old.ts : Date.now(), plays: old ? old.plays || 0 : +mm.plays || 0 };
+      CMAPS.set(id, map); mapsDirty = true;
+      if (!m.restore) send(ws, JSON.stringify({ t: 'mappubok', map }));
+    } else if (m.t === 'maplist') {
+      send(ws, JSON.stringify({ t: 'maplist', list: [...CMAPS.values()].sort((a, b) => b.ts - a.ts).slice(0, 200).map(mapSummary) }));
+    } else if (m.t === 'mapget' && typeof m.id === 'string') {
+      const map = CMAPS.get(m.id); send(ws, JSON.stringify(map ? { t: 'mapdata', map } : { t: 'mapdata', id: m.id, missing: 1 }));
+    } else if (m.t === 'mapdel' && client.pid && typeof m.id === 'string') {
+      const map = CMAPS.get(m.id); if (map && sameGroup(map.pid, client.pid)) { CMAPS.delete(m.id); mapsDirty = true; }
+    } else if (m.t === 'mapplay' && typeof m.id === 'string') {
+      const map = CMAPS.get(m.id); client.played = client.played || new Set();
+      if (map && !client.played.has(m.id)) { client.played.add(m.id); map.plays = (map.plays || 0) + 1; mapsDirty = true; }
+    } else if (m.t === 'mapmine' && client.pid && Array.isArray(m.ids)) {
+      send(ws, JSON.stringify({ t: 'mapneed', ids: m.ids.slice(0, 20).filter(id => typeof id === 'string' && /^c-[a-z0-9]{4,16}$/.test(id) && !CMAPS.has(id)) }));
+    } else if (/^(gift|giftack|trade|tradeacc|tradedone|tradeno)$/.test(m.t) && client.pid && typeof m.to === 'string' && PID_RE.test(m.to)) {
+      // gifts and trades go to one of the other player's devices; their game does the checking
+      if (m.t === 'gift' && !(typeof m.item === 'string' && ITEM_RE.test(m.item))) return;
+      const strs = l => Array.isArray(l) ? l.filter(x => typeof x === 'string' && ITEM_RE.test(x)).slice(0, 6) : [];
+      const out = { t: m.t, from: client.pid, id: String(m.id || '').slice(0, 60), n: String(m.n || '').replace(/[ -]/g, '').slice(0, 14) };
+      if (m.t === 'gift') out.item = m.item;
+      if (m.t === 'trade') { out.give = strs(m.give); out.want = strs(m.want); }
+      if (m.t === 'tradedone') out.ok = m.ok ? 1 : 0;
+      const to = clientFor(m.to); if (to) send(to.ws, JSON.stringify(out));
     } else if (m.t === 'wal' && client.pid) {
       walMessage(client, m);
     } else if (m.t === 'pay' && client.pid && typeof m.id === 'string' && m.id.length < 80) {
@@ -220,7 +284,7 @@ wss.on('connection', ws => {
     } else if (m.t === 'invite' && client.pid && typeof m.to === 'string' && PID_RE.test(m.to)) {
       const now = Date.now(); if (now - (client.invT || 0) < 1500) return; client.invT = now;
       const str = (v, n) => String(v || '').replace(/[^a-z0-9-]/gi, '').slice(0, n);
-      const msg = JSON.stringify({ t: 'invite', from: client.pid, n: String(m.n || '').replace(/[\u0000-\u001f]/g, '').slice(0, 14), mode: str(m.mode, 10), map: str(m.map, 10), room: str(m.room, 20).toLowerCase() });
+      const msg = JSON.stringify({ t: 'invite', from: client.pid, n: String(m.n || '').replace(/[\u0000-\u001f]/g, '').slice(0, 14), mode: str(m.mode, 10), map: str(m.map, 20), room: str(m.room, 20).toLowerCase() });
       const targets = byPid.get(m.to);
       for (const o of targets || []) send(o.ws, msg);
       send(ws, JSON.stringify({ t: 'invsent', to: m.to, ok: !!(targets && targets.size) }));
