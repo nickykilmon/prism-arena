@@ -2198,6 +2198,36 @@ function out(pan, bus) {
   if (!pan || !A.ctx.createStereoPanner) return bus;
   const p = A.ctx.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); p.connect(bus); return p;
 }
+// flamethrower: a looping roar (low rumble + hiss with a flickering filter) that swells while you hold fire
+let flameSnd = null;
+function flameRoar() {
+  if (!A.ctx) return;
+  const c = A.ctx, t = c.currentTime;
+  if (!flameSnd) {
+    const src = c.createBufferSource(); src.buffer = A.noise; src.loop = true;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650; lp.Q.value = 0.9;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 0.7;
+    const hiss = c.createGain(); hiss.gain.value = 0.22;
+    const g = c.createGain(); g.gain.value = 0.0001;
+    src.connect(lp); lp.connect(g); src.connect(bp); bp.connect(hiss); hiss.connect(g); g.connect(out(0));
+    const lfo = c.createOscillator(); lfo.frequency.value = 11; const depth = c.createGain(); depth.gain.value = 220; lfo.connect(depth); depth.connect(lp.frequency); lfo.start();
+    src.start();
+    flameSnd = { g, until: -9 };
+  }
+  // a whoomp when the flame lights
+  if (time > flameSnd.until + 0.1) { noise(0.35, 0.4, 260, 'lowpass', 1, 0, 0, 1400); tone(70, 150, 0.3, 0.3, 'sawtooth'); }
+  flameSnd.g.gain.cancelScheduledValues(t); flameSnd.g.gain.setTargetAtTime(0.75, t, 0.04);
+  flameSnd.until = time + 0.12;
+}
+// hush the roar if the tab is hidden mid-burst (frames stop, so the fade below would never run)
+document.addEventListener('visibilitychange', () => { if (document.hidden && flameSnd) { flameSnd.until = -9; flameSnd.off = true; flameSnd.g.gain.cancelScheduledValues(A.ctx.currentTime); flameSnd.g.gain.setValueAtTime(0.0001, A.ctx.currentTime); } });
+function updateFlameSnd(dt) {
+  if (!flameSnd) return;
+  if (time > flameSnd.until) { if (!flameSnd.off) { flameSnd.off = true; flameSnd.g.gain.cancelScheduledValues(A.ctx.currentTime); flameSnd.g.gain.setTargetAtTime(0.0001, A.ctx.currentTime, 0.07); noise(0.25, 0.12, 900, 'lowpass', 1, 0, 0, 200); } return; }
+  flameSnd.off = false;
+  // crackles and pops
+  if (Math.random() < dt * 22) noise(rand(0.015, 0.04), rand(0.06, 0.16), rand(1500, 4500), 'bandpass', 4);
+}
 function tone(f, f2, dur, vol, type = 'sine', pan = 0, delay = 0, bus, at) {
   if (!A.ctx || vol <= 0.001) return; const c = A.ctx, t = at ?? c.currentTime + delay;
   const o = c.createOscillator(), g = c.createGain(); o.type = type;
@@ -2221,7 +2251,7 @@ const sfx = {
       case 'cannon': noise(0.12, 0.32 * v, 2500, 'bandpass', 0.6, pan); tone(110, 35, 0.3, 0.5 * v, 'sine', pan); tone(900, 200, 0.1, 0.06 * v, 'square', pan); break;
       case 'rail': tone(2600, 180, 0.35, 0.12 * v, 'sawtooth', pan); noise(0.3, 0.25 * v, 6000, 'highpass', 0.7, pan); tone(80, 30, 0.4, 0.4 * v, 'sine', pan); break;
       case 'nova': noise(0.35, 0.28 * v, 800, 'bandpass', 1, pan, 0, 200); tone(300, 80, 0.3, 0.22 * v, 'triangle', pan); break;
-      case 'inferno': noise(0.12, 0.1 * v, 700, 'lowpass', 0.8, pan, 0, 1600); break;
+      case 'inferno': if (v >= 1 && !pan) flameRoar(); else { noise(0.3, 0.3 * v, 600, 'lowpass', 0.9, pan, 0, 1800); noise(0.12, 0.08 * v, 2600, 'bandpass', 1, pan); } break;
       case 'arc': tone(3200, 500, 0.08, 0.05 * v, 'sawtooth', pan); noise(0.08, 0.16 * v, 7000, 'highpass', 0.8, pan); tone(120, 60, 0.08, 0.15 * v, 'square', pan); break;
       case 'blade': case 'dual': case 'claw': noise(0.2, 0.22 * v, 1200, 'bandpass', 2, pan, 0, 5000); break;
       case 'lmg': noise(0.08, 0.24 * v, 3200, 'bandpass', 0.7, pan); tone(130, 40, 0.14, 0.32 * v, 'sine', pan); tone(900, 250, 0.06, 0.04 * v, 'square', pan); break;
@@ -6638,7 +6668,7 @@ function frame(now) {
   syncInfect(); runTimers();
   onGSChange();
   if (state === 'playing') { updatePlayer(dt); stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
-  updateOrbs(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updatePickups(dt);
+  updateOrbs(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
   updateWeapon(dt); updateFlags(dt); updateMyPet(dt);
   sendPresence(dt);
