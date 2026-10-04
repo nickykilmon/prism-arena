@@ -123,6 +123,8 @@ button,input,select{font:inherit;color:inherit}
 #board td.n,#board th.n{text-align:right}
 #board .bot{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6px}
 #dmg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,30,70,.55) 100%)}
+#slowfx{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(255,205,110,.38) 100%)}
+#chillfx{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(150,215,255,.5) 100%);box-shadow:inset 0 0 60px rgba(220,245,255,.6)}
 #dmg.poison{background:radial-gradient(ellipse at center,transparent 35%,rgba(60,230,50,.75) 100%)}
 #ks{position:absolute;right:16px;bottom:calc(120px + env(safe-area-inset-bottom,0px));font-size:12px;letter-spacing:.14em;color:#ff8a3d;background:var(--panel);border:1px solid rgba(255,138,61,.45);padding:6px 10px;border-radius:4px;text-align:right}
 #ks b{color:var(--fg)}
@@ -381,6 +383,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
 <div id="stage"></div>
 <div id="dmg"></div>
 <div id="scope" hidden></div>
+<div id="slowfx" hidden></div><div id="chillfx" hidden></div>
 
 <div id="hud" hidden>
   <div class="chip"><span class="dot" id="netdot"></span><span id="nettxt">Solo</span></div>
@@ -425,7 +428,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     <div class="sect">Game mode</div>
     <div class="modes" id="modes">
       <button class="mode" data-mode="waves"><b>Squad Waves</b><span>Survive drone waves together. Earns coins.</span></button>
-      <button class="mode" data-mode="boss"><b>Boss Raid</b><span>Your squad vs a giant Titan. Hit its glowing core. Big payouts.</span></button>
+      <button class="mode" data-mode="boss"><b>Boss Raid</b><span>Your squad vs 7 giant bosses that loop and get harder. Big payouts.</span></button>
       <button class="mode" data-mode="ffa"><b>Free-for-All</b><span>Your gun, everyone vs everyone. First to 20 kills.</span></button>
       <button class="mode" data-mode="gungame"><b>Gun Game</b><span>Every kill swaps your gun. Finish the ladder to win.</span></button>
       <button class="mode" data-mode="ctf"><b>Capture the Flag</b><span>Red vs Blue. First to 3 captures wins.</span></button>
@@ -675,7 +678,7 @@ const TEAM_NAME = ['RED', 'BLUE'], TEAM_CSS = ['#ff5a6e', '#5aa8ff'];
 const TEAM_COL = [new THREE.Color(2.9, 0.35, 0.45), new THREE.Color(0.35, 1.3, 3.0)];
 const BASES = [new V3(-44, 0, 0), new V3(44, 0, 0)];
 const BOT_NAMES = ['Viper', 'Nyx', 'Rook', 'Echo', 'Jinx', 'Talon', 'Pixel', 'Bolt', 'Halo', 'Mako', 'Rune', 'Vex'];
-const DTYPES = ['scout', 'charger', 'warden', 'titan', 'poisoner'];
+const DTYPES = ['scout', 'charger', 'warden', 'titan', 'poisoner', 'queen', 'qclone', 'colossus', 'voideye', 'reaper', 'wyrm', 'overmind'];
 
 // ================= seasons =================
 // Every season runs on the same dates each year. Its shop items and its map only appear while it is on;
@@ -895,8 +898,8 @@ const CH_POOL = [
   { ev: 'kill', n: [15, 30, 50], t: n => `Get ${n} kills in any mode` },
   { ev: 'drone', n: [40, 75, 120], t: n => `Destroy ${n} drones` },
   { ev: 'wave', n: [5, 10, 15], t: n => `Clear ${n} waves in Squad Waves` },
-  { ev: 'boss', n: [1, 2, 3], t: n => `Defeat ${n} Titan${n > 1 ? 's' : ''} in Boss Raid` },
-  { ev: 'weak', n: [25, 50, 90], t: n => `Hit a Titan's weak spot ${n} times` },
+  { ev: 'boss', n: [1, 2, 3], t: n => `Defeat ${n} boss${n > 1 ? 'es' : ''} in Boss Raid` },
+  { ev: 'weak', n: [25, 50, 90], t: n => `Hit a boss's weak spot ${n} times` },
   { ev: 'win', n: [1, 2, 3], t: n => `Win ${n} PvP match${n > 1 ? 'es' : ''} or rounds` },
   { ev: 'cap', n: [1, 2, 4], t: n => `Capture ${n} flag${n > 1 ? 's' : ''} in CTF` },
   { ev: 'infect', n: [3, 6, 10], t: n => `Infect ${n} survivors in Infection` },
@@ -957,6 +960,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'six-bosses', date: '2026-10-04', title: 'Boss Raid: Six New Bosses',
+    lines: ['The Titan has company. Boss Raid now cycles through 7 bosses, one per round: Titan, Mirror Queen, Inferno Colossus, Void Eye, Clockwork Reaper, Frost Wyrm and The Overmind', 'Every round they get tougher, and every lap through the list they all come back faster with more attacks', 'Mirror Queen splits into fakes (find the shimmer). The Colossus stomps and leaves fire. The Void Eye only opens to fire its laser (jump it). The Reaper dashes and slows time. The Frost Wyrm breathes ice and lands to rest. The Overmind hides behind a spinning shield ring'] },
   { id: 'gucci-streaks', date: '2026-10-04', title: 'Gucci Bucket Hat & Streak Fix',
     lines: ['The Bucket Hat is now the Gucci Bucket Hat. Already own it? It\'s upgraded for free', 'FFA kill streaks, unused rewards and sentry drones now reset when a new match starts'] },
   { id: 'guns-emote-slots', date: '2026-10-04', title: 'Inferno & Arc Thrower For Everyone, Emote Loadout',
@@ -2588,7 +2593,7 @@ function updatePlayer(dt) {
   if (!coop() && time - player.lastDmgT > 4 && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 15 * dt);
   const wish = player.downed ? pWish.set(0, 0, 0) : wishDir(pWish);
   const carrying = mode === 'ctf' && GS.fl.some(f => f[0] === 1 && f[1] === myId);
-  const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1);
+  const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1);
   updateRift(dt);
   if (player.dashT > 0) player.dashT -= dt;
   else if (player.onGround) { v.x = damp(v.x, wish.x * spd, 14, dt); v.z = damp(v.z, wish.z * spd, 14, dt); }
@@ -4010,8 +4015,28 @@ const TYPES = {
   charger: { hp: 40, speed: 15, scale: 0.8, color: new THREE.Color(2.9, 1.15, 0.25), pts: 150 },
   poisoner: { hp: 75, speed: 7.5, scale: 1.05, color: new THREE.Color(0.3, 2.9, 0.35), pts: 220, dist: 17 },
   warden: { hp: 420, speed: 4.5, scale: 1.9, color: new THREE.Color(1.3, 0.55, 2.9), pts: 600, dist: 22 },
-  titan: { hp: 2400, speed: 3.5, scale: 4, color: new THREE.Color(3.0, 0.75, 0.3), pts: 2500, dist: 20 },
+  titan: { hp: 2400, speed: 3.5, scale: 4, color: new THREE.Color(3.0, 0.75, 0.3), pts: 2500, dist: 20, boss: 1 },
+  queen: { hp: 2100, speed: 5, scale: 3, color: new THREE.Color(1.4, 2.4, 3.0), pts: 2500, dist: 18, boss: 1 },
+  qclone: { hp: 45, speed: 5, scale: 3, color: new THREE.Color(1.4, 2.4, 3.0), pts: 120, dist: 18 },
+  colossus: { hp: 3000, speed: 2.6, scale: 4, color: new THREE.Color(3.0, 0.85, 0.15), pts: 2500, dist: 10, boss: 1 },
+  voideye: { hp: 2300, speed: 2, scale: 4.5, color: new THREE.Color(2.2, 0.5, 3.0), pts: 2500, dist: 22, boss: 1 },
+  reaper: { hp: 2000, speed: 9, scale: 2.6, color: new THREE.Color(2.8, 2.3, 0.9), pts: 2500, dist: 10, boss: 1 },
+  wyrm: { hp: 2600, speed: 12, scale: 2.6, color: new THREE.Color(0.7, 2.2, 3.0), pts: 2500, dist: 26, boss: 1 },
+  overmind: { hp: 2300, speed: 2, scale: 3.5, color: new THREE.Color(3.0, 0.55, 2.3), pts: 2500, dist: 22, boss: 1, homing: 1 },
 };
+const isBoss = e => !!(e && TYPES[e.type] && TYPES[e.type].boss);
+// Boss Raid cycles through these, one per round; every lap through the list they all come back stronger
+const BOSS_ORDER = ['titan', 'queen', 'colossus', 'voideye', 'reaper', 'wyrm', 'overmind'];
+const BOSS_INFO = {
+  titan: { name: 'THE TITAN', hint: 'Shoot the glowing core' },
+  queen: { name: 'MIRROR QUEEN', hint: 'Only one of them is real. Look for the shimmer' },
+  colossus: { name: 'INFERNO COLOSSUS', hint: 'Hit the cracked core in its chest. Jump its stomps, stay off the fire' },
+  voideye: { name: 'VOID EYE', hint: 'Hurt it only while the eye is open. Jump the laser' },
+  reaper: { name: 'CLOCKWORK REAPER', hint: 'Dodge its dash, then hit it while it recovers' },
+  wyrm: { name: 'FROST WYRM', hint: 'When it lands, shoot the glowing wing joints' },
+  overmind: { name: 'THE OVERMIND', hint: 'Shoot through the gaps in its shield ring' },
+};
+const bossFor = n => ({ type: BOSS_ORDER[(Math.max(1, n) - 1) % BOSS_ORDER.length], L: Math.floor((Math.max(1, n) - 1) / BOSS_ORDER.length) });
 // Boss Raid: a huge armored core; its glowing weak spot orbits the hull and takes double damage
 function makeTitanVis(e) {
   const T = TYPES.titan, g = new THREE.Group(), face = new THREE.Group(), orbit = new THREE.Group(); g.add(face, orbit);
@@ -4037,8 +4062,322 @@ function makeTitanVis(e) {
   e.vis = { g, face, orbit, coreMat, glowMat, eye, ring, ring2, hit: hitbox, weak: weakHit, xray, extra: [weakMat, weakHalo.material] };
 }
 const xrayMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 0.4, 0.6), wireframe: true, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false });
+// ---------- Boss Raid: models for the other six bosses ----------
+const bossHitMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const dampAng = (a, b, k, dt) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * (1 - Math.exp(-k * dt));
+const SHIMMER = new THREE.Color(2.4, 2.8, 3.0);
+function bossKit(e) {
+  const g = new THREE.Group(), mats = [], geos = [], hits = [], weaks = [];
+  const S = (o = {}) => { const m = new THREE.MeshStandardMaterial({ roughness: 0.5, ...o }); mats.push(m); return m; };
+  const B = (c, o = {}) => { const m = new THREE.MeshBasicMaterial({ color: c, ...o }); mats.push(m); return m; };
+  const G = geo => { geos.push(geo); return geo; };
+  const add = (geo, mat, x = 0, y = 0, z = 0, parent = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
+  const hit = (r, x, y, z, parent = g, weak = false) => { const h = new THREE.Mesh(G(new THREE.SphereGeometry(r, 10, 8)), bossHitMat); h.visible = false; h.position.set(x, y, z); h.userData = { ent: e.id, weak }; parent.add(h); (weak ? weaks : hits).push(h); return h; };
+  return { g, mats, geos, hits, weaks, S, B, G, add, hit };
+}
+function finishBoss(e, K, v, xr) {
+  const xray = new THREE.Mesh(DG.hit, xrayMat); xray.scale.setScalar(xr); xray.renderOrder = 999; xray.visible = false; K.g.add(xray);
+  K.g.position.copy(e.pos); scene.add(K.g);
+  e.vis = Object.assign({ g: K.g, hit: K.hits[0], hits: K.hits, weaks: K.weaks, xray, extra: K.mats, geos: K.geos }, v);
+}
+const eyeTex = () => canvasTex('eyeball', x => {
+  const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#d8cfe0'); g.addColorStop(0.5, '#fff8f4'); g.addColorStop(1, '#d8cfe0'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.strokeStyle = 'rgba(190,20,40,.75)'; x.lineCap = 'round';
+  for (let i = 0; i < 40; i++) { let px = Math.random() * 256, py = Math.random() < 0.5 ? rand(0, 50) : rand(206, 256); x.lineWidth = rand(0.8, 2.4); x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 6; k++) { px += rand(-14, 14); py += (py < 128 ? 1 : -1) * rand(4, 16); x.lineTo(px, py); } x.stroke(); }
+});
+const irisTex = () => canvasTex('iris', x => {
+  const g = x.createRadialGradient(128, 128, 10, 128, 128, 128); g.addColorStop(0, '#ffd2ff'); g.addColorStop(0.35, '#b23cff'); g.addColorStop(0.8, '#4a0c8a'); g.addColorStop(1, '#14001f'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.strokeStyle = 'rgba(255,190,255,.5)'; for (let i = 0; i < 90; i++) { const a = rand(0, 6.283); x.lineWidth = rand(0.6, 2); x.beginPath(); x.moveTo(128 + Math.cos(a) * 30, 128 + Math.sin(a) * 30); x.lineTo(128 + Math.cos(a) * rand(70, 120), 128 + Math.sin(a) * rand(70, 120)); x.stroke(); }
+});
+const brainTex = () => canvasTex('brain', x => {
+  x.fillStyle = '#ff8fb8'; x.fillRect(0, 0, 256, 256); x.lineCap = 'round';
+  for (let i = 0; i < 70; i++) { let px = Math.random() * 256, py = Math.random() * 256; x.strokeStyle = Math.random() < 0.5 ? 'rgba(150,30,80,.75)' : 'rgba(255,200,225,.6)'; x.lineWidth = rand(2, 4.5); x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 5; k++) { px += rand(-22, 22); py += rand(-22, 22); x.quadraticCurveTo(px + rand(-12, 12), py + rand(-12, 12), px, py); } x.stroke(); }
+});
+const clockTex = () => canvasTex('clock', x => {
+  x.fillStyle = '#f2e6c4'; x.fillRect(0, 0, 256, 256); x.strokeStyle = '#3a2a10'; x.lineWidth = 10; x.beginPath(); x.arc(128, 128, 118, 0, 7); x.stroke();
+  x.fillStyle = '#3a2a10'; x.font = 'bold 34px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  ['XII', 'III', 'VI', 'IX'].forEach((t, i) => { const a = i * Math.PI / 2 - Math.PI / 2; x.fillText(t, 128 + Math.cos(a) * 86, 128 + Math.sin(a) * 86); });
+  for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; x.fillRect(128 + Math.cos(a) * 106 - 3, 128 + Math.sin(a) * 106 - 3, 6, 6); }
+});
+// Mirror Queen (and her copies, which look the same but don't shimmer)
+function makeQueenVis(e) {
+  const K = bossKit(e), { g, S, B, G, add, hit } = K, real = e.type === 'queen';
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0xbfe0ff, metalness: 0.75, roughness: 0.05, iridescence: 1, iridescenceIOR: 1.7, clearcoat: 1, flatShading: true }); K.mats.push(glass);
+  const mirror = S({ color: 0xe6f2ff, metalness: 1, roughness: 0.04, flatShading: true });
+  const glow = B(new THREE.Color(1.4, 2.4, 3.0)), gemM = B(new THREE.Color(3, 1.2, 2.6));
+  const body = new THREE.Group(); g.add(body);
+  add(G(new THREE.ConeGeometry(0.62, 1.4, 8, 1, true)), glass, 0, -0.38, 0, body);
+  add(G(new THREE.OctahedronGeometry(0.3, 0)), mirror, 0, 0.42, 0, body).scale.set(0.85, 1.45, 0.62);
+  const head = add(G(new THREE.OctahedronGeometry(0.17, 0)), mirror, 0, 0.98, 0, body); head.scale.set(0.8, 1.15, 0.8);
+  for (const sx of [-1, 1]) add(G(new THREE.BoxGeometry(0.05, 0.02, 0.02)), glow, sx * 0.055, 1.0, -0.13, body);
+  const crown = new THREE.Group(); crown.position.y = 1.14; body.add(crown);
+  for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2, c = add(G(new THREE.ConeGeometry(0.035, 0.3, 4)), k === 0 ? gemM : glass, Math.sin(a) * 0.14, 0.1, -Math.cos(a) * 0.14, crown); c.rotation.set(-Math.cos(a) * 0.3, 0, -Math.sin(a) * 0.3); }
+  const gem = add(G(new THREE.OctahedronGeometry(0.05, 0)), gemM, 0, 0.02, -0.15, crown);
+  for (const sx of [-1, 1]) { const arm = add(G(new THREE.OctahedronGeometry(0.1, 0)), mirror, sx * 0.3, 0.38, -0.05, body); arm.scale.set(0.45, 2.6, 0.45); arm.rotation.z = sx * 0.35; }
+  const wings = [];
+  for (let k = 0; k < 6; k++) { const sx = k < 3 ? -1 : 1, i = k % 3, w = new THREE.Group(); w.position.set(sx * 0.12, 0.5, 0.18); body.add(w); const s = add(G(new THREE.OctahedronGeometry(0.5, 0)), glass, sx * (0.35 + i * 0.12), 0.1 + i * 0.12, 0, w); s.scale.set(0.18, 1.2 - i * 0.2, 0.03); w.userData.base = sx * (0.5 + i * 0.35); w.rotation.z = w.userData.base; wings.push(w); }
+  const orbit = new THREE.Group(); orbit.position.y = 0.3; g.add(orbit);
+  for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2, s = add(G(new THREE.OctahedronGeometry(0.09, 0)), mirror, Math.cos(a) * 0.95, Math.sin(k * 2) * 0.25, Math.sin(a) * 0.95, orbit); s.scale.y = 2; }
+  const heart = add(G(new THREE.OctahedronGeometry(0.075, 0)), gemM, 0, 0.45, -0.2, body);
+  hit(0.5, 0, 0.25, 0); hit(0.42, 0, -0.65, 0); hit(0.2, 0, 0.98, 0); hit(0.14, 0, 0.45, -0.22, g, true);
+  g.scale.setScalar(TYPES[e.type].scale);
+  finishBoss(e, K, {
+    coreMat: mirror, glowMat: glow,
+    anim(e, dt) {
+      g.rotation.y = dampAng(g.rotation.y, e.yaw || 0, 6, dt);
+      body.position.y = Math.sin(time * 1.6 + hashStr(e.id)) * 0.06;
+      wings.forEach((w, k) => { w.rotation.z = w.userData.base + Math.sin(time * 1.3 + k) * 0.07; });
+      orbit.rotation.y += dt * 0.9;
+      glass.emissive.setScalar(e.flash * 0.6); mirror.emissive.setScalar(e.flash * 0.6);
+      heart.scale.setScalar(1 + (e.charge || 0) * 0.9 + Math.sin(time * 4) * 0.1);
+      if (real) {
+        // the real queen gives herself away: a faint sparkle and a pulsing crown gem
+        gem.scale.setScalar(1 + Math.sin(time * 6) * 0.35);
+        if (Math.random() < dt * 9) { const a = rand(0, 6.283), r = rand(0.6, 2.4); burst(tA.set(e.pos.x + Math.cos(a) * r, e.pos.y + rand(-2.4, 3.6), e.pos.z + Math.sin(a) * r), 1, SHIMMER, 0.5, 0.7, 0.1, -0.6); }
+      }
+    },
+  }, 0.75);
+}
+// Inferno Colossus: built at full size, centred on its chest (feet 7.5 m below)
+function makeColossusVis(e) {
+  const K = bossKit(e), { g, S, B, G, add, hit } = K;
+  const rock = S({ color: 0x2a1c18, roughness: 0.95, flatShading: true, emissive: 0xffffff, emissiveMap: lavaTex(), emissiveIntensity: 1.5 });
+  const dark = S({ color: 0x1a1210, roughness: 1, flatShading: true });
+  const coreM = B(new THREE.Color(3, 1.5, 0.35)), eyeM = B(new THREE.Color(3, 2.2, 0.6));
+  const halo = B(new THREE.Color(1.6, 0.5, 0.08), { transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false });
+  const body = new THREE.Group(); g.add(body);
+  const torso = add(G(new THREE.DodecahedronGeometry(2.6, 0)), rock, 0, 0.3, 0, body); torso.scale.set(1.25, 1.1, 0.9); torso.castShadow = true;
+  add(G(new THREE.BoxGeometry(3.2, 1.4, 2.2)), dark, 0, -2.6, 0, body).castShadow = true;
+  const core = add(G(new THREE.SphereGeometry(0.85, 20, 14)), coreM, 0, 0.4, -2.05, body);
+  const coreHalo = add(G(new THREE.SphereGeometry(1.35, 20, 14)), halo, 0, 0.4, -2.0, body);
+  for (const sx of [-1, 1]) add(G(new THREE.DodecahedronGeometry(1.35, 0)), rock, sx * 3.0, 1.75, 0, body).castShadow = true;
+  const headG = new THREE.Group(); headG.position.set(0, 3.3, -0.4); body.add(headG);
+  add(G(new THREE.DodecahedronGeometry(1.0, 0)), rock, 0, 0, 0, headG).castShadow = true;
+  for (const sx of [-1, 1]) { add(G(new THREE.BoxGeometry(0.32, 0.14, 0.1)), eyeM, sx * 0.36, 0.05, -0.92, headG); const h = add(G(new THREE.ConeGeometry(0.22, 1.1, 5)), dark, sx * 0.75, 0.75, 0, headG); h.rotation.z = -sx * 0.6; }
+  const arms = [-1, 1].map(sx => {
+    const p = new THREE.Group(); p.position.set(sx * 3.1, 1.6, 0); body.add(p);
+    const up = add(G(new THREE.CylinderGeometry(0.78, 0.62, 2.8, 7)), rock, 0, -1.4, 0, p); up.castShadow = true;
+    add(G(new THREE.DodecahedronGeometry(0.9, 0)), dark, 0, -3.0, 0, p);
+    add(G(new THREE.DodecahedronGeometry(1.05, 0)), rock, 0, -4.2, 0, p).castShadow = true;
+    return p;
+  });
+  const legs = [-1, 1].map(sx => {
+    const p = new THREE.Group(); p.position.set(sx * 1.3, -3.1, 0); body.add(p);
+    add(G(new THREE.CylinderGeometry(0.95, 0.8, 2.4, 7)), rock, 0, -1.2, 0, p).castShadow = true;
+    add(G(new THREE.CylinderGeometry(0.82, 1.0, 2.2, 7)), rock, 0, -3.3, 0, p).castShadow = true;
+    add(G(new THREE.BoxGeometry(1.9, 0.6, 2.5)), dark, 0, -4.35, -0.3, p).castShadow = true;
+    return p;
+  });
+  const flameAt = [arms[0], arms[1], headG];
+  hit(2.9, 0, 0.3, 0); hit(1.7, 0, -2.6, 0); hit(1.3, 0, 3.3, -0.4); for (const sx of [-1, 1]) { hit(1.1, sx * 1.3, -5.2, 0); hit(1.2, sx * 3.1, -1.2, 0); }
+  hit(1.05, 0, 0.4, -2.1, g, true);
+  const last = e.pos.clone(); let spd = 0, ph = 0;
+  finishBoss(e, K, {
+    coreMat: dark, glowMat: coreM,
+    anim(e, dt) {
+      g.rotation.y = dampAng(g.rotation.y, e.yaw || 0, 5, dt);
+      const mv = Math.hypot(e.pos.x - last.x, e.pos.z - last.z) / Math.max(dt, 1e-3); last.copy(e.pos);
+      spd = damp(spd, Math.min(mv, 6), 6, dt); ph += dt * spd * 0.9;
+      const s = Math.sin(ph), k = Math.min(1, spd / 2);
+      legs[0].rotation.x = s * 0.45 * k;
+      legs[1].rotation.x = (e.bst & 16) ? damp(legs[1].rotation.x, 0.95 * (e.charge || 0), 12, dt) : -s * 0.45 * k;
+      arms[0].rotation.x = -s * 0.3 * k;
+      arms[1].rotation.x = damp(arms[1].rotation.x, (e.bst & 32) ? 2.5 : s * 0.3 * k, 10, dt);
+      body.position.y = Math.abs(s) * 0.25 * k;
+      rock.emissiveIntensity = 1.35 + Math.sin(time * 3) * 0.3 + e.flash * 2.5; dark.emissive.setScalar(e.flash * 0.5);
+      core.scale.setScalar(1 + Math.sin(time * 5) * 0.08); coreHalo.scale.setScalar(1 + Math.sin(time * 3) * 0.12);
+      if (Math.random() < dt * 30) { const o = flameAt[(Math.random() * 3) | 0]; o.getWorldPosition(tB); spray(tB.add(tC.set(rand(-0.8, 0.8), 0.6, rand(-0.8, 0.8))), UP, 1, fireCol(), rand(3, 6), 0.8, 2.2, -4, 0.3); }
+    },
+  }, 3.2);
+}
+// Void Eye: the eye always stares at you
+function makeVoidEyeVis(e) {
+  const K = bossKit(e), { g, S, B, G, add, hit } = K;
+  const face = new THREE.Group(); g.add(face);
+  const sclera = S({ map: eyeTex(), roughness: 0.25 });
+  const irisM = S({ map: irisTex(), emissive: 0xffffff, emissiveMap: irisTex(), emissiveIntensity: 1, roughness: 0.2 });
+  const pupilM = B(0x050008), lidM = S({ color: 0x2a0f3a, metalness: 0.7, roughness: 0.35, flatShading: true, side: THREE.DoubleSide }), glow = B(new THREE.Color(2.2, 0.5, 3.0));
+  add(G(new THREE.SphereGeometry(1, 40, 28)), sclera, 0, 0, 0, face);
+  add(G(new THREE.SphereGeometry(1.004, 40, 10, 0, Math.PI * 2, 0, 0.5).rotateX(Math.PI / 2)), irisM, 0, 0, 0, face);
+  const pupil = add(G(new THREE.SphereGeometry(1.008, 30, 8, 0, Math.PI * 2, 0, 0.2).rotateX(Math.PI / 2)), pupilM, 0, 0, 0, face);
+  const lid = (top) => { const p = new THREE.Group(); face.add(p); add(G(new THREE.SphereGeometry(1.09, 32, 14, 0, Math.PI * 2, top ? 0 : Math.PI / 2, Math.PI / 2)), lidM, 0, 0, 0, p); for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2, c = add(G(new THREE.ConeGeometry(0.07, 0.38, 5)), glow, Math.cos(a) * 0.62, (top ? 1 : -1) * 0.88, Math.sin(a) * 0.62, p); c.rotation.set(Math.sin(a) * 0.6 * (top ? 1 : -1), 0, -Math.cos(a) * 0.6 * (top ? 1 : -1)); if (!top) c.rotation.x += Math.PI; } return p; };
+  const upper = lid(true), lower = lid(false);
+  const tents = [];
+  for (let k = 0; k < 8; k++) {
+    const a = k / 8 * Math.PI * 2, pts = []; for (let i = 0; i <= 6; i++) { const t = i / 6; pts.push(new V3(Math.cos(a) * (0.6 + t * 1.2), Math.sin(a) * (0.6 + t * 1.2), -0.6 - t * 1.6 + Math.sin(t * 3) * 0.2)); }
+    const p = new THREE.Group(); face.add(p); add(G(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.09, 6)), lidM, 0, 0, 0, p);
+    const tip = pts[6]; add(G(new THREE.SphereGeometry(0.1, 8, 6)), glow, tip.x, tip.y, tip.z, p); p.userData.k = k; tents.push(p);
+  }
+  const ring = add(G(new THREE.TorusGeometry(1.45, 0.04, 8, 64)), glow, 0, 0, 0, face);
+  hit(1.05, 0, 0, 0, face); hit(0.3, 0, 0, 0.95, face, true);
+  g.scale.setScalar(TYPES.voideye.scale);
+  let open = 0;
+  finishBoss(e, K, {
+    coreMat: lidM, glowMat: glow,
+    anim(e, dt) {
+      face.lookAt(camera.position);
+      open = damp(open, (e.bst & 1) ? 0 : 1, 5, dt);
+      upper.rotation.x = -open * 1.05; lower.rotation.x = open * 1.05;
+      pupil.scale.setScalar(1 + (e.charge || 0) * 0.9 - open * 0.1);
+      irisM.emissiveIntensity = 0.8 + (e.charge || 0) * 2.2;
+      sclera.emissive.setScalar(e.flash * 0.6); lidM.emissive.setScalar(e.flash * 0.8);
+      for (const t of tents) { t.rotation.z = Math.sin(time * 1.4 + t.userData.k) * 0.12; t.rotation.x = Math.cos(time * 1.1 + t.userData.k * 2) * 0.1; }
+      ring.rotation.z += dt * 0.5;
+    },
+  }, 0.75);
+}
+// Clockwork Reaper
+function makeReaperVis(e) {
+  const K = bossKit(e), { g, S, B, G, add, hit } = K;
+  const cloth = S({ color: 0x16101e, roughness: 0.95, side: THREE.DoubleSide }), bone = S({ color: 0xe8e0c8, roughness: 0.6 });
+  const brass = S({ color: 0xc9a24a, metalness: 0.9, roughness: 0.3 }), steel = S({ color: 0xcfd6e2, metalness: 1, roughness: 0.2 });
+  const eyeM = B(new THREE.Color(3, 2.4, 0.8)), edge = B(new THREE.Color(2.8, 2.3, 0.9));
+  const clockM = S({ map: clockTex(), roughness: 0.5, emissive: 0xffffff, emissiveMap: clockTex(), emissiveIntensity: 0.2 });
+  const body = new THREE.Group(); g.add(body);
+  const cloak = add(G(new THREE.ConeGeometry(0.62, 1.7, 12, 3, true)), cloth, 0, -0.15, 0, body);
+  add(G(new THREE.SphereGeometry(0.32, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62)), cloth, 0, 0.74, 0.03, body);
+  add(G(new THREE.SphereGeometry(0.2, 16, 12)), bone, 0, 0.72, -0.05, body);
+  add(G(new THREE.BoxGeometry(0.16, 0.07, 0.12)), bone, 0, 0.56, -0.1, body);
+  const eyes = [-1, 1].map(sx => add(G(new THREE.SphereGeometry(0.04, 8, 6)), eyeM, sx * 0.075, 0.75, -0.21, body));
+  const clockG = new THREE.Group(); clockG.position.set(0, 0.3, -0.33); body.add(clockG);
+  add(G(new THREE.CylinderGeometry(0.22, 0.22, 0.04, 28).rotateX(Math.PI / 2).rotateZ(Math.PI)), clockM, 0, 0, 0, clockG);
+  add(G(new THREE.TorusGeometry(0.23, 0.025, 8, 28)), brass, 0, 0, 0, clockG);
+  const hourH = new THREE.Group(), minH = new THREE.Group(); clockG.add(hourH, minH); hourH.position.z = minH.position.z = -0.03;
+  add(G(new THREE.BoxGeometry(0.025, 0.12, 0.01)), edge, 0, 0.05, 0, hourH); add(G(new THREE.BoxGeometry(0.018, 0.18, 0.01)), edge, 0, 0.08, 0, minH);
+  const gears = [[0.34, 0, 0.95, 0.25], [0.2, 0.28, 1.12, 0.3]].map(([r, x, y, z]) => {
+    const gr = new THREE.Group(); gr.position.set(x, y, z); body.add(gr);
+    add(G(new THREE.TorusGeometry(r, r * 0.13, 6, 24)), brass, 0, 0, 0, gr);
+    for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; add(G(new THREE.BoxGeometry(r * 0.2, r * 0.2, r * 0.1)), brass, Math.cos(a) * r * 1.12, Math.sin(a) * r * 1.12, 0, gr).rotation.z = a; }
+    return gr;
+  });
+  for (const sx of [-1, 1]) { const a = add(G(new THREE.CylinderGeometry(0.035, 0.03, 0.62, 6)), bone, sx * 0.3, 0.3, -0.12, body); a.rotation.set(-0.6, 0, sx * 0.7); }
+  const scy = new THREE.Group(); scy.position.set(0.42, 0.2, -0.3); body.add(scy);
+  add(G(new THREE.CylinderGeometry(0.03, 0.03, 2.4, 8)), cloth, 0, 0.2, 0, scy);
+  const blade = add(G(new THREE.TorusGeometry(0.55, 0.06, 4, 24, Math.PI * 0.8)), steel, -0.48, 1.35, 0, scy); blade.scale.z = 0.3; blade.rotation.z = 0.1;
+  const bladeE = add(G(new THREE.TorusGeometry(0.6, 0.018, 4, 24, Math.PI * 0.8)), edge, -0.48, 1.35, 0, scy); bladeE.scale.z = 0.3; bladeE.rotation.z = 0.1;
+  hit(0.55, 0, 0.25, 0); hit(0.45, 0, -0.55, 0); hit(0.22, 0, 0.72, 0); hit(0.24, 0, 0.3, -0.34, g, true);
+  g.scale.setScalar(TYPES.reaper.scale);
+  finishBoss(e, K, {
+    coreMat: cloth, glowMat: edge,
+    anim(e, dt) {
+      const rec = e.bst & 2, dash = e.bst & 4;
+      g.rotation.y = dampAng(g.rotation.y, e.yaw || 0, dash ? 20 : 8, dt);
+      body.rotation.x = damp(body.rotation.x, rec ? 0.5 : dash ? -0.3 : 0, 6, dt);
+      body.position.y = Math.sin(time * 2.2) * 0.05 - (rec ? 0.12 : 0);
+      scy.rotation.x = damp(scy.rotation.x, dash ? -1.7 : (e.charge || 0) * 1.0, 12, dt);
+      gears[0].rotation.z += dt * (rec ? 0.3 : 2.2); gears[1].rotation.z -= dt * (rec ? 0.4 : 3.1);
+      hourH.rotation.z = -time * 0.5; minH.rotation.z = -time * 6;
+      clockM.emissiveIntensity = damp(clockM.emissiveIntensity, rec ? 2.2 : 0.2, 6, dt);
+      for (const m of eyes) m.visible = !rec || Math.sin(time * 20) > 0;
+      cloth.emissive.setScalar(e.flash * 0.5); cloak.scale.x = 1 + Math.sin(time * 5) * 0.04;
+      if (dash && Math.random() < 0.9) burst(e.pos, 2, edge.color, 1, 0.45, 0.3, 0);
+    },
+  }, 0.55);
+}
+// Frost Wyrm: the head is the entity; the body follows the path the head flew
+function makeWyrmVis(e) {
+  const K = bossKit(e), { g, S, B, G, add, hit } = K;
+  const ice = S({ color: 0x4f8fc8, roughness: 0.2, metalness: 0.35, emissive: 0x0a2a48, flatShading: true });
+  const crystal = B(new THREE.Color(0.5, 2.0, 3.0)), membrane = B(new THREE.Color(0.15, 0.45, 0.9), { transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false });
+  const jointM = B(new THREE.Color(0.6, 1.4, 2.0));
+  // head (snout points +z, the way lookAt aims)
+  add(G(new THREE.ConeGeometry(1.0, 3.2, 6).rotateX(Math.PI / 2)), ice, 0, 0, 0.9).castShadow = true;
+  add(G(new THREE.DodecahedronGeometry(1.15, 0)), ice, 0, 0.15, -0.6).castShadow = true;
+  const jaw = add(G(new THREE.ConeGeometry(0.75, 2.6, 6).rotateX(Math.PI / 2)), ice, 0, -0.55, 0.6); jaw.scale.y = 0.5;
+  for (const sx of [-1, 1]) { add(G(new THREE.SphereGeometry(0.18, 10, 8)), crystal, sx * 0.55, 0.45, 0.2); for (let k = 0; k < 2; k++) { const h = add(G(new THREE.ConeGeometry(0.16, 1.6 - k * 0.5, 5)), crystal, sx * (0.5 + k * 0.25), 0.8, -1.0 - k * 0.3); h.rotation.set(-1.1, 0, -sx * 0.35); } }
+  const world = new THREE.Group(); scene.add(world);
+  const N = 16, SP = 1.75, segs = [];
+  for (let i = 0; i < N; i++) {
+    const r = 1.6 - i * 0.07, s = new THREE.Group(); world.add(s);
+    add(G(new THREE.IcosahedronGeometry(r, 0)), ice, 0, 0, 0, s).castShadow = true;
+    const sp = add(G(new THREE.ConeGeometry(r * 0.35, r * 1.1, 4)), crystal, 0, r * 0.95, 0, s); sp.rotation.x = -0.4;
+    hit(r * 1.05, 0, 0, 0, s);
+    s.userData.r = r; segs.push(s);
+  }
+  add(G(new THREE.ConeGeometry(0.6, 2.2, 4).rotateX(-Math.PI / 2)), crystal, 0, 0, -1.6, segs[N - 1]).scale.y = 0.25;
+  // wings on the shoulders; the joints become weak spots when it lands
+  const wings = [-1, 1].map(sx => {
+    const w = new THREE.Group(); w.position.set(sx * 1.0, 0.6, 0); segs[1].add(w);
+    const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(sx * 7, 2.2); sh.lineTo(sx * 9.5, -0.4); sh.lineTo(sx * 6.5, -1.4); sh.lineTo(sx * 4.2, -2.8); sh.lineTo(sx * 2.4, -1.6); sh.lineTo(0, -1.2);
+    add(G(new THREE.ShapeGeometry(sh).rotateX(-Math.PI / 2)), membrane, 0, 0, 0, w);
+    for (const [x, z] of [[7, -2.2], [9.5, 0.4], [4.2, 2.8]]) { const len = Math.hypot(x, z), b = add(G(new THREE.CylinderGeometry(0.1, 0.16, len, 5)), ice, sx * x / 2, 0, z / 2, w); b.rotation.set(Math.PI / 2, 0, 0); b.rotation.order = 'YXZ'; b.rotation.y = Math.atan2(sx * x, z); }
+    add(G(new THREE.SphereGeometry(0.55, 12, 10)), jointM, 0, 0, 0, w);
+    hit(0.75, 0, 0, 0, w, true);
+    return w;
+  });
+  hit(1.6, 0, 0, 0.2);
+  const trail = []; for (let i = 0; i < 220; i++) trail.push(e.pos.clone().add(new V3(0, 0, -i * 0.3)));
+  let landed = 0;
+  finishBoss(e, K, {
+    coreMat: ice, glowMat: crystal, objs: [world],
+    anim(e, dt) {
+      if (trail[0].distanceTo(e.pos) > 0.3) { trail.unshift(e.pos.clone()); if (trail.length > 260) trail.pop(); }
+      landed = damp(landed, (e.bst & 8) ? 1 : 0, 2.2, dt);
+      // place segments along the head's path
+      let ti = 0, acc = 0;
+      const ahead = tD.copy(e.pos);
+      for (let i = 0; i < N; i++) {
+        const want = (i + 1) * SP;
+        while (ti < trail.length - 1 && acc + trail[ti].distanceTo(trail[ti + 1]) < want) { acc += trail[ti].distanceTo(trail[ti + 1]); ti++; }
+        const a = trail[ti], b = trail[Math.min(ti + 1, trail.length - 1)], seg = a.distanceTo(b) || 1, k = clamp((want - acc) / seg, 0, 1);
+        const s = segs[i]; s.position.lerpVectors(a, b, k);
+        s.position.y = s.position.y + (Math.max(groundY0 + s.userData.r, 0) - s.position.y) * landed * clamp(i / 3, 0, 1);
+        s.lookAt(ahead); ahead.copy(s.position);
+      }
+      // head faces along its flight
+      tC.copy(e.pos).sub(segs[0].position); if (tC.lengthSq() > 0.01) g.lookAt(tB.copy(e.pos).add(tC));
+      const flap = Math.sin(time * 2.6) * 0.55 * (1 - landed);
+      wings.forEach((w, i) => { w.rotation.z = (i ? 1 : -1) * (flap - landed * 1.2); });
+      for (const h of K.weaks) h.userData.weak = landed > 0.5;
+      jointM.color.setRGB(0.6 + landed * 2.4, 1.4 + landed * 1.2, 2.0 + landed);
+      jaw.rotation.x = (e.charge || 0) * 0.5;
+      ice.emissive.setRGB(0.04 + e.flash * 0.6, 0.16 + e.flash * 0.6, 0.28 + e.flash * 0.6);
+    },
+  }, 1.8);
+}
+const groundY0 = 0;
+// The Overmind: a brain in a glass dome behind a spinning ring of shields
+function makeOvermindVis(e) {
+  const K = bossKit(e), { g, S, B, G, add, hit } = K;
+  const brainM = S({ map: brainTex(), roughness: 0.55, emissive: 0xff4fa0, emissiveMap: brainTex(), emissiveIntensity: 0.8 });
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0xd8f0ff, roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.22, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false }); K.mats.push(glass);
+  const metal = S({ color: 0x2a2236, metalness: 0.9, roughness: 0.3 }), glow = B(new THREE.Color(3.0, 0.55, 2.3));
+  const panelM = S({ color: 0x4a1a60, metalness: 0.95, roughness: 0.15, emissive: 0x5a0a50, side: THREE.DoubleSide });
+  const brain = new THREE.Group(); g.add(brain);
+  for (const sx of [-1, 1]) add(G(new THREE.SphereGeometry(0.34, 28, 20)), brainM, sx * 0.17, 0.02, 0, brain).scale.set(0.95, 0.85, 1.3);
+  add(G(new THREE.CylinderGeometry(0.12, 0.08, 0.3, 10)), brainM, 0, -0.3, 0.05, brain);
+  add(G(new THREE.SphereGeometry(0.85, 32, 20, 0, Math.PI * 2, 0, Math.PI * 0.62)), glass, 0, -0.08, 0);
+  add(G(new THREE.CylinderGeometry(0.82, 0.58, 0.3, 32)), metal, 0, -0.48, 0);
+  add(G(new THREE.TorusGeometry(0.8, 0.03, 8, 48).rotateX(Math.PI / 2)), glow, 0, -0.34, 0);
+  const cables = [];
+  for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2, p = new THREE.Group(); p.position.set(Math.cos(a) * 0.45, -0.6, Math.sin(a) * 0.45); g.add(p); add(G(new THREE.CylinderGeometry(0.04, 0.02, 1.1, 6)), metal, 0, -0.55, 0, p); add(G(new THREE.SphereGeometry(0.06, 8, 6)), glow, 0, -1.1, 0, p); p.userData.k = k; cables.push(p); }
+  // shield ring: panels block shots (and sometimes bounce them back); shoot through the gaps
+  const ringG = new THREE.Group(); g.add(ringG);
+  const blockers = [], PN = 6, arc = 0.72;
+  for (let k = 0; k < PN; k++) {
+    const p = add(G(new THREE.CylinderGeometry(1.45, 1.45, 1.15, 10, 1, true, k / PN * Math.PI * 2, arc)), panelM, 0, -0.05, 0, ringG);
+    p.userData = { mirror: true }; blockers.push(p);
+    for (const y of [-0.62, 0.52]) add(G(new THREE.CylinderGeometry(1.47, 1.47, 0.05, 10, 1, true, k / PN * Math.PI * 2, arc)), glow, 0, y, 0, ringG);
+  }
+  hit(0.72, 0, 0, 0);
+  g.scale.setScalar(TYPES.overmind.scale);
+  let ang = null;
+  finishBoss(e, K, {
+    coreMat: metal, glowMat: glow, blockers,
+    anim(e, dt) {
+      ang = ang == null ? (e.yaw || 0) : dampAng(ang, e.yaw || 0, 8, dt);
+      ringG.rotation.y = ang;
+      brain.position.y = Math.sin(time * 1.8) * 0.03;
+      brainM.emissiveIntensity = 0.7 + Math.sin(time * 3) * 0.3 + (e.charge || 0) * 1.5 + e.flash * 2;
+      for (const c of cables) { c.rotation.x = Math.sin(time * 1.5 + c.userData.k) * 0.25; c.rotation.z = Math.cos(time * 1.2 + c.userData.k * 2) * 0.25; }
+      panelM.emissive.setRGB(0.35 + e.flash, 0.04 + e.flash, 0.3 + e.flash);
+    },
+  }, 0.7);
+}
+const BOSS_VIS = { titan: makeTitanVis, queen: makeQueenVis, qclone: makeQueenVis, colossus: makeColossusVis, voideye: makeVoidEyeVis, reaper: makeReaperVis, wyrm: makeWyrmVis, overmind: makeOvermindVis };
+
 function makeDroneVis(e) {
-  if (e.type === 'titan') return makeTitanVis(e);
+  if (BOSS_VIS[e.type]) return BOSS_VIS[e.type](e);
   const T = TYPES[e.type], g = new THREE.Group();
   const coreMat = new THREE.MeshStandardMaterial({ color: 0x1b1828, metalness: 0.9, roughness: 0.22, emissive: 0x000000 });
   const glowMat = new THREE.MeshBasicMaterial({ color: T.color.clone() });
@@ -4067,12 +4406,13 @@ function addEnt(e) {
 function removeEnt(e, fx) {
   if (fx) {
     if (e.kind === 'drone') {
-      explosionFX(e.pos, TYPES[e.type].color, e.type === 'titan' ? 4 : e.type === 'warden' ? 2.2 : 1);
-      if (e.type === 'titan') { for (let k = 0; k < 4; k++) spawnPickup(tA.copy(e.pos).add(new V3(rand(-6, 6), 0, rand(-6, 6)))); burst(e.pos, 120, WHITE, 26, 1.2, 0.25, 4); shockRing(e.pos.clone().setY(0.3), TYPES.titan.color, 40, 1.2); shake = Math.max(shake, 0.6); }
+      explosionFX(e.pos, TYPES[e.type].color, isBoss(e) ? 4 : e.type === 'warden' ? 2.2 : 1);
+      if (e.type === 'qclone') { burst(e.pos, 50, SHIMMER, 14, 0.7, 0.16, 6); tone(2600, 900, 0.3, 0.1, 'triangle'); noise(0.3, 0.2, 7000, 'highpass', 1); }
+      if (isBoss(e)) { for (let k = 0; k < 4; k++) spawnPickup(tA.copy(e.pos).add(new V3(rand(-6, 6), 0, rand(-6, 6)))); burst(e.pos, 120, WHITE, 26, 1.2, 0.25, 4); shockRing(e.pos.clone().setY(0.3), TYPES[e.type].color, 40, 1.2); shake = Math.max(shake, 0.6); }
       else if (e.type === 'warden' || hashStr(e.id) % 100 < 16) spawnPickup(e.pos);
     }
   }
-  if (e.kind === 'drone') { scene.remove(e.vis.g); e.vis.coreMat.dispose(); e.vis.glowMat.dispose(); for (const m of e.vis.extra || []) m.dispose(); }
+  if (e.kind === 'drone') { scene.remove(e.vis.g); e.vis.coreMat.dispose(); e.vis.glowMat.dispose(); for (const m of e.vis.extra || []) m.dispose(); for (const g of e.vis.geos || []) g.dispose(); for (const o of e.vis.objs || []) scene.remove(o); }
   else disposeAvatar(e.vis);
   ents.delete(e.id);
 }
@@ -4086,6 +4426,7 @@ function syncEntVis(e, dt) {
   e.flash = Math.max(0, e.flash - dt * 7);
   if (e.kind === 'drone') {
     const v = e.vis; v.g.position.copy(e.pos);
+    if (v.anim) { v.xray.visible = time < teamFx.wallUntil; v.anim(e, dt); return; }
     if (v.face) { v.face.lookAt(camera.position); v.orbit.rotation.y = time * 0.75; } else v.g.lookAt(camera.position);
     v.ring.rotation.z += dt * 3; v.ring2.rotation.x += dt * 2.2;
     v.xray.visible = time < teamFx.wallUntil;
@@ -4151,10 +4492,10 @@ function initSim(e) {
   e.vel = e.vel || new V3(); e.fireT = e.fireT ?? rand(1, 2.5); e.strafe = e.strafe || (Math.random() < .5 ? 1 : -1); e.strafeT = e.strafeT ?? rand(1, 3);
   e.hoverY = e.hoverY ?? rand(3, 8); e.t = e.t ?? rand(0, 9); e.onGround = false; e.lastGround = 0; e.jumps = 0; e.thinkT = 0; e.stuckT = 0; e.side = e.side || 1;
   e.respawnT = e.respawnT ?? 1; e.role = e.role || (Math.random() < .5 ? 'atk' : 'def'); e.invuln = 0; e.lastDmgT = -9; e.hp = e.hp ?? 100;
-  if (e.kind === 'drone' && e.type !== 'titan' && e.hp > TYPES[e.type].hp) e.hp = TYPES[e.type].hp;
+  if (e.kind === 'drone' && !isBoss(e) && e.hp > TYPES[e.type].hp) e.hp = TYPES[e.type].hp;
 }
 function resetMatchWorld() {
-  clearEnts(); while (orbs.length) killOrb(orbs.length - 1); while (rockets.length) killRocket(rockets.length - 1);
+  clearEnts(); clearHazards(); while (orbs.length) killOrb(orbs.length - 1); while (rockets.length) killRocket(rockets.length - 1);
   for (const n of grenades) { scene.remove(n.g); n.glowM.dispose(); } grenades.length = 0; timers.length = 0;
   while (deploys.length) removeDeploy(0); for (const r of reflects) { scene.remove(r.m); r.m.material.dispose(); } reflects.length = 0; teamFx.rallyUntil = teamFx.wallUntil = teamFx.frenzyUntil = 0;
   for (const k of pickups) scene.remove(k.m); pickups.length = 0;
@@ -4177,7 +4518,7 @@ function hostDamageEnt(e, dmg, attackerId, weapon) {
 }
 function hostKillEnt(e, attackerId, weapon) {
   const pts = e.kind === 'drone' ? TYPES[e.type].pts : 100;
-  if (e.kind === 'drone') { e.alive = false; removeEnt(e, true); }
+  if (e.kind === 'drone') { if (e.type === 'qclone') cloneShatter(e, attackerId); e.alive = false; removeEnt(e, true); }
   else {
     e.alive = false; e.hp = 0; e.d = (e.d || 0) + 1; e.respawnT = mode === 'ctf' ? 3 : 1.6;
     explosionFX(tA.copy(e.pos).setY(e.pos.y + 1), e.vis.glow, 1);
@@ -4241,16 +4582,17 @@ function hostBoss(dt) {
   }
   if (GS.wst === 0) { if (alive.length) { GS.wst = 2; W.timer = 5; } return; }
   if (GS.wst === 1) {
-    if (![...ents.values()].some(e => e.type === 'titan')) {
+    if (![...ents.values()].some(e => isBoss(e))) {
       for (const e of [...ents.values()]) removeEnt(e, true);
       GS.wst = 2; W.timer = 9; GS.bp = 0;
     }
   } else if (GS.wst === 2) {
     W.timer -= dt;
     if (W.timer <= 0) {
-      const n = GS.wv + 1, hp = Math.round(2400 * (1 + 0.45 * (n - 1)) * (1 + 0.6 * Math.max(0, hs.length - 1)));
-      const e = { id: newId('t'), kind: 'drone', type: 'titan', pos: new V3(0, 34, 0), hp, alive: true };
-      addEnt(e); initSim(e); e.fireT = 3; e.ringT = 7; e.sumT = 12;
+      // health grows every round; aggression grows a little each round and a lot each lap of the roster
+      const n = GS.wv + 1, { type, L } = bossFor(n), hp = Math.round(TYPES[type].hp * (1 + 0.35 * (n - 1)) * (1 + 0.6 * Math.max(0, hs.length - 1)));
+      const e = { id: newId('t'), kind: 'drone', type, pos: new V3(0, 34, 0), hp, alive: true, L, aggr: (1 + 0.25 * L) * (1 + 0.04 * ((n - 1) % BOSS_ORDER.length)) };
+      bossInit(e); addEnt(e); initSim(e); e.fireT = 3; e.ringT = 7; e.sumT = 12;
       GS.bhp = hp; GS.wv = n; GS.wst = 1; GS.bp = 1;
     }
   }
@@ -4286,7 +4628,7 @@ function hostUpdateTitan(e, dt, hs) {
       const dir = base.clone().applyAxisAngle(UPV, (k - (n - 1) / 2) * 0.09); dir.y += rand(-0.02, 0.02); dir.normalize();
       hostOrb(e, e.pos.clone().addScaledVector(dir, 3.2), dir.multiplyScalar(speed), 13, 0);
     }
-    e.fireT = ph === 1 ? 2.3 : ph === 2 ? 1.9 : 1.35;
+    e.fireT = (ph === 1 ? 2.3 : ph === 2 ? 1.9 : 1.35) / (e.aggr || 1);
   }
   if (ph >= 2 && e.ringT <= 0) {
     // ring barrage: a cone of orbs that sweeps through the ring the target is standing in
@@ -4294,17 +4636,239 @@ function hostUpdateTitan(e, dt, hs) {
     const vel = new V3(dx / fd * speed, -(e.pos.y - 1.1) / fd * speed, dz / fd * speed);
     hostOrb(e, e.pos.clone().addScaledVector(vel.clone().normalize(), 3), vel, 11, ph === 2 ? 16 : 22);
     if (ph === 3) later(0.7, () => { if (e.alive && ents.has(e.id)) hostOrb(e, e.pos.clone().addScaledVector(vel.clone().normalize(), 3), vel.clone().applyAxisAngle(UPV, Math.PI / 22), 11, 22); });
-    e.ringT = ph === 2 ? 7 : 5;
+    e.ringT = (ph === 2 ? 7 : 5) / (e.aggr || 1);
   }
   if (ph >= 2 && e.sumT <= 0) {
-    const minions = [...ents.values()].filter(o => o.type !== 'titan').length;
+    const minions = [...ents.values()].filter(o => !isBoss(o)).length;
     for (let k = 0; k < 3 && minions + k < 8; k++) {
       const type = ph === 3 && k === 2 ? 'charger' : ph === 3 && k === 1 ? 'poisoner' : 'scout', a = rand(0, 6.28);
       const m = { id: newId('d'), kind: 'drone', type, pos: e.pos.clone().add(new V3(Math.cos(a) * 6, rand(-2, 2), Math.sin(a) * 6)), hp: TYPES[type].hp, alive: true };
       addEnt(m); initSim(m);
     }
-    e.sumT = ph === 2 ? 15 : 11;
+    e.sumT = (ph === 2 ? 15 : 11) / (e.aggr || 1);
   }
+}
+// ---------- host: the other bosses ----------
+// Every boss scales with the round (health) and with each loop through the roster (aggression, extra attacks).
+function bossInit(e) {
+  Object.assign(e, { fireT: 3, splitT: 9, stompT: 3, trailT: 1, st: 0, stT: 3, holeT: 8, slowT: 14, slowUntil: 0, iceT: 6, landT: 22, ang: 0, yaw: 0, waveT: 7, sumT: 12, bst: 0, swT: 2, throwT: 0, stompW: 0 });
+  if (e.type === 'colossus') { e.pos.set(0, 7.5, -34); e.st = 0; }
+  if (e.type === 'voideye') e.st = 0;
+}
+function hostBx(kind, pos, arr = []) {
+  const ex = [kind, ...arr.map(v => typeof v === 'number' ? r2(v) : v)];
+  pushAb('bx', pos, ex); applyAb('bx', pos.x, pos.y, pos.z, ex, '');
+}
+function bossHover(e, dt, tgt, sp, dist, hy) {
+  const want = dWant.set(0, 0, 0);
+  e.strafeT -= dt; if (e.strafeT <= 0) { e.strafe *= -1; e.strafeT = rand(3, 6); }
+  if (tgt) {
+    const dx = tgt.pos.x - e.pos.x, dz = tgt.pos.z - e.pos.z, fd = Math.hypot(dx, dz) || 1, radial = clamp((fd - dist) * 0.5, -sp, sp);
+    want.set(dx / fd * radial - dz / fd * sp * 0.6 * e.strafe, 0, dz / fd * radial + dx / fd * sp * 0.6 * e.strafe);
+    e.yaw = Math.atan2(-dx, -dz);
+  }
+  want.y = (hy + Math.sin(e.t * 0.8) * 1.2 - e.pos.y) * 1.2;
+  e.vel.x = damp(e.vel.x, want.x, 1.5, dt); e.vel.y = damp(e.vel.y, want.y, 1.5, dt); e.vel.z = damp(e.vel.z, want.z, 1.5, dt);
+  e.pos.addScaledVector(e.vel, dt);
+  bossClamp(e);
+}
+function bossClamp(e) { const r = Math.hypot(e.pos.x, e.pos.z); if (r > 40) { e.pos.x *= 40 / r; e.pos.z *= 40 / r; } }
+function bossFan(e, from, tgt, n, spread, speed, dmg) {
+  const base = tD.copy(tgt.pos).setY(tgt.pos.y + 1.1).sub(from).normalize();
+  for (let k = 0; k < n; k++) { const dir = base.clone().applyAxisAngle(UPV, (k - (n - 1) / 2) * spread).normalize(); hostOrb(e, from.clone().addScaledVector(dir, 1.5), dir.multiplyScalar(speed), dmg, 0); }
+}
+function bossSummon(e, dt, ph, ag, types) {
+  if (ph < 2) return;
+  e.sumT -= dt; if (e.sumT > 0) return;
+  e.sumT = 16 / ag;
+  const have = [...ents.values()].filter(o => o.kind === 'drone' && !isBoss(o) && o.type !== 'qclone').length;
+  for (let k = 0; k < 2 + (ph >= 3 ? 1 : 0) && have + k < 6 + (e.L || 0); k++) {
+    const type = types[k % types.length], a = rand(0, 6.28);
+    const m = { id: newId('d'), kind: 'drone', type, pos: e.pos.clone().add(new V3(Math.cos(a) * 7, rand(-1, 2), Math.sin(a) * 7)), hp: TYPES[type].hp, alive: true };
+    if (m.pos.y < 5) m.pos.y = 6;
+    addEnt(m); initSim(m);
+  }
+}
+const BOSS_LINE = { 2: 'is getting angry', 3: 'is enraged' };
+function hostUpdateBoss(e, dt, hs) {
+  if (e.type === 'titan') return hostUpdateTitan(e, dt, hs);
+  e.t += dt;
+  const frac = e.hp / (GS.bhp || e.hp), ph = frac > 0.66 ? 1 : frac > 0.33 ? 2 : 3;
+  if (ph > GS.bp) { GS.bp = ph; hostEvent(`${BOSS_INFO[e.type].name} ${BOSS_LINE[ph]}`); }
+  if (e.stunT > 0) e.stunT -= dt * 3; // bosses shrug stuns off
+  let tgt = tauntTarget(e.pos, hs) || nearestDecoy(e.pos, 50), bd = 1e9;
+  if (!tgt) for (const a of hs) if (a.alive && !inSmoke(a.pos)) { const d = a.pos.distanceToSquared(e.pos); if (d < bd) { bd = d; tgt = a; } }
+  BOSS_AI[e.type](e, dt, hs, tgt, ph, e.aggr || 1);
+}
+const liveHumans = hs => hs.filter(a => a.alive);
+const BOSS_AI = {
+  queen(e, dt, hs, tgt, ph, ag) {
+    e.fireT -= dt; e.splitT -= dt;
+    bossHover(e, dt, tgt, 4 + ph, 18, 9);
+    e.charge = e.fireT < 0.5 ? 1 - e.fireT / 0.5 : 0;
+    if (tgt && e.fireT <= 0) { bossFan(e, e.pos.clone().setY(e.pos.y + 1.2), tgt, ph >= 3 ? 7 : 5, 0.1, 24, 12); e.fireT = 2.2 / ag; }
+    if (e.splitT <= 0) { queenSplit(e, ph); e.splitT = (ph === 1 ? 14 : ph === 2 ? 11 : 8) / ag; }
+  },
+  colossus(e, dt, hs, tgt, ph, ag) {
+    e.fireT -= dt; e.stompT -= dt; e.trailT -= dt; e.throwT -= dt;
+    const sp = (2.3 + 0.8 * (ph - 1)) * Math.min(1.6, ag);
+    let moving = false;
+    if (tgt) {
+      const dx = tgt.pos.x - e.pos.x, dz = tgt.pos.z - e.pos.z, fd = Math.hypot(dx, dz) || 1;
+      e.yaw = dampAng(e.yaw, Math.atan2(-dx, -dz), 2, dt);
+      if (e.stompW > 0) {
+        e.stompW -= dt; e.charge = clamp(1 - e.stompW / 0.9, 0, 1);
+        if (e.stompW <= 0) {
+          const f = new V3(e.pos.x - Math.sin(e.yaw) * 2, 0, e.pos.z - Math.cos(e.yaw) * 2); f.y = groundBelow(f.clone().setY(1));
+          hostBx('stomp', f, [10 + ph * 1.5 + (e.L || 0) * 1.5]); e.stompT = 4.5 / ag; e.charge = 0;
+        }
+      } else if (fd < 10 && e.stompT <= 0) e.stompW = 0.9;
+      else if (fd > 7) { e.vel.set(dx / fd * sp, 0, dz / fd * sp); moving = true; }
+    }
+    if (!moving) e.vel.multiplyScalar(Math.exp(-6 * dt));
+    e.pos.addScaledVector(e.vel, dt); e.pos.y = 7.5; bossClamp(e);
+    if (moving && e.trailT <= 0) {
+      e.trailT = 1.0; e.foot = -(e.foot || 1);
+      const p = new V3(e.pos.x + Math.cos(e.yaw) * 1.3 * e.foot, 1, e.pos.z - Math.sin(e.yaw) * 1.3 * e.foot); p.y = groundBelow(p);
+      hostBx('fire', p, [3.0, 6 + 2 * (e.L || 0) + (ph >= 3 ? 3 : 0)]);
+    }
+    if (tgt && e.fireT <= 0 && !(e.stompW > 0)) {
+      const n = Math.min(8, 2 + ph + (e.L || 0)), arr = [n], pool = liveHumans(hs);
+      for (let k = 0; k < n; k++) { const a = pool[k % Math.max(1, pool.length)] || tgt, s = k < pool.length ? 1.5 : 6; arr.push(a.pos.x + rand(-s, s), a.pos.z + rand(-s, s)); }
+      const hand = new V3(e.pos.x + Math.cos(e.yaw) * 3.1, e.pos.y + 4, e.pos.z - Math.sin(e.yaw) * 3.1);
+      hostBx('met', hand, arr); e.fireT = 3.6 / ag; e.throwT = 0.7;
+    }
+    e.bst = (e.stompW > 0 ? 16 : 0) | (e.throwT > 0 ? 32 : 0);
+    bossSummon(e, dt, ph, ag, ['charger', 'scout']);
+  },
+  voideye(e, dt, hs, tgt, ph, ag) {
+    const want = tA.set(Math.cos(e.t * 0.15) * 8, 14 + Math.sin(e.t * 0.5) * 1.2, Math.sin(e.t * 0.15) * 8);
+    e.pos.lerp(want, 1 - Math.exp(-0.8 * dt));
+    e.stT -= dt; e.holeT -= dt; e.fireT -= dt;
+    if (e.st === 0) { e.charge = 0; if (e.stT <= 0) { e.st = 1; e.stT = 1.0; } }
+    else if (e.st === 1) {
+      e.charge = clamp(1 - e.stT, 0, 1);
+      if (e.stT <= 0) {
+        const aT = tgt ? Math.atan2(-(tgt.pos.x - e.pos.x), -(tgt.pos.z - e.pos.z)) : rand(0, 6.28), dir = Math.random() < 0.5 ? 1 : -1, dur = 3.4 / Math.sqrt(ag);
+        const n = 1 + (ph >= 3 ? 1 : 0) + ((e.L || 0) >= 2 ? 1 : 0), base = new V3(e.pos.x, 0, e.pos.z);
+        for (let k = 0; k < n; k++) { const off = k * Math.PI * 2 / n; hostBx('beam', base, [e.id, aT - dir * 1.75 + off, aT + dir * 1.75 + off, dur, 0.9, 70, 0.8]); }
+        e.st = 2; e.stT = 0.8 + dur; e.charge = 0;
+      }
+    } else if (e.st === 2) { if (e.stT <= 0) { e.st = 3; e.stT = 2.4; } }
+    else if (e.st === 3) {
+      if (tgt && e.fireT <= 0) { bossFan(e, e.pos.clone(), tgt, 5, 0.12, 20, 10); e.fireT = 1.1 / ag; }
+      if (e.stT <= 0) { e.st = 0; e.stT = Math.max(2, 4.8 - 0.6 * ph) / ag; }
+    }
+    if (e.holeT <= 0) {
+      const pool = liveHumans(hs), n = 1 + (ph >= 3 ? 1 : 0) + Math.floor((e.L || 0) / 2);
+      for (let k = 0; k < n && pool.length; k++) { const a = pool[(Math.random() * pool.length) | 0], an = rand(0, 6.28), r = rand(6, 9), p = new V3(a.pos.x + Math.cos(an) * r, 1, a.pos.z + Math.sin(an) * r); p.y = groundBelow(p) + 2.4; hostBx('hole', p, [5, 15]); }
+      e.holeT = (13 - 2 * ph) / ag;
+    }
+    e.bst = e.st === 0 ? 1 : 0;
+    bossSummon(e, dt, ph, ag, ['scout', 'poisoner']);
+  },
+  reaper(e, dt, hs, tgt, ph, ag) {
+    e.slowT -= dt; e.swT -= dt;
+    if (e.slowT <= 0) { const d = 4 + 0.5 * (e.L || 0); hostBx('slow', e.pos, [d]); e.slowUntil = time + d; e.slowT = (30 - 4 * (ph - 1)) / ag; }
+    const fast = time < e.slowUntil ? 1.8 : 1;
+    if (e.st === 0) {
+      bossHover(e, dt, tgt, 7 * fast, 9, 3.4);
+      e.stT -= dt * fast; e.charge = 0;
+      if (tgt && e.swT <= 0 && tgt.pos.distanceTo(e.pos) < 7) { hostOrb(e, new V3(e.pos.x, tgt.pos.y + 1.1, e.pos.z), new V3(15, 0, 0), 12, 16 + 2 * (e.L || 0)); e.swT = 3 / ag; }
+      if (tgt && e.stT <= 0) { e.st = 1; e.stT = 0.75 / fast; e.dashTo = tgt.pos.clone().setY(tgt.pos.y + 1.2); }
+    } else if (e.st === 1) {
+      e.vel.multiplyScalar(Math.exp(-8 * dt)); e.pos.addScaledVector(e.vel, dt);
+      e.charge = clamp(1 - e.stT / 0.75, 0, 1); e.stT -= dt;
+      e.yaw = Math.atan2(-(e.dashTo.x - e.pos.x), -(e.dashTo.z - e.pos.z));
+      if (e.stT <= 0) {
+        const d = tA.subVectors(e.dashTo, e.pos); d.y *= 0.3; const len = d.length() + 6;
+        e.dashDir = d.normalize().clone(); e.stT = Math.min(1.0, len / 46); e.st = 2; e.hitSet = new Set(); e.charge = 0;
+        hostBx('tele', e.pos, [1]);
+      }
+    } else if (e.st === 2) {
+      e.pos.addScaledVector(e.dashDir, 46 * dt); if (e.pos.y < 2.5) e.pos.y = 2.5; bossClamp(e);
+      for (const a of hs) if (a.alive && !e.hitSet.has(a.id) && tA.copy(a.pos).setY(a.pos.y + 1).distanceTo(e.pos) < 3.4) { e.hitSet.add(a.id); hostHitHuman(a, 30 + 5 * (e.L || 0), e.pos.clone(), e); }
+      e.stT -= dt; if (e.stT <= 0) { e.st = 3; e.stT = Math.max(0.9, 1.7 - 0.15 * (e.L || 0)); e.vel.set(0, 0, 0); }
+    } else {
+      e.pos.y = damp(e.pos.y, 2.6, 2, dt); e.stT -= dt;
+      if (e.stT <= 0) { e.st = 0; e.stT = (3.2 - 0.4 * (ph - 1)) / ag / fast; }
+    }
+    e.bst = e.st === 3 ? 2 : e.st === 2 ? 4 : 0;
+    bossSummon(e, dt, ph, ag, ['scout', 'charger']);
+  },
+  wyrm(e, dt, hs, tgt, ph, ag) {
+    e.fireT -= dt; e.iceT -= dt; e.landT -= dt;
+    const head = e.pos;
+    if (e.st === 0) {
+      e.ang += dt * 0.3 * Math.min(1.7, ag) * (ph >= 3 ? 1.25 : 1);
+      const R = 30 + Math.sin(e.t * 0.4) * 5, want = tA.set(Math.cos(e.ang) * R, 18 + Math.sin(e.t * 0.7) * 3, Math.sin(e.ang) * R);
+      head.lerp(want, 1 - Math.exp(-2.5 * dt));
+      if (tgt && e.fireT <= 0 && tgt.pos.distanceTo(head) < 42) { const d = tB.copy(tgt.pos).setY(tgt.pos.y + 1).sub(head).normalize(); hostBx('frost', head, [d.x, d.y, d.z, 1.6]); e.fireT = 6.5 / ag; }
+      if (e.iceT <= 0) {
+        const pool = liveHumans(hs), n = Math.min(12, 4 + 2 * ph + 2 * (e.L || 0)), arr = [n];
+        for (let k = 0; k < n; k++) { const a = pool[k % Math.max(1, pool.length)] || tgt, s = k < pool.length ? 1 : 7; arr.push((a ? a.pos.x : 0) + rand(-s, s), (a ? a.pos.z : 0) + rand(-s, s)); }
+        hostBx('ice', head, arr); e.iceT = 8 / ag;
+      }
+      if (e.landT <= 0) e.st = 1;
+    } else if (e.st === 1) {
+      if (e.landY == null) e.landY = groundBelow(new V3(0, 60, 0)) + 3.4;
+      const to = tB.set(0, e.landY, 0).sub(head), d = to.length();
+      head.addScaledVector(to.normalize(), Math.min(d, 24 * dt));
+      if (d < 1.2) { e.st = 2; e.stT = 6 + (e.L || 0); hostBx('stomp', new V3(0, e.landY - 3.4, 0), [9]); }
+    } else if (e.st === 2) {
+      e.stT -= dt;
+      if (tgt && e.fireT <= 0) { const d = tB.copy(tgt.pos).setY(tgt.pos.y + 1).sub(head).normalize(); hostBx('frost', head, [d.x, d.y, d.z, 1.4]); e.fireT = 2.4 / ag; }
+      if (e.stT <= 0) e.st = 3;
+    } else {
+      const want = tA.set(Math.cos(e.ang) * 30, 18, Math.sin(e.ang) * 30), d = want.distanceTo(head);
+      head.addScaledVector(tB.subVectors(want, head).normalize(), Math.min(d, 16 * dt));
+      if (d < 2) { e.st = 0; e.landY = null; e.landT = Math.max(12, 24 - 3 * ph) / ag; }
+    }
+    e.charge = e.fireT < 0.4 ? 1 - e.fireT / 0.4 : 0;
+    e.bst = e.st === 2 ? 8 : 0;
+    bossSummon(e, dt, ph, ag, ['scout', 'poisoner']);
+  },
+  overmind(e, dt, hs, tgt, ph, ag) {
+    const want = tA.set(Math.sin(e.t * 0.2) * 7, 10 + Math.sin(e.t * 0.9) * 0.8, Math.cos(e.t * 0.27) * 7);
+    e.pos.lerp(want, 1 - Math.exp(-0.7 * dt));
+    e.ang = (e.ang + dt * (0.55 + 0.3 * ph) * Math.min(2.2, ag)) % (Math.PI * 2); e.yaw = e.ang;
+    e.fireT -= dt; e.waveT -= dt;
+    e.charge = e.fireT < 0.6 ? 1 - e.fireT / 0.6 : 0;
+    const pool = liveHumans(hs);
+    if (pool.length && e.fireT <= 0) {
+      // psychic orbs that curve toward whoever they're near
+      const n = Math.min(7, 2 + ph + (e.L || 0));
+      for (let k = 0; k < n; k++) { const a = pool[(Math.random() * pool.length) | 0], dir = tB.copy(a.pos).setY(a.pos.y + 1).sub(e.pos).normalize().applyAxisAngle(UPV, rand(-0.6, 0.6)); hostOrb(e, e.pos.clone().addScaledVector(dir, 4), dir.multiplyScalar(13), 10, 0); }
+      e.fireT = 2.6 / ag;
+    }
+    if (ph >= 2 && tgt && e.waveT <= 0) { hostOrb(e, new V3(e.pos.x, tgt.pos.y + 1.1, e.pos.z), new V3(12, 0, 0), 9, 20 + 4 * (e.L || 0)); e.waveT = 7 / ag; }
+    bossSummon(e, dt, ph, ag, ['scout', 'poisoner']);
+  },
+};
+function queenSplit(e, ph) {
+  for (const o of [...ents.values()]) if (o.type === 'qclone') { hostBx('tele', o.pos, []); removeEnt(o, false); }
+  const n = Math.min(6, 3 + (e.L || 0) + (ph >= 3 ? 1 : 0)), a0 = rand(0, 6.28), spots = [];
+  for (let k = 0; k <= n; k++) { const a = a0 + k / (n + 1) * Math.PI * 2, r = rand(14, 22); spots.push(new V3(Math.cos(a) * r, rand(8, 11), Math.sin(a) * r)); }
+  const me = (Math.random() * spots.length) | 0;
+  hostBx('tele', e.pos, []);
+  e.pos.copy(spots[me]); e.vel.set(0, 0, 0);
+  spots.forEach((p, k) => {
+    if (k === me) return;
+    const c = { id: newId('q'), kind: 'drone', type: 'qclone', pos: p.clone(), hp: TYPES.qclone.hp, alive: true, yaw: 0, bst: 0 };
+    addEnt(c); initSim(c); c.fireT = rand(1.5, 3); hostBx('tele', p, []);
+  });
+}
+function hostQueenClone(e, dt, hs) {
+  e.t += dt;
+  let tgt = null, bd = 1e9; for (const a of hs) if (a.alive) { const d = a.pos.distanceToSquared(e.pos); if (d < bd) { bd = d; tgt = a; } }
+  bossHover(e, dt, tgt, 4, 18, 9);
+  e.fireT -= dt; e.charge = e.fireT < 0.5 ? 1 - e.fireT / 0.5 : 0;
+  if (tgt && e.fireT <= 0) { bossFan(e, e.pos.clone().setY(e.pos.y + 1.2), tgt, 3, 0.12, 22, 7); e.fireT = rand(2.4, 3.4); }
+}
+// a broken mirror copy fires its shards back out
+function cloneShatter(e, attackerId) {
+  hostOrb(e, e.pos.clone(), new V3(14, 0, 0), 8, 10);
+  const a = allActors().find(x => x.id === attackerId); if (a) bossFan(e, e.pos.clone(), a, 3, 0.08, 26, 9);
 }
 function hostOrb(e, from, vel, dmg, ring) {
   const ti = DTYPES.indexOf(e.type);
@@ -4365,7 +4929,8 @@ function hostSpawnDrone(type) {
 }
 const dTo = new V3(), dWant = new V3(), dOff = new V3();
 function hostUpdateDrone(e, dt, hs) {
-  if (e.type === 'titan') return hostUpdateTitan(e, dt, hs);
+  if (isBoss(e)) return hostUpdateBoss(e, dt, hs);
+  if (e.type === 'qclone') return hostQueenClone(e, dt, hs);
   const T = TYPES[e.type]; e.t += dt;
   if (e.stunT > 0) { e.stunT -= dt; e.charge = 0; e.fireT = Math.max(e.fireT, 0.6); e.vel.multiplyScalar(0.9); e.pos.y += Math.sin(time * 40) * 0.01; return; }
   if (e.pullT > 0) { e.pullT -= dt; e.vel.set(0, 0, 0); e.fireT = Math.max(e.fireT, 1); e.pos.lerp(e.pullTo, 1 - Math.exp(-7 * dt)); collideSphere(e.pos, 0.95 * T.scale); return; }
@@ -4681,6 +5246,7 @@ function mirrorHost(hd) {
       if (a[0] === 'd') {
         if (!e) { e = { id, kind: 'drone', type: DTYPES[a[2]] || 'scout', pos: new V3(+a[3], +a[4], +a[5]), alive: true, hp: 1 }; addEnt(e); burst(e.pos, 20, TYPES[e.type].color, 7, 0.5, 0.12, 0); }
         e.tpos.set(+a[3], +a[4], +a[5]); e.charge = (+a[7] || 0) / 10; e.hp = +a[6] || e.hp;
+        if (a.length > 9) { e.bst = +a[8] || 0; e.yaw = +a[9] || 0; }
       } else if (a[0] === 'b') {
         const team = +a[8];
         if (!e) { e = { id, kind: 'bot', name: BOT_NAMES[+a[2]] || 'Bot', team, pos: new V3(+a[3], +a[4], +a[5]), alive: !!a[9] }; addEnt(e); }
@@ -4723,12 +5289,12 @@ function onGSChange() {
     if (GS.wv < p.wv) { saveBest(p.wv); announce('SQUAD WIPED', `Reached wave ${p.wv} · earned ${runCoins} coins`, '#ff4fa3'); if (state === 'playing' || state === 'paused') gameOver(p.wv); score = 0; streak = 0; runCoins = 0; }
   }
   if (mode === 'boss') {
-    if (GS.wv > p.wv && GS.wst === 1) { announce(`ROUND ${GS.wv}`, 'The Titan awakens · shoot the glowing core', '#ff8a3d'); sfx.wave(); }
-    if (GS.bp > p.bp && p.bp > 0 && GS.wst === 1) { announce(`PHASE ${GS.bp}`, GS.bp === 3 ? 'The Titan is enraged' : 'Ring barrages and drone backup', '#ff4fa3'); sfx.alert(); }
+    if (GS.wv > p.wv && GS.wst === 1) { const b = bossFor(GS.wv); announce(`ROUND ${GS.wv} · ${BOSS_INFO[b.type].name}`, `${b.L ? `Lap ${b.L + 1}: stronger than last time · ` : ''}${BOSS_INFO[b.type].hint}`, '#ff8a3d'); sfx.wave(); }
+    if (GS.bp > p.bp && p.bp > 0 && GS.wst === 1) { announce(`PHASE ${GS.bp}`, GS.bp === 3 ? 'Enraged: faster and meaner' : 'It\'s getting angry and calling backup', '#ff4fa3'); sfx.alert(); }
     if (GS.wst === 2 && p.wst === 1 && GS.wv > 0) {
       const bonus = 1000 * GS.wv, coins = 40 + 20 * GS.wv;
       if (state === 'playing' || state === 'paused') { score += bonus; if (player.downed) reviveMe(0.6); else player.hp = maxHp(); addCoins(coins); }
-      announce('TITAN DEFEATED', `+${bonus.toLocaleString()} score · +${coins} coins`, '#74ffb5'); sfx.win();
+      announce(`${BOSS_INFO[bossFor(GS.wv).type].name} DEFEATED`, `+${bonus.toLocaleString()} score · +${coins} coins`, '#74ffb5'); sfx.win();
       if (state !== 'menu') saveBest(GS.wv);
       if (state === 'playing' || state === 'paused' || state === 'dead') { chal('boss'); bumpStat('bk'); }
     }
@@ -4772,15 +5338,16 @@ const orbs = [];
 const UPV = new V3(0, 1, 0);
 function spawnOrbs(from, vel, dmg, ti, src, ring) {
   if (!(ring > 1)) return spawnOrb(from, vel, dmg, ti, src);
-  for (let k = 0; k < Math.min(ring, 40); k++) spawnOrb(from, vel.clone().applyAxisAngle(UPV, k / ring * Math.PI * 2), dmg, ti, src, k > 0);
+  for (let k = 0; k < Math.min(ring, 40); k++) spawnOrb(from, vel.clone().applyAxisAngle(UPV, k / ring * Math.PI * 2), dmg, ti, src, k > 0, true);
 }
-function spawnOrb(from, vel, dmg, ti, src = '', quiet = false) {
+function spawnOrb(from, vel, dmg, ti, src = '', quiet = false, ringOrb = false) {
   const color = TYPES[DTYPES[ti] || 'scout'].color;
   const m = new THREE.Mesh(orbGeo, new THREE.MeshBasicMaterial({ color }));
   const halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(0.25), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
   m.add(halo); m.position.copy(from); scene.add(m);
-  orbs.push({ m, vel: vel.clone(), life: 4, dmg, color, src: String(src), ti });
-  if (ti === 3) m.scale.setScalar(1.5);
+  const T = TYPES[DTYPES[ti]];
+  orbs.push({ m, vel: vel.clone(), life: T?.homing && !ringOrb ? 6 : 4, dmg, color, src: String(src), ti, home: !!T?.homing && !ringOrb });
+  if (T?.boss) m.scale.setScalar(1.5);
   if (!quiet) { const pf = panFor(from); sfx.orb(pf.v, pf.pan); }
 }
 // Berserker: deflect window, reflected shots, Rift Dash, Chain Hook
@@ -4854,9 +5421,189 @@ function capsuleDist(p, base) {
   const y = clamp(p.y, base.y + 0.45, base.y + 1.4);
   return Math.hypot(p.x - base.x, p.y - y, p.z - base.z);
 }
+// ---------- boss attacks everyone sees (sent by the host as 'bx' ability events) ----------
+// Each player's game checks only its own player against these, like drone orbs.
+const hazards = [], hazGeo = { disc: new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2), met: new THREE.IcosahedronGeometry(0.9, 1), spike: new THREE.ConeGeometry(0.45, 3, 6).rotateX(Math.PI), box: new THREE.BoxGeometry(1, 1, 1), core: new THREE.SphereGeometry(1, 24, 16), ring: new THREE.RingGeometry(1.3, 3.6, 48) };
+const ICE = [new THREE.Color(0.8, 0.95, 1.0), new THREE.Color(0.5, 0.85, 1.0)], VOID = new THREE.Color(1.6, 0.4, 2.8), BLOCKC = new THREE.Color(1.2, 1.2, 1.3);
+let slowUntil = 0, slowTick = 0;
+function hazMat(c, op, add = true) { return new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide }); }
+function hazMesh(geo, mat, p) { const m = new THREE.Mesh(geo, mat); m.position.copy(p); scene.add(m); return m; }
+function hazFree(...ms) { for (const m of ms) if (m) { scene.remove(m); m.traverse(o => { if (o.material) o.material.dispose(); }); } }
+const landY = (x, z) => groundBelow(tD.set(x, 40, z));
+const hurtLocal = (dmg, text) => { if (player.alive && inMatch()) hurt(dmg, { text }); };
+function bossFx(kind, x, y, z, a) {
+  const p = new V3(x, y, z), pf = panFor(p), v = Math.max(0.3, pf.v);
+  switch (kind) {
+    case 'fire': hazards.push({ k: 'fire', p, r: +a[0] || 3, until: time + (+a[1] || 6), tick: 0, m: hazMesh(hazGeo.disc, hazMat(new THREE.Color(0.7, 0.2, 0.03), 0.8), p.clone().setY(p.y + 0.06)) }); hazards[hazards.length - 1].m.scale.setScalar(+a[0] || 3); break;
+    case 'met': {
+      const n = Math.min(10, +a[0] || 0);
+      for (let i = 0; i < n; i++) {
+        const to = new V3(+a[1 + i * 2] || 0, 0, +a[2 + i * 2] || 0); to.y = landY(to.x, to.z);
+        const warn = hazMesh(hazGeo.disc, hazMat(new THREE.Color(2.4, 0.5, 0.1), 0.45), to.clone().setY(to.y + 0.07)); warn.scale.setScalar(3.4);
+        hazards.push({ k: 'met', from: p.clone(), to, t: -i * 0.12, dur: 1.15, warn, m: hazMesh(hazGeo.met, new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.2, 0.2) }), p) });
+      }
+      tone(140, 60, 0.4, 0.25 * v, 'sawtooth', pf.pan); break;
+    }
+    case 'stomp': {
+      const r = +a[0] || 10;
+      shockRing(p.clone().setY(p.y + 0.15), FIRE[0], r * 1.1, 0.6); shockRing(p.clone().setY(p.y + 0.5), WHITE, r * 0.7, 0.4);
+      burst(p, 50, new THREE.Color(0.6, 0.45, 0.35), 12, 0.8, 0.25, 6); flash(p, FIRE[0], 100, 0.3); sfx.boom(v * 1.3, pf.pan);
+      const near = p.distanceTo(player.pos); if (near < 30) shake = Math.max(shake, 0.45 * (1 - near / 30));
+      // jump to dodge: only players standing on the ground get hit
+      if (Math.hypot(player.pos.x - p.x, player.pos.z - p.z) < r && player.pos.y - p.y < 1.2 && player.pos.y - p.y > -1.5) {
+        hurtLocal(24, 'Flattened by a stomp'); player.vel.y = Math.max(player.vel.y, 9); player.vel.addScaledVector(tA.set(player.pos.x - p.x, 0, player.pos.z - p.z).normalize(), 10); player.onGround = false;
+      }
+      break;
+    }
+    case 'beam': {
+      const g = new THREE.Group(); g.position.copy(p); scene.add(g);
+      const len = +a[5] || 70, outer = new THREE.Mesh(hazGeo.box, hazMat(VOID, 0.85)), core = new THREE.Mesh(hazGeo.box, new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.4, 3) })), drop = new THREE.Mesh(hazGeo.box, hazMat(VOID, 0.7));
+      outer.scale.set(0.55, 0.55, len); outer.position.z = -len / 2; core.scale.set(0.16, 0.16, len); core.position.z = -len / 2;
+      g.add(outer, core, drop);
+      hazards.push({ k: 'beam', src: String(a[0]), a0: +a[1] || 0, a1: +a[2] || 0, dur: +a[3] || 3, h: +a[4] || 0.9, len, warn: +a[6] || 0.8, t: 0, hit: false, g, outer, core, drop, prev: null });
+      tone(900, 220, 0.9, 0.1 * v, 'sawtooth', pf.pan); break;
+    }
+    case 'hole': {
+      const core = hazMesh(hazGeo.core, new THREE.MeshBasicMaterial({ color: 0x000000 }), p), disk = hazMesh(hazGeo.ring, hazMat(VOID, 0.85), p);
+      core.scale.setScalar(1.3); disk.rotation.x = -Math.PI / 2 + 0.3;
+      hazards.push({ k: 'hole', p, r: +a[1] || 15, until: time + (+a[0] || 5), tick: 0, core, disk });
+      noise(0.6, 0.3 * v, 200, 'lowpass', 1, pf.pan, 0, 900); tone(80, 40, 1, 0.25 * v, 'sine', pf.pan); break;
+    }
+    case 'ice': {
+      const n = Math.min(14, +a[0] || 0);
+      for (let i = 0; i < n; i++) {
+        const to = new V3(+a[1 + i * 2] || 0, 0, +a[2 + i * 2] || 0); to.y = landY(to.x, to.z);
+        const warn = hazMesh(hazGeo.disc, hazMat(new THREE.Color(0.5, 1.2, 2.2), 0.45), to.clone().setY(to.y + 0.07)); warn.scale.setScalar(2.4);
+        const m = hazMesh(hazGeo.spike, new THREE.MeshStandardMaterial({ color: 0xcdeeff, roughness: 0.1, metalness: 0.2, emissive: 0x1a4a7a }), to.clone().setY(to.y + 40)); m.visible = false;
+        hazards.push({ k: 'ice', to, t: -i * 0.07, delay: 1.0, warn, m });
+      }
+      break;
+    }
+    case 'frost': hazards.push({ k: 'frost', p, dir: new V3(+a[0] || 0, +a[1] || 0, +a[2] || -1).normalize(), dur: +a[3] || 1.6, t: 0, tick: 0 }); noise(1.4, 0.35 * v, 3000, 'highpass', 0.7, pf.pan); tone(400, 120, 1.2, 0.1 * v, 'triangle', pf.pan); break;
+    case 'slow': slowUntil = time + (+a[0] || 4); announce('TIME SLOWED', 'The Clockwork Reaper bends time · you move and shoot slower', '#ffd27a'); tone(1200, 300, 0.8, 0.15, 'sine'); break;
+    case 'tele': burst(p, a[0] ? 20 : 34, a[0] ? new THREE.Color(2.8, 2.3, 0.9) : SHIMMER, a[0] ? 8 : 10, 0.5, 0.14, 0); flash(p, a[0] ? FIRE[1] : SHIMMER, 70, 0.25); tone(1800, 600, 0.25, 0.08 * v, 'triangle', pf.pan); noise(0.2, 0.12 * v, 6000, 'highpass', 1, pf.pan); break;
+  }
+}
+function updateHazards(dt) {
+  const fx = time < slowUntil;
+  if ($('slowfx').hidden === fx) { $('slowfx').hidden = !fx; canvas.style.filter = fx ? 'sepia(.55) saturate(.8)' : ''; }
+  if (fx) { slowTick -= dt; if (slowTick <= 0) { slowTick = 0.5; tone(2200, 2200, 0.03, 0.04, 'square'); } }
+  const chill = time < (player.chillUntil || 0);
+  if ($('chillfx').hidden === chill) $('chillfx').hidden = !chill;
+  const chest = tA.copy(player.pos).setY(player.pos.y + 1.1);
+  for (let i = hazards.length - 1; i >= 0; i--) {
+    const h = hazards[i]; let done = false;
+    if (h.k === 'fire') {
+      const left = h.until - time;
+      if (left <= 0) done = true;
+      else {
+        h.m.material.opacity = 0.8 * Math.min(1, left) * (0.85 + Math.sin(time * 9 + i) * 0.15);
+        for (let n = Math.round(dt * h.r * h.r * 4 + Math.random() * 0.6); n > 0; n--) { const an = rand(0, 6.283), rr = Math.sqrt(Math.random()) * h.r; spray(tB.set(h.p.x + Math.cos(an) * rr, h.p.y + 0.1, h.p.z + Math.sin(an) * rr), UP, 1, fireCol(), rand(2, 5), 0.7, 1.3, -4, 0.3); }
+        h.tick -= dt;
+        if (h.tick <= 0 && Math.hypot(player.pos.x - h.p.x, player.pos.z - h.p.z) < h.r && Math.abs(player.pos.y - h.p.y) < 1.2) { h.tick = 0.5; hurtLocal(6, 'Burned alive'); }
+      }
+      if (done) hazFree(h.m);
+    } else if (h.k === 'met') {
+      h.t += dt;
+      if (h.t < 0) { h.m.visible = false; continue; }
+      h.m.visible = true;
+      const k = Math.min(1, h.t / h.dur);
+      h.m.position.lerpVectors(h.from, h.to, k); h.m.position.y += Math.sin(k * Math.PI) * 10; h.m.rotation.x += dt * 5;
+      spray(h.m.position, UP, 2, fireCol(), 2, 0.5, 1.8, -2, 0.6);
+      h.warn.material.opacity = 0.3 + Math.sin(time * 18) * 0.15;
+      if (k >= 1) {
+        explosionFX(h.to.clone().setY(h.to.y + 0.3), FIRE[0], 1.1);
+        hazards.push({ k: 'fire', p: h.to.clone(), r: 3, until: time + 5, tick: 0.3, m: hazMesh(hazGeo.disc, hazMat(new THREE.Color(0.7, 0.2, 0.03), 0.8), h.to.clone().setY(h.to.y + 0.06)) }); hazards[hazards.length - 1].m.scale.setScalar(3);
+        if (capsuleDist(tB.copy(h.to).setY(h.to.y + 0.5), player.pos) < 3.6) hurtLocal(22, 'Hit by a meteor');
+        done = true;
+      }
+      if (done) hazFree(h.m, h.warn);
+    } else if (h.k === 'beam') {
+      h.t += dt;
+      const e = ents.get(h.src);
+      if (e) h.g.position.set(e.pos.x, h.g.position.y, e.pos.z);
+      const by = h.g.position.y + h.h, sweep = h.t - h.warn, k = clamp(sweep / h.dur, 0, 1), ang = h.a0 + (h.a1 - h.a0) * k;
+      h.g.rotation.y = ang; h.outer.position.y = h.core.position.y = h.h;
+      const live = sweep >= 0;
+      h.outer.scale.x = h.outer.scale.y = live ? 0.55 + Math.sin(time * 40) * 0.08 : 0.15; h.outer.material.opacity = live ? 0.85 : 0.3 + Math.sin(time * 20) * 0.15; h.core.visible = live;
+      const top = e ? e.pos.y : by + 12; h.drop.visible = live; h.drop.scale.set(0.7, Math.max(0.1, top - by), 0.7); h.drop.position.set(0, h.h + (top - by) / 2, 0);
+      if (live && Math.random() < 0.6) { const d = rand(2, h.len); burst(tB.set(h.g.position.x - Math.sin(ang) * d, by, h.g.position.z - Math.cos(ang) * d), 1, VOID, 2, 0.3, 0.12, 2); }
+      // hit if the beam sweeps across you while your feet are below it (jump or dash over it)
+      if (live && !h.hit && player.alive) {
+        const rx = player.pos.x - h.g.position.x, rz = player.pos.z - h.g.position.z, dist = Math.hypot(rx, rz);
+        if (dist < h.len && dist > 0.5 && player.pos.y < by + 0.15 && player.pos.y + 1.8 > by) {
+          const phi = Math.atan2(-rx, -rz), wrap = x => Math.atan2(Math.sin(x), Math.cos(x)), dNow = wrap(phi - ang), dPrev = h.prev == null ? dNow : wrap(phi - h.prev);
+          if (Math.abs(Math.sin(dNow)) * dist < 0.9 && Math.cos(dNow) > 0 || (Math.sign(dNow) !== Math.sign(dPrev) && Math.abs(dNow) < 0.6)) {
+            h.hit = true; hurtLocal(28, 'Cut by the Void Eye\'s laser'); player.vel.y = Math.max(player.vel.y, 5); burst(chest, 20, VOID, 6, 0.4, 0.1);
+          }
+        }
+      }
+      h.prev = live ? ang : null;
+      if (sweep > h.dur) { done = true; hazFree(h.g); }
+    } else if (h.k === 'hole') {
+      const left = h.until - time;
+      h.disk.rotation.z += dt * 3; h.core.scale.setScalar(1.3 * Math.min(1, left, (time - (h.until - 5)) * 3 + 0.2) + Math.sin(time * 9) * 0.06);
+      if (Math.random() < dt * 40) { const an = rand(0, 6.283), rr = rand(4, h.r * 0.8), q = tB.set(h.p.x + Math.cos(an) * rr, h.p.y + rand(-2, 2), h.p.z + Math.sin(an) * rr); spray(q, tC.subVectors(h.p, q).normalize(), 1, VOID, rr * 1.6, 0.6, 0.9, 0, 0.04); }
+      const d = chest.distanceTo(h.p);
+      if (player.alive && inMatch() && d < h.r) {
+        const pull = 16 * (1 - d / h.r) + 3;
+        player.vel.addScaledVector(tB.subVectors(h.p, chest).normalize(), pull * dt * 2.2);
+        h.tick -= dt; if (d < 2.8 && h.tick <= 0) { h.tick = 0.5; hurtLocal(9, 'Swallowed by a black hole'); }
+      }
+      if (left <= 0) { burst(h.p, 30, VOID, 10, 0.5, 0.12, 0); done = true; hazFree(h.core, h.disk); }
+    } else if (h.k === 'ice') {
+      h.t += dt;
+      if (h.t < 0) continue;
+      h.warn.material.opacity = 0.3 + Math.sin(time * 16) * 0.15;
+      if (h.t >= h.delay) {
+        const k = Math.min(1, (h.t - h.delay) / 0.35); h.m.visible = true; h.m.position.y = h.to.y + 1.5 + (1 - k) * 38;
+        if (k >= 1) {
+          burst(h.to.clone().setY(h.to.y + 0.5), 26, ICE[0], 9, 0.5, 0.12, 6); shockRing(h.to.clone().setY(h.to.y + 0.1), ICE[1], 4, 0.35);
+          const pf = panFor(h.to); noise(0.25, 0.25 * Math.max(0.3, pf.v), 5000, 'highpass', 1, pf.pan); tone(1600, 700, 0.15, 0.06 * Math.max(0.3, pf.v), 'triangle', pf.pan);
+          if (Math.hypot(player.pos.x - h.to.x, player.pos.z - h.to.z) < 2.4 && Math.abs(player.pos.y - h.to.y) < 2.5) { hurtLocal(18, 'Skewered by an icicle'); player.chillUntil = time + 2.5; }
+          done = true; hazFree(h.m, h.warn);
+        }
+      }
+    } else if (h.k === 'frost') {
+      h.t += dt;
+      const e = [...ents.values()].find(o => o.type === 'wyrm'); if (e) h.p.copy(e.pos);
+      spray(h.p, h.dir, 4, ICE[0], 28, 0.8, 2.2, 2, 0.2); spray(h.p, h.dir, 2, ICE[1], 22, 0.7, 1.6, 2, 0.28);
+      h.tick -= dt;
+      if (h.tick <= 0 && player.alive && inCone(h.p, h.dir, chest, 28, 1.4, 0.26) && hasLOS(h.p.clone(), chest.clone())) { h.tick = 0.35; hurtLocal(9, 'Frozen by the Frost Wyrm'); player.chillUntil = time + 3; }
+      if (h.t > h.dur) done = true;
+    }
+    if (done) hazards.splice(i, 1);
+  }
+}
+function clearHazards() {
+  for (const h of hazards) hazFree(h.m, h.warn, h.g, h.core, h.disk);
+  hazards.length = 0; slowUntil = 0; player.chillUntil = 0;
+}
+// how hard a boss can be hurt right now (its defenses come from the host's state flags)
+function bossDmgMul(e) {
+  const b = e.bst | 0;
+  switch (e.type) {
+    case 'voideye': return b & 1 ? 0 : 1;
+    case 'reaper': return b & 2 ? 1.6 : 0.4;
+    case 'wyrm': return b & 8 ? 1 : 0.6;
+    case 'colossus': return 0.75;
+    default: return 1;
+  }
+}
+// the Overmind's shields sometimes bounce your bullets back at you
+let mirrorT = 0;
+function mirrorBounce(point) {
+  burst(point, 8, TYPES.overmind.color, 5, 0.3, 0.08);
+  if (time - mirrorT < 0.3 || Math.random() > 0.35) return;
+  mirrorT = time;
+  const dir = tB.copy(camera.position).sub(point).normalize();
+  spawnOrb(point.clone().addScaledVector(dir, 0.6), dir.multiplyScalar(18), 6, DTYPES.indexOf('overmind'), '', false, true);
+}
 function updateOrbs(dt) {
   for (let i = orbs.length - 1; i >= 0; i--) {
-    const o = orbs[i]; o.life -= dt; o.m.position.addScaledVector(o.vel, dt);
+    const o = orbs[i]; o.life -= dt;
+    if (o.home && player.alive) { const to = tC.copy(player.pos).setY(player.pos.y + 1.1).sub(o.m.position), d = to.length(); if (d < 45 && d > 1) { const sp = o.vel.length(); o.vel.lerp(to.multiplyScalar(sp / d), Math.min(1, dt * 1.3)).setLength(sp); } }
+    o.m.position.addScaledVector(o.vel, dt);
     o.m.children[0].scale.setScalar(1 + Math.sin(time * 30 + i) * 0.15);
     if (Math.random() < 0.5) burst(o.m.position, 1, o.color, 0.5, 0.25, 0.08, 0);
     if (deploys.length && deploys.some(d => (d.kind === 'shield' && o.m.position.distanceTo(d.pos) < d.r) || (d.kind === 'barrier' && barrierBlocks(d, o.m.position)))) { burst(o.m.position, 12, new THREE.Color(0.6, 2.2, 3), 5, 0.35, 0.08); killOrb(i); continue; }
@@ -5080,9 +5827,10 @@ function applyAb(type, x, y, z, extra, who) {
     const e = ents.get(String(extra)); if (!e) return;
     tracer(new V3(x, y + 1.2, z), e.pos.clone(), GOLD, 2, 0.45);
     const pf = panFor(e.pos); tone(300, 160, 0.25, 0.15 * Math.max(0.3, pf.v), 'square', pf.pan); noise(0.2, 0.15, 1800, 'bandpass', 1, pf.pan);
-    if (isHost && e.kind === 'drone') { if (e.type === 'titan') e.stunT = 0.8; else if (e.type === 'warden') e.stunT = 2; else { e.pullT = 0.7; e.pullTo = new V3(x, y + 1.6, z); } }
+    if (isHost && e.kind === 'drone') { if (isBoss(e)) e.stunT = 0.8; else if (e.type === 'warden') e.stunT = 2; else { e.pullT = 0.7; e.pullTo = new V3(x, y + 1.6, z); } }
     return;
   }
+  if (type === 'bx') { if (Array.isArray(extra)) bossFx(String(extra[0]), x, y, z, extra.slice(1)); return; }
   if (type === 'heat') {
     const from = new V3(x, y, z), dir = Array.isArray(extra) ? new V3(+extra[0] || 0, +extra[1] || 0, +extra[2] || -1).normalize() : new V3(0, 0, -1);
     const o = from.clone().addScaledVector(dir, 0.8);
@@ -5090,7 +5838,7 @@ function applyAb(type, x, y, z, extra, who) {
     flash(o, FIRE[0], 80, 0.3);
     const pf = panFor(from); noise(0.55, 0.4 * Math.max(0.3, pf.v), 500, 'lowpass', 1, pf.pan, 0, 2600); tone(140, 50, 0.4, 0.25 * Math.max(0.3, pf.v), 'sawtooth', pf.pan);
     // the host shoves drones caught in the blast back
-    if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && e.alive && e.type !== 'titan' && inCone(from, dir, e.pos, 13, 1.2 + TYPES[e.type].scale * 0.8, 0.4)) {
+    if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && e.alive && !isBoss(e) && inCone(from, dir, e.pos, 13, 1.2 + TYPES[e.type].scale * 0.8, 0.4)) {
       e.vel.addScaledVector(tA.subVectors(e.pos, from).normalize(), e.type === 'warden' ? 9 : 24); e.vel.y += 4; e.stunT = Math.max(e.stunT || 0, 0.4);
     }
     return;
@@ -5111,7 +5859,7 @@ function applyAb(type, x, y, z, extra, who) {
         if (!e.alive || e.kind !== 'drone') continue;
         if (Math.hypot(e.pos.x - p.x, e.pos.z - p.z) < 3 + TYPES[e.type].scale * 0.8 && e.pos.y > p.y - 2) {
           if (mine) { damageEnt(e, 65, e.pos.clone(), true); any = true; }
-          if (isHost && e.type !== 'titan') e.stunT = Math.max(e.stunT || 0, 0.6);
+          if (isHost && !isBoss(e)) e.stunT = Math.max(e.stunT || 0, 0.6);
         }
       }
       if (any) { hitmarker(false); sfx.hit(); }
@@ -5122,7 +5870,7 @@ function applyAb(type, x, y, z, extra, who) {
     const p = new V3(x, y + 0.1, z), col = new THREE.Color(0.7, 1.6, 3.0);
     shockRing(p, col, 22, 0.55); shockRing(p.clone().setY(p.y + 0.6), WHITE, 12, 0.4); burst(p, 60, new THREE.Color(1.2, 1.1, 1.0), 14, 0.7, 0.16, 8); flash(p, col, 120, 0.3);
     const pf = panFor(p); sfx.boom(Math.max(0.4, pf.v), pf.pan);
-    if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && e.alive && e.pos.distanceTo(p) < (e.type === 'titan' ? 16 : 11)) e.stunT = Math.max(e.stunT || 0, e.type === 'titan' ? 0.8 : 1.8);
+    if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && e.alive && e.pos.distanceTo(p) < (isBoss(e) ? 16 : 11)) e.stunT = Math.max(e.stunT || 0, isBoss(e) ? 0.8 : 1.8);
     return;
   }
   if (type === 'air') {
@@ -5343,13 +6091,13 @@ function updHole(d, dt) {
   d.core.scale.setScalar(1.1 + Math.sin(time * 8) * 0.06);
   if (Math.random() < dt * 30) { const a = rand(0, 6.28), r = rand(4, 8); burst(tA.set(d.center.x + Math.cos(a) * r, d.center.y + rand(-1.5, 1.5), d.center.z + Math.sin(a) * r), 1, new THREE.Color(1.6, 0.5, 2.8), 0.3, 0.6, 0.1, 0); }
   for (let i = orbs.length - 1; i >= 0; i--) if (orbs[i].m.position.distanceTo(d.center) < 3.5) killOrb(i);
-  if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && e.type !== 'titan' && e.alive && e.pos.distanceTo(d.center) < d.r) { e.pos.lerp(d.center, 1 - Math.exp(-1.6 * dt)); e.vel.multiplyScalar(0.85); e.fireT = Math.max(e.fireT || 0, 0.4); }
+  if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && !isBoss(e) && e.alive && e.pos.distanceTo(d.center) < d.r) { e.pos.lerp(d.center, 1 - Math.exp(-1.6 * dt)); e.vel.multiplyScalar(0.85); e.fireT = Math.max(e.fireT || 0, 0.4); }
   d.tick -= dt;
   if (d.tick > 0) return;
   d.tick = 0.25;
   if (d.owner === myId) for (const e of [...ents.values()]) if (e.kind === 'drone' && e.alive) {
     const r = e.pos.distanceTo(d.center);
-    if (r < 6 + (e.type === 'titan' ? 5 : 0)) damageEnt(e, 12, e.pos.clone(), true); else if (r < d.r) damageEnt(e, 3, e.pos.clone(), true);
+    if (r < 6 + (isBoss(e) ? 5 : 0)) damageEnt(e, 12, e.pos.clone(), true); else if (r < d.r) damageEnt(e, 3, e.pos.clone(), true);
   }
 }
 const BARRIER = { hw: 2.7, h: 3.8 };
@@ -5371,7 +6119,7 @@ function groundSlam() {
   let hit = false;
   for (const e of [...ents.values()]) if (e.alive && e.kind === 'drone') {
     const d = e.pos.distanceTo(tA.copy(p).setY(p.y + 1));
-    if (d < (e.type === 'titan' ? 16 : 10)) { damageEnt(e, Math.round(80 * (1 - d / 20)), e.pos.clone(), true); hit = true; }
+    if (d < (isBoss(e) ? 16 : 10)) { damageEnt(e, Math.round(80 * (1 - d / 20)), e.pos.clone(), true); hit = true; }
   }
   if (hit) { hitmarker(false); sfx.hit(); }
   player.vel.y = Math.max(player.vel.y, 4); player.onGround = false; shake = 0.5;
@@ -5440,6 +6188,11 @@ const dmgOut = {}, edm = {};
 function damageEnt(e, dmg, point, quiet) {
   if (!e.alive) return;
   if (e.kind === 'bot' && !enemyOf(myTeam, e.team)) return;
+  if (e.kind === 'drone' && isBoss(e)) {
+    const k = bossDmgMul(e);
+    if (k <= 0) { burst(point, 6, BLOCKC, 4, 0.25, 0.07); if (!quiet && time - mirrorT > 0.12) { mirrorT = time; tone(520, 430, 0.05, 0.05, 'square'); } return; }
+    dmg = Math.max(1, Math.round(dmg * k));
+  }
   e.flash = 1;
   if (coop() && time < teamFx.rallyUntil) dmg = Math.round(dmg * 1.1);
   burst(point, 8, entColor(e), 6, 0.4, 0.09);
@@ -5456,7 +6209,7 @@ function damagePeer(o, dmg, point, quiet) {
 function shotTargets() {
   const t = worldMeshes.slice();
   for (const d of deploys) if (d.block) t.push(d.block);
-  for (const e of ents.values()) if (e.alive && (e.kind === 'drone' || enemyOf(myTeam, e.team))) { t.push(e.vis.hit); if (e.vis.weak) t.push(e.vis.weak); }
+  for (const e of ents.values()) if (e.alive && (e.kind === 'drone' || enemyOf(myTeam, e.team))) { if (e.vis.hits) t.push(...e.vis.hits, ...e.vis.weaks); else { t.push(e.vis.hit); if (e.vis.weak) t.push(e.vis.weak); } if (e.vis.blockers) t.push(...e.vis.blockers); }
   for (const o of peers.values()) if (o.av.visible && enemyOf(myTeam, o.team)) t.push(o.body);
   return t;
 }
@@ -5474,6 +6227,7 @@ function hitscan(origin, dir, W, targets) {
     const e = ents.get(hit.object.userData.ent), weak = !!hit.object.userData.weak;
     if (e) { damageEnt(e, weak ? dmg * 2 : dmg, point, W.pellets > 1 || weak); if (weak) { hitmarker('crit'); tone(2400, 2400, 0.05, 0.08, 'triangle'); burst(point, 12, GOLD, 7, 0.4, 0.1); onWeakHit(); } }
   }
+  else if (hit && hit.object.userData.mirror) mirrorBounce(point);
   else if (hit && hit.object.userData.peer) { const o = peers.get(hit.object.userData.peer); if (o) damagePeer(o, dmg, point, W.pellets > 1); }
   else if (hit || groundT < Infinity) burst(point, W.pellets > 1 ? 2 : 8, wColor(curW), 5, 0.35, 0.07);
   return { point, hitTarget: hit && (hit.object.userData.ent || hit.object.userData.peer) };
@@ -5484,7 +6238,7 @@ function fire() {
   if (swapT > 0 || reloadT > 0) return;
   if (W.melee) return melee();
   if (ammo <= 0) { sfx.empty(); startReload(); fireCd = 0.25; return; }
-  ammo--; fireCd = W.rate / (coop() && time < teamFx.frenzyUntil ? 1.2 : 1);
+  ammo--; fireCd = W.rate / (coop() && time < teamFx.frenzyUntil ? 1.2 : 1) * (time < slowUntil ? 2 : 1);
   const moving = Math.hypot(player.vel.x, player.vel.z) > 2;
   const spread = (ads ? W.ads : W.spread) + (W.pellets > 1 ? 0 : (moving ? 0.008 : 0) + (player.onGround ? 0 : 0.012)) * (ads ? 0.3 : 1);
   const g = curGun(), mp = g.muzzle.getWorldPosition(new V3()), col = wColor(curW);
@@ -5651,7 +6405,7 @@ function pulse() {
   for (const e of [...ents.values()]) {
     if (!e.alive || (e.kind === 'bot' && !enemyOf(myTeam, e.team))) continue;
     const off = e.pos.clone().sub(c), dist = off.length();
-    if (dist < 10) { if (isHost && e.vel && e.type !== 'titan') e.vel.addScaledVector(off.normalize(), e.type === 'warden' ? 8 : 20); damageEnt(e, coop() ? 45 : 30, e.pos, true); }
+    if (dist < 10) { if (isHost && e.vel && !isBoss(e)) e.vel.addScaledVector(off.normalize(), e.type === 'warden' ? 8 : 20); damageEnt(e, coop() ? 45 : 30, e.pos, true); }
   }
   for (const o of peers.values()) if (o.av.visible && enemyOf(myTeam, o.team) && o.pos.distanceTo(c) < 9) damagePeer(o, 30, o.pos, true);
   for (let i = orbs.length - 1; i >= 0; i--) if (orbs[i].m.position.distanceTo(c) < 11) { burst(orbs[i].m.position, 10, orbs[i].color, 5, 0.4, 0.08); killOrb(i); }
@@ -5756,7 +6510,7 @@ function gameOver(wave) {
   lastRunWave = wave;
   $('downUI').hidden = true; $('useUI').hidden = true; for (const el of markEls.values()) el.remove(); markEls.clear();
   $('deadtitle').textContent = mode === 'boss' ? 'RAID FAILED' : 'SQUAD WIPED';
-  $('deadcause').textContent = mode === 'boss' ? `The Titan wiped the squad on round ${wave}. Redeploy to start again from round 1.` : `Everyone went down on wave ${wave}. Redeploy to start again from wave 1.`;
+  $('deadcause').textContent = mode === 'boss' ? `${BOSS_INFO[bossFor(wave).type].name} wiped the squad on round ${wave}. Redeploy to start again from round 1.` : `Everyone went down on wave ${wave}. Redeploy to start again from wave 1.`;
   renderDeadStats(); respawnAt = time + 2;
   $('dead').hidden = false; $('respawn').disabled = true;
   if (document.pointerLockElement) document.exitPointerLock();
@@ -6023,7 +6777,7 @@ function buildPresence() {
   };
   if (isHost) {
     o.en = [...ents.values()].map(e => e.kind === 'drone'
-      ? ['d', e.id, DTYPES.indexOf(e.type), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), Math.round(e.hp), Math.round((e.charge || 0) * 10)]
+      ? ['d', e.id, DTYPES.indexOf(e.type), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), Math.round(e.hp), Math.round((e.charge || 0) * 10), ...(isBoss(e) || e.type === 'qclone' ? [e.bst | 0, r2(e.yaw || 0)] : [])]
       : ['b', e.id, Math.max(0, BOT_NAMES.indexOf(e.name)), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), r2(e.yaw), Math.round(e.hp), e.team, e.alive ? 1 : 0, WIDS.indexOf(e.wp), e.lv || 0, e.f || 0, e.d || 0]);
     Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, fl: GS.fl, cs: GS.cs, ph: GS.ph, pw: GS.pw, gm: GS.gm });
     if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr });
@@ -6091,7 +6845,7 @@ function updateHUD() {
     setText('hCoins', wallet.coins.toLocaleString());
   } else if (mode === 'boss') {
     setText('hWave', String(GS.wv || 1)); setText('hScore', score.toLocaleString()); setText('hCoins', wallet.coins.toLocaleString());
-    setText('hint', GS.wst === 2 ? (GS.wv > 0 ? 'NEXT TITAN INCOMING' : 'THE TITAN IS COMING') : GS.wst === 0 ? 'WAITING FOR SQUAD' : '');
+    setText('hint', GS.wst === 2 ? (GS.wv > 0 ? `NEXT: ${BOSS_INFO[bossFor(GS.wv + 1).type].name}` : 'THE TITAN IS COMING') : GS.wst === 0 ? 'WAITING FOR SQUAD' : '');
   } else if (mode === 'infect') {
     const acts = allActors(), zi = acts.filter(a => GS.inf.includes(a.id)).length;
     setText('hSv', String(acts.length - zi)); setText('hIf', String(zi));
@@ -6164,9 +6918,9 @@ function updateHUD() {
   $('wavebar').hidden = !wOn;
   if (wOn) { setText('wavename', `WAVE ${GS.wv}`); setText('waveleft', `${GS.wr} DRONE${GS.wr === 1 ? '' : 'S'} LEFT`); setStyle($('waveprog'), 'width', Math.round(clamp(1 - GS.wr / GS.wt, 0, 1) * 100) + '%'); }
   // boss health bar
-  const titan = mode === 'boss' ? [...ents.values()].find(e => e.type === 'titan' && e.alive) : null;
+  const titan = mode === 'boss' ? [...ents.values()].find(e => isBoss(e) && e.alive) : null;
   $('bossbar').hidden = !titan || state === 'menu';
-  if (titan) { setStyle($('bosshp'), 'width', Math.max(0, Math.round(titan.hp / (GS.bhp || titan.hp) * 1000) / 10) + '%'); setText('bossname', `THE TITAN · ROUND ${GS.wv}`); setText('bossph', `PHASE ${GS.bp || 1}`); }
+  if (titan) { setStyle($('bosshp'), 'width', Math.max(0, Math.round(titan.hp / (GS.bhp || titan.hp) * 1000) / 10) + '%'); { const b = bossFor(GS.wv); setText('bossname', `${BOSS_INFO[titan.type].name} · ROUND ${GS.wv}${b.L ? ` · LAP ${b.L + 1}` : ''}`); } setText('bossph', `PHASE ${GS.bp || 1}`); }
   const ksOn = FFA_STREAKS && mode === 'ffa' && (ksKills > 0 || ksReady.length > 0);
   $('ks').hidden = !ksOn;
   if (ksOn) {
@@ -6387,7 +7141,7 @@ function startGame() {
   if (mode === 'ctf') announce(`${TEAM_NAME[myTeam]} TEAM`, 'Grab their flag · bring it home', TEAM_CSS[myTeam]);
   else if (mode === 'gungame') announce('GUN GAME', `Level 1 · ${WEAPONS[LADDER[ggLv]].name}`, '#5ff2ff');
   else if (mode === 'ffa') announce('FREE-FOR-ALL', `First to ${FFA_GOAL} kills`, '#5ff2ff');
-  else if (mode === 'boss') announce('BOSS RAID', 'Shoot the glowing core for double damage', '#ff8a3d');
+  else if (mode === 'boss') announce('BOSS RAID', '7 bosses take turns, and each lap they come back stronger', '#ff8a3d');
   else if (mode === 'infect') announce('INFECTION', amInfected() ? 'You are infected' : 'Survive for 3 minutes', '#7dff4a');
 }
 function redeploy() {
@@ -6759,7 +7513,7 @@ function frame(now) {
   syncInfect(); runTimers();
   onGSChange();
   if (state === 'playing') { updatePlayer(dt); stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
-  updateOrbs(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
+  updateOrbs(dt); updateHazards(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
   updateWeapon(dt); updateFlags(dt); updateMyPet(dt);
   sendPresence(dt);
