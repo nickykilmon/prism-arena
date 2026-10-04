@@ -957,6 +957,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'gucci-streaks', date: '2026-10-04', title: 'Gucci Bucket Hat & Streak Fix',
+    lines: ['The Bucket Hat is now the Gucci Bucket Hat. Already own it? It\'s upgraded for free', 'FFA kill streaks, unused rewards and sentry drones now reset when a new match starts'] },
   { id: 'guns-emote-slots', date: '2026-10-04', title: 'Inferno & Arc Thrower For Everyone, Emote Loadout',
     lines: ['The Inferno flamethrower and the Arc Thrower are now in Free-for-All, Capture the Flag and Infection (keys 8 and 9) and in the Gun Game ladder', 'Pick your 4 emotes in Customize: click a slot, then click an emote. In a match press H, then 1, 2, 3 or 4'] },
   { id: 'burger-poison', date: '2026-10-04', title: 'Burger Man & Poisoner Changes',
@@ -1201,7 +1203,7 @@ const ADDONS = { beckcam: { name: 'Becket Cam', price: 1500, pv: 'radial-gradien
 const HATS = {
   none: { name: 'No Hat', price: 0, pv: 'repeating-linear-gradient(45deg,#1b1730 0 6px,#231e3d 6px 12px)' },
   beanie: { name: 'Beanie', price: 150, pv: 'repeating-linear-gradient(0deg,#e04f6a 0 6px,#f3e9dc 6px 9px)' },
-  bucket: { name: 'Bucket Hat', price: 200, pv: 'linear-gradient(180deg,#7d8a5a,#4f5a36)' },
+  bucket: { name: 'Gucci Bucket Hat', price: 200, pv: 'linear-gradient(180deg,transparent 58%,#1f6b3a 58% 64%,#c8202c 64% 70%,#1f6b3a 70% 76%,transparent 76%),repeating-linear-gradient(45deg,#5a3d24 0 3px,transparent 3px 9px),repeating-linear-gradient(-45deg,#5a3d24 0 3px,transparent 3px 9px),#d9c6a0' },
   party: { name: 'Party Hat', price: 200, pv: 'repeating-linear-gradient(60deg,#5ff2ff 0 7px,#ff4fa3 7px 14px,#ffd23a 14px 21px)' },
   maga: { name: 'MAGA Hat', price: 300, pv: 'linear-gradient(180deg,#d61f2c 0 70%,#a3151f 70%)' },
   fedora: { name: 'Fedora', price: 350, pv: 'linear-gradient(180deg,#6b4a2e 0 55%,#2a1a10 55% 65%,#6b4a2e 65%)' },
@@ -2998,8 +3000,22 @@ function addHat(parent, id, hotdog, mats, av) {
       break;
     }
     case 'bucket': {
-      const b = M(0x6f7c4e, { roughness: 0.95, side: THREE.DoubleSide });
+      // the meme hat: beige monogram canvas with a green-red-green web band
+      // drawn wide (10:1) to match the crown, so the interlocking Gs aren't squashed
+      const canvas = TEX.gg3 || (TEX.gg3 = (() => {
+        const c = document.createElement('canvas'); c.width = 1280; c.height = 128; const x = c.getContext('2d');
+        x.fillStyle = '#cdb68a'; x.fillRect(0, 0, 1280, 128);
+        x.fillStyle = '#3a2412'; x.font = '900 46px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+        for (let j = 0; j < 2; j++) for (let i = 0; i < 20; i++) {
+          const cx = i * 64 + (j % 2) * 32 + 16, cy = j * 64 + 32;
+          x.fillText('G', cx - 8, cy); x.save(); x.translate(cx + 8, cy); x.scale(-1, -1); x.fillText('G', 0, 0); x.restore();
+        }
+        const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+      })());
+      const web = canvasTex('ggweb', x => { x.fillStyle = '#1f6b3a'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#c8202c'; x.fillRect(0, 96, 256, 64); });
+      const b = M(0xd8d0c0, { map: canvas, roughness: 0.9, side: THREE.DoubleSide });
       put(cyl(R * 0.8, R * 0.88, R * 0.5), b, 0, R * 0.25);
+      put(cyl(R * 0.885, R * 0.885, R * 0.13, true), M(0xffffff, { map: web, roughness: 0.7, side: THREE.DoubleSide }), 0, R * 0.08);
       put(cyl(R * 0.88, R * 1.28 * bk, R * 0.24, true), b, 0, -R * 0.06);
       break;
     }
@@ -4725,7 +4741,7 @@ function onGSChange() {
   }
   if (GS.gm !== p.gm) {
     $('announce').classList.remove('hold');
-    ggLv = 0; frags = 0; deaths = 0; score = 0; ksKills = 0; ksReady.length = 0;
+    ggLv = 0; frags = 0; deaths = 0; score = 0; resetStreaks();
     if (mode === 'gungame' && player.alive) setWeapon(LADDER[0]);
     if (mode === 'infect' && player.alive) player.hp = 100;
     announce(mode === 'infect' ? 'NEW ROUND' : 'NEW MATCH', mode === 'ctf' ? 'First to 3 captures' : mode === 'ffa' ? `First to ${FFA_GOAL} kills` : mode === 'infect' ? 'Someone is about to turn…' : 'Climb the ladder', '#5ff2ff');
@@ -5850,6 +5866,11 @@ function renderLB() {
 }
 let ksKills = 0;
 const ksReady = [];
+// a new match (or a fresh start) wipes streak progress, unused rewards and any sentry still flying around
+function resetStreaks() {
+  ksKills = 0; ksReady.length = 0; streak = 0; mult = 1; hudCache.ks = null;
+  for (let i = deploys.length - 1; i >= 0; i--) if (deploys[i].kind === 'sentry') removeDeploy(i);
+}
 function useStreak() {
   if (!ksReady.length || !player.alive) { if (mode === 'ffa' && FFA_STREAKS) toast(`Kill streaks: ${STREAK_DEF.air.at} kills for an air strike, ${STREAK_DEF.sentry.at} for a sentry drone`); return; }
   const id = ksReady.shift();
@@ -5915,7 +5936,7 @@ function creditKill(kind, pts, name) {
     ggLv++; setWeapon(LADDER[ggLv]); sfx.levelup();
     announce(`LEVEL ${ggLv + 1}`, `${WEAPONS[LADDER[ggLv]].name}${ggLv === LADDER.length - 1 ? ' · one kill to win' : ''}`, WEAPONS[LADDER[ggLv]].css);
   } else {
-    if (FFA_STREAKS && mode === 'ffa') { ksKills++; for (const [id, def] of Object.entries(STREAK_DEF)) if (ksKills === def.at) { ksReady.push(id); announce(`${def.name} READY`, `Press ${bindLabel('streak').toUpperCase()} to call it in`, '#ff8a3d'); sfx.levelup(); return; } }
+    if (FFA_STREAKS && mode === 'ffa' && GS.ph === 0) { ksKills++; for (const [id, def] of Object.entries(STREAK_DEF)) if (ksKills === def.at) { ksReady.push(id); announce(`${def.name} READY`, `Press ${bindLabel('streak').toUpperCase()} to call it in`, '#ff8a3d'); sfx.levelup(); return; } }
     if (streak >= 2) announce(STREAKS[Math.min(streak, 7)], name ? `Tagged ${name}` : '', '#ffbf6b');
     else toast(`Tagged ${name || 'enemy'}`);
   }
@@ -6358,7 +6379,7 @@ function startGame() {
   const newTeam = mode === 'ctf' ? chooseTeam() : mode === 'infect' ? (amInfected() ? 1 : 0) : -1;
   if (newTeam !== myTeam) { myTeam = newTeam; for (const id of [...peers.keys()]) removePeer(id); for (const e of ents.values()) if (e.kind === 'bot') e.visTeam = null; }
   if (!kit().guns.includes(curW) || state === 'menu' || state === 'paused') curW = coop() || !kit().guns.includes(settings.gun) ? kit().guns[0] : settings.gun;
-  if (state === 'menu' || state === 'paused') { score = 0; frags = 0; deaths = 0; streak = 0; ggLv = 0; runCoins = 0; ksKills = 0; ksReady.length = 0; bumpStat('gp'); }
+  if (state === 'menu' || state === 'paused') { score = 0; frags = 0; deaths = 0; ggLv = 0; runCoins = 0; resetStreaks(); bumpStat('gp'); }
   $('menu').hidden = true; $('dead').hidden = true; $('hud').hidden = false;
   player.downed = false; clearReviveUI();
   buildTop(); $('feed').textContent = '';
