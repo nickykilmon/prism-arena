@@ -28,6 +28,35 @@ function parseCreators(raw) {
 }
 const CREATORS = { ...DEFAULT_CREATORS, ...parseCreators(process.env.CREATOR_CODES) };
 const byPid = new Map(); // player ID -> Set(client)
+// Linked accounts: one person's player IDs on different devices share one wallet (coins + cosmetics) and creator-code payouts.
+// The first ID in each group is the main one. Add more groups here.
+const LINKS = [
+  ['P-ngk4h530nz', 'P-k6s7z2dfih'], // Harry (creator code HARRYBALLS)
+];
+const groupOf = pid => LINKS.find(g => g.includes(pid)) || null;
+const sameGroup = (a, b) => a === b || (!!groupOf(a) && groupOf(a) === groupOf(b));
+const membersOf = pid => groupOf(pid) || [pid];
+// first online client for a player ID or any of its linked IDs
+function clientFor(pid) { for (const id of membersOf(pid)) { const set = byPid.get(id); if (set && set.size) return set.values().next().value; } return null; }
+// Shared wallets, keyed by the group's main ID. Kept in memory: after a restart the devices re-seed it from their
+// last confirmed copy (the highest version wins), then replay any changes the server never confirmed.
+const WAL = new Map();
+const ITEM_RE = /^(suit|hat|finish|pet|emote|addon):[a-z0-9]{1,24}$/;
+function walMessage(client, m) {
+  const g = groupOf(client.pid); if (!g) return;
+  const num = (v, max) => Math.max(-max, Math.min(max, Math.floor(+v || 0)));
+  let R = WAL.get(g[0]); const fresh = !R;
+  if (!R) { R = { coins: 0, ver: 0, owned: new Set(), joined: new Set(), seq: new Map() }; WAL.set(g[0], R); }
+  if (m.first) { if (!R.joined.has(client.pid)) R.coins += Math.max(0, num(m.own, 1e12)); }
+  else if (fresh || num(m.ver, 1e12) > R.ver) { R.coins = Math.max(0, num(m.base, 1e12)); R.ver = Math.max(0, num(m.ver, 1e12)); }
+  R.joined.add(client.pid);
+  const seq = num(m.seq, 1e12);
+  if (seq > 0 && seq > (R.seq.get(client.pid) || 0)) { R.coins = Math.max(0, R.coins + num(m.delta, 1e12)); R.seq.set(client.pid, seq); }
+  if (Array.isArray(m.owned)) for (const it of m.owned.slice(0, 1000)) if (typeof it === 'string' && ITEM_RE.test(it) && R.owned.size < 1000) R.owned.add(it);
+  R.ver++;
+  const owned = [...R.owned];
+  for (const id of g) for (const c of byPid.get(id) || []) send(c.ws, JSON.stringify({ t: 'wal', main: g[0], coins: R.coins, ver: R.ver, owned, ack: c === client ? seq : 0 }));
+}
 // One-off coin gifts from the game owner, delivered whenever that player connects. Each gift has a fixed ID,
 // and the player's browser remembers gift IDs forever, so resending (after restarts) never pays twice.
 const GIFTS = [
@@ -37,7 +66,7 @@ const GIFTS = [
   { id: 'gift-r8sp-burgerman', pid: 'P-r8spcxqegc', item: 'suit:burgerman' },
 ];
 function sendGifts(client) {
-  for (const g of GIFTS) if (g.pid === client.pid) send(client.ws, JSON.stringify({ t: 'pay', id: g.id, amount: g.amount || 0, item: g.item || '', code: 'GIFT', gift: 1, from: 'server' }));
+  for (const g of GIFTS) if (g.pid === client.pid || (g.item && !g.amount && sameGroup(g.pid, client.pid))) send(client.ws, JSON.stringify({ t: 'pay', id: g.id, amount: g.amount || 0, item: g.item || '', code: 'GIFT', gift: 1, from: 'server' }));
 }
 // Leaderboards (Squad Waves best wave, Boss Raid furthest round): player ID -> { n, w, s }.
 // Clients re-upload their cached copies, so the boards survive restarts.
@@ -156,14 +185,18 @@ wss.on('connection', ws => {
       byPid.get(m.pid).add(client);
       seen.set(m.pid, { ...(seen.get(m.pid) || {}), last: Date.now() });
       sendGifts(client);
+      if (groupOf(m.pid)) send(ws, JSON.stringify({ t: 'linked', main: groupOf(m.pid)[0] }));
+    } else if (m.t === 'wal' && client.pid) {
+      walMessage(client, m);
     } else if (m.t === 'pay' && client.pid && typeof m.id === 'string' && m.id.length < 80) {
       // route a creator-code payout to the creator's player ID if they're online; the buyer retries until acked
       const target = CREATORS[String(m.code || '').toUpperCase()];
       if (!target) return;
-      if (target === client.pid) { send(ws, JSON.stringify({ t: 'ack', id: m.id })); return; }
+      if (sameGroup(target, client.pid)) { send(ws, JSON.stringify({ t: 'ack', id: m.id })); return; }
       const amount = Math.max(0, Math.min(500, Math.floor(+m.amount || 0)));
       const msg = JSON.stringify({ t: 'pay', id: m.id, amount, code: String(m.code).toUpperCase(), from: client.pid });
-      for (const o of byPid.get(target) || []) send(o.ws, msg);
+      // one device only (any of the creator's linked IDs), so a payout is never credited twice
+      const to = clientFor(target); if (to) send(to.ws, msg);
     } else if (m.t === 'lb' && client.pid) {
       // older pages send no board name: that's the Squad Waves board, and they only get that board back
       const board = BOARDS[m.board] ? m.board : 'waves';

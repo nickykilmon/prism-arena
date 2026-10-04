@@ -1591,7 +1591,41 @@ function applyFinish(m1, m2, id) {
   }
 }
 applyFinish(vmMat, vmMat2, settings.finish);
-function saveWallet() { store.set('wallet', wallet); $('coinTab').textContent = wallet.coins.toLocaleString(); $('coinBig').textContent = wallet.coins.toLocaleString(); }
+function saveWallet(fromServer) { store.set('wallet', wallet); $('coinTab').textContent = wallet.coins.toLocaleString(); $('coinBig').textContent = wallet.coins.toLocaleString(); if (!fromServer) walPush(); }
+// ---------- linked accounts: the website server can join several player IDs into one shared wallet ----------
+// walState: s = total the server last confirmed, v = its version, fl = changes sent but not confirmed yet [[seq, coins]]
+let walLinked = false, walFirst = null, walOut = null, walState = store.get('walsync', null);
+if (walState && (typeof walState.s !== 'number' || !Array.isArray(walState.fl))) walState = null;
+const walSave = () => store.set('walsync', walState);
+const walSend = o => { if (walOut) walOut(o); };
+const walFlight = () => walState ? walState.fl.reduce((a, x) => a + x[1], 0) : 0;
+function walHello(out) {
+  walLinked = true; walOut = out;
+  // first time this device links: its coins and cosmetics are added to the shared wallet
+  if (!walState) { walFirst = wallet.coins; walSend({ t: 'wal', first: 1, own: wallet.coins, owned: wallet.owned }); return; }
+  walSend({ t: 'wal', base: walState.s, ver: walState.v, owned: wallet.owned });
+  for (const [seq, d] of walState.fl) walSend({ t: 'wal', base: walState.s, ver: walState.v, seq, delta: d });
+  walPush();
+}
+function walPush() {
+  if (!walLinked || !walState) return;
+  const u = wallet.coins - walState.s - walFlight();
+  if (u) { walState.seq = (walState.seq || 0) + 1; walState.fl.push([walState.seq, u]); walSave(); }
+  if (u || wallet.owned.length !== walState.on) walSend({ t: 'wal', base: walState.s, ver: walState.v, seq: u ? walState.seq : 0, delta: u, owned: wallet.owned });
+}
+function walRecv(m) {
+  if (!walLinked) return;
+  // keep any local change the server hasn't counted yet
+  const unsent = walState ? wallet.coins - walState.s - walFlight() : wallet.coins - (walFirst ?? wallet.coins);
+  if (!walState) walState = { s: 0, v: 0, seq: 0, fl: [] };
+  if (+m.ack > 0) walState.fl = walState.fl.filter(x => x[0] > +m.ack);
+  walState.s = Math.max(0, Math.floor(+m.coins || 0)); walState.v = Math.floor(+m.ver || 0);
+  wallet.coins = Math.max(0, walState.s + walFlight() + unsent);
+  if (Array.isArray(m.owned)) for (const it of m.owned) if (typeof it === 'string' && /^(suit|hat|finish|pet|emote|addon):[a-z0-9]{1,24}$/.test(it) && !wallet.owned.includes(it)) wallet.owned.push(it);
+  walState.on = wallet.owned.length; walSave(); saveWallet(true);
+  if (unsent) walPush();
+  if (menuTab === 'shop' || menuTab === 'custom') renderShop();
+}
 let runCoins = 0;
 function addCoins(n) {
   if (n <= 0) return;
@@ -2778,6 +2812,8 @@ function wsAdapter(name) {
       else if (m.t === 'bye') pm.delete(m.id);
       else if (m.t === 'lbtop') onLBTop(m.list, m.board || 'waves');
       else if (m.t === 'pay' || m.t === 'ack') onPayMessage(m, o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
+      else if (m.t === 'linked') walHello(o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
+      else if (m.t === 'wal') walRecv(m);
       else if (m.t === 'whois' || m.t === 'invite' || m.t === 'profile' || m.t === 'invsent') onSocial(m);
     };
     ws.onclose = () => { pm.clear(); id = null; if (alive) setTimeout(connect, 2000); };
