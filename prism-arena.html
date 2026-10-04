@@ -5909,7 +5909,7 @@ function onGSChange() {
   }
   if (mode === 'mission') {
     if ((GS.mst !== p.mst || GS.mi !== p.mi) && GS.mst >= 0) { missionVisuals(); const M = MISSIONS[GS.mi], st = curStep(); if (GS.mst === 0) announce(M.name.toUpperCase(), M.brief, '#74ffb5'); else announce(`OBJECTIVE ${GS.mst + 1}/${M.steps.length}`, STEP_NAME[st.t], '#74ffb5'); missionSay(st.say); sfx.wave(); }
-    if (GS.mres === 1 && p.mres !== 1 && state !== 'menu') { const M = MISSIONS[GS.mi], first = !missionDone.includes(GS.mi), c = first ? M.reward : Math.round(M.reward * 0.4); addCoins(c); if (first) { missionDone.push(GS.mi); store.set('missions', missionDone); renderMissions(); } announce('MISSION COMPLETE', `${M.name} · +${c} coins`, '#74ffb5'); sfx.win(); }
+    if (GS.mres === 1 && p.mres !== 1 && state !== 'menu') { const M = MISSIONS[GS.mi], first = !missionDone.includes(GS.mi), c = first ? M.reward : Math.round(M.reward * 0.4); addCoins(c); if (first) missionDone.push(GS.mi); store.set('missions', missionDone); setMission(nextMission(GS.mi)); announce('MISSION COMPLETE', `${M.name} · +${c} coins · next up: ${MISSIONS[nextMission(GS.mi)].name}`, '#74ffb5'); sfx.win(); }
     if (GS.mres === 2 && p.mres !== 2) { announce('MISSION FAILED', 'Restarting the mission…', '#ff4d6a'); sfx.alert(); }
     if (!GS.mres && p.mres) { if (player.downed) reviveMe(1, 'Command'); else if (player.alive) player.hp = maxHp(); }
   }
@@ -8509,6 +8509,11 @@ const MISSIONS = [
 const STEP_NAME = { collect: 'COLLECT THE CORES', defend: 'DEFEND THE REACTOR', hack: 'HACK THE TERMINALS', survive: 'SURVIVE', escort: 'ESCORT THE POWER CELL', boss: 'DEFEAT THE BOSS' };
 const missionDone = store.get('missions', []);
 const missionUnlocked = i => i === 0 || missionDone.includes(i - 1) || missionDone.includes(i);
+// the next mission to play: the one after this, wrapping back to the start after the last
+const nextMission = i => (i + 1) % MISSIONS.length;
+function setMission(i) { settings.mission = clamp(i | 0, 0, MISSIONS.length - 1); store.set('mission', settings.mission); renderMissions(); }
+// first time: start at the first mission you haven't beaten
+if (store.get('mission', null) == null) settings.mission = MISSIONS.findIndex((m, i) => !missionDone.includes(i)) >= 0 ? MISSIONS.findIndex((m, i) => !missionDone.includes(i)) : 0;
 function freeSpot(x, z, y0 = 0) { const p = new V3(x, 0, z); for (let k = 0; k < 20 && pointInWorld(tA.set(p.x, 0.6, p.z)); k++) p.multiplyScalar(1.06); p.y = groundBelow(tA.set(p.x, 30, p.z)) + y0; return p; }
 const MPOS = {};
 function missionSpots() {
@@ -8528,7 +8533,7 @@ function hostMission(dt) {
   const M = H.M || (H.M = { t: 0, spawnT: 2, hp: 1, max: 1, downT: 0 });
   const hs = humans(), alive = hs.filter(a => a.alive);
   if (GS.mst < 0) { if (alive.length) { GS.mi = clamp(settings.mission | 0, 0, MISSIONS.length - 1); missionStep(0, M); } return; }
-  if (GS.mres) { M.t -= dt; if (M.t <= 0) { for (const e of [...ents.values()]) removeEnt(e, false); GS.mres = 0; GS.mi = clamp(settings.mission | 0, 0, MISSIONS.length - 1); missionStep(0, M); } return; }
+  if (GS.mres) { M.t -= dt; if (M.t <= 0) { for (const e of [...ents.values()]) removeEnt(e, false); if (GS.mres === 1) setMission(nextMission(GS.mi)); GS.mres = 0; GS.mi = clamp(settings.mission | 0, 0, MISSIONS.length - 1); missionStep(0, M); } return; }
   M.downT = hs.length && !alive.length ? M.downT + dt : 0;
   if (M.downT > 1.5) return missionEnd(false, M);
   const st = curStep(); if (!st) return;
@@ -8637,7 +8642,7 @@ function renderMissions() {
     const b = document.createElement('button'), open = missionUnlocked(i), done = missionDone.includes(i);
     b.className = 'mcard' + ((settings.mission | 0) === i ? ' sel' : '') + (open ? '' : ' locked');
     b.innerHTML = `<b>${i + 1}. ${esc(m.name)} ${done ? '<span class="ok">✓</span>' : ''}</b><small>${esc(m.brief)}</small><span>${m.steps.map(s => STEP_NAME[s.t].toLowerCase()).join(' → ')}</span><em>${open ? `+${done ? Math.round(m.reward * 0.4) : m.reward} coins` : '🔒 Finish the mission before'}</em>`;
-    if (open) b.addEventListener('click', () => { settings.mission = i; store.set('mission', i); renderMissions(); });
+    if (open) b.addEventListener('click', () => setMission(i));
     el.appendChild(b);
   });
 }
