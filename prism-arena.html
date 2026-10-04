@@ -641,15 +641,15 @@ const WEAPONS = {
   smg:     { name: 'Pulse SMG',     auto: true,  rate: 0.068, dmg: 12,  mag: 40, reload: 1.2,  spread: 0.022, ads: 0.009, pellets: 1, range: 300, zoom: 62, recoil: 0.6, color: [2.9, 1.5, 0.4], css: '#ffbf6b', blurb: 'Shreds up close' },
   scatter: { name: 'Scatter',       auto: false, rate: 0.75,  dmg: 18,  mag: 6,  reload: 1.5,  spread: 0.05,  ads: 0.035, pellets: 10, range: 60, zoom: 66, recoil: 3.2, color: [2.9, 0.5, 1.6], css: '#ff4fa3', blurb: 'One-tap up close' },
   cannon:  { name: 'Hand Cannon',   auto: false, rate: 0.18,  dmg: 55,  mag: 10, reload: 1.1,  spread: 0.004, ads: 0.001, pellets: 1, range: 400, zoom: 55, recoil: 2.2, color: [2.9, 2.3, 0.7], css: '#ffe27a', blurb: 'Fast heavy semi-auto' },
-  rail:    { name: 'Rail Lance',    auto: false, rate: 1.1,   dmg: 100, mag: 5,  reload: 1.7,  spread: 0.035, ads: 0,     pellets: 1, range: 600, zoom: 24, recoil: 3.5, color: [1.5, 0.6, 3.0], css: '#b48cff', blurb: 'Scoped one-shot' },
+  rail:    { name: 'Rail Lance',    auto: false, rate: 1.1,   dmg: 150, mag: 5,  reload: 1.7,  spread: 0.035, ads: 0,     pellets: 1, range: 600, zoom: 24, recoil: 3.5, color: [1.5, 0.6, 3.0], css: '#b48cff', blurb: 'Scoped one-shot' },
   nova:    { name: 'Nova Launcher', auto: false, rate: 0.85,  dmg: 140,  mag: 4,  reload: 1.8,  spread: 0.004, ads: 0.002, pellets: 1, range: 400, zoom: 60, recoil: 3,   color: [3.0, 1.0, 0.3], css: '#ff8a3d', blurb: 'Rockets · rocket-jump', projectile: true, speed: 40, splash: 8.5 },
   lmg:     { name: 'Havoc LMG',     auto: true,  rate: 0.082, dmg: 15,  mag: 80, reload: 5,  spread: 0.018, ads: 0.006, pellets: 1, range: 350, zoom: 58, recoil: 0.85, color: [1.4, 2.9, 0.5], css: '#b6ff5c', blurb: '80 rounds · slow reload' },
   dual:    { name: 'Twin Blades',   melee: true, rate: 0.28, dmg: 70, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [3.0, 0.4, 2.2], css: '#ff3d6e', blurb: 'Berserker only' },
   claw:    { name: 'Infected Claws', melee: true, rate: 0.38, dmg: 100, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [0.6, 3.0, 0.5], css: '#7dff4a', blurb: 'Infected only' },
   inferno: { name: 'Inferno',       auto: true,  rate: 0.06,  dmg: 6,   mag: 100, reload: 2.2, spread: 0, ads: 0, pellets: 1, range: 11, zoom: 72, recoil: 0.15, color: [3.0, 1.1, 0.2], css: '#ff7a1f', blurb: 'Flamethrower · sets drones on fire', flame: true },
   arc:     { name: 'Arc Thrower',   auto: true,  rate: 0.16,  dmg: 16,  mag: 30, reload: 1.6,  spread: 0.01,  ads: 0.004, pellets: 1, range: 45, zoom: 60, recoil: 0.6, color: [1.8, 2.6, 3.0], css: '#c8e8ff', blurb: 'Lightning that jumps to 3 more targets', chain: 3 },
-  autocannon: { name: 'Twin Autocannon', auto: true, rate: 0.13, dmg: 24, mag: 40, reload: 1.9, spread: 0.012, ads: 0.004, pellets: 1, range: 350, zoom: 58, recoil: 1.2, color: [3.0, 1.6, 0.4], css: '#ff9a3c', blurb: 'Heavy twin-barrel auto' },
-  minigun: { name: 'Mech Minigun', auto: true, rate: 0.05, dmg: 14, mag: 999, reload: 0.2, spread: 0.03, ads: 0.03, pellets: 1, range: 320, zoom: 70, recoil: 0.25, color: [3.0, 1.4, 0.3], css: '#ff8a3c', blurb: 'Mech only' },
+  autocannon: { name: 'Twin Autocannon', auto: true, rate: 0.13, dmg: 18, mag: 40, reload: 1.9, spread: 0.012, ads: 0.004, pellets: 1, range: 350, zoom: 58, recoil: 1.2, color: [3.0, 1.6, 0.4], css: '#ff9a3c', blurb: 'Heavy twin-barrel auto' },
+  minigun: { name: 'Mech Minigun', auto: true, rate: 0.05, dmg: 9, mag: 999, reload: 0.2, spread: 0.03, ads: 0.03, pellets: 1, range: 320, zoom: 70, recoil: 0.25, color: [3.0, 1.4, 0.3], css: '#ff8a3c', blurb: 'Mech only' },
   cards:   { name: 'Card Thrower', auto: false, rate: 0.3, dmg: 22, mag: 21, reload: 1.4, spread: 0.045, ads: 0.03, pellets: 3, range: 220, zoom: 64, recoil: 0.8, color: [3.0, 2.4, 0.9], css: '#ffd86b', blurb: '3 cards a throw · 1 in 5 crits for triple', cards: true },
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
 };
@@ -971,6 +971,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'balance-cards', date: '2026-10-04', title: 'Balance Pass & New Cards',
+    lines: ['Sniper: Rail Lance damage up from 100 to 150', 'Mech Pilot: Twin Autocannon 24 → 18 damage, mech minigun 14 → 9', 'The Gambler now holds a real fanned-out hand of playing cards'] },
   { id: 'class-shakeup', date: '2026-10-04', title: 'Class Shake-Up: Mech Pilot & Gambler',
     lines: ['New Mech Pilot: Twin Autocannon, call a giant mech from the sky (400 armor, minigun, right-click rocket salvo) and drop floating sky mines', 'New Gambler: Card Thrower with critical cards, a Slot Machine (jackpot, triple damage, team heal, cash… or bust) and a Lucky Coin that explodes as fire, ice or lightning', 'Engineer: 2 turrets at once that last longer and shoot faster. Throw the repair beacon next to a turret to give it a rocket pod. The beacon also gives +50 bonus shield', 'Sniper: hold still while scoped to charge a shot up to double damage. The Rail Lance now goes through drones and weak spots take triple. New Q: Mark for Death', 'Jetpack and Berserker have retired'] },
   { id: 'six-bosses', date: '2026-10-04', title: 'Boss Raid: Six New Bosses',
@@ -2654,6 +2656,27 @@ function updatePlayer(dt) {
 // ================= viewmodels =================
 const vm = new THREE.Group(); camera.add(vm);
 const guns = {};
+// playing card textures for the Gambler's hand
+function cardCanvas(key, draw) { if (TEX[key]) return TEX[key]; const c = document.createElement('canvas'); c.width = 176; c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return (TEX[key] = t); }
+function cardRound(x, w, h, r) { x.beginPath(); x.moveTo(r, 0); x.arcTo(w, 0, w, h, r); x.arcTo(w, h, 0, h, r); x.arcTo(0, h, 0, 0, r); x.arcTo(0, 0, w, 0, r); x.closePath(); }
+const cardFace = (rank, suit) => cardCanvas('card' + rank + suit, x => {
+  const red = suit === '♥' || suit === '♦', ink = red ? '#c8102e' : '#141414';
+  x.fillStyle = '#2a2a2a'; x.fillRect(0, 0, 176, 256); cardRound(x, 176, 256, 18); x.fillStyle = '#fbf8f1'; x.fill();
+  x.fillStyle = ink; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = 'bold 40px Georgia, serif'; x.fillText(rank, 26, 30); x.font = '34px Georgia, serif'; x.fillText(suit, 26, 66);
+  x.save(); x.translate(150, 226); x.rotate(Math.PI); x.font = 'bold 40px Georgia, serif'; x.fillText(rank, 0, 0); x.font = '34px Georgia, serif'; x.fillText(suit, 0, 36); x.restore();
+  x.font = (rank === 'A' ? 120 : 92) + 'px Georgia, serif'; x.fillText(suit, 88, 132);
+  if (rank !== 'A') { x.strokeStyle = ink; x.lineWidth = 3; x.strokeRect(46, 52, 84, 152); }
+});
+const cardBack = () => cardCanvas('cardback', x => {
+  x.fillStyle = '#2a2a2a'; x.fillRect(0, 0, 176, 256); cardRound(x, 176, 256, 18); x.fillStyle = '#fbf8f1'; x.fill();
+  x.fillStyle = '#8a1022'; x.fillRect(12, 12, 152, 232);
+  x.strokeStyle = 'rgba(255,214,107,.55)'; x.lineWidth = 2;
+  for (let i = -256; i < 400; i += 18) { x.beginPath(); x.moveTo(12 + i, 12); x.lineTo(12 + i + 232, 244); x.moveTo(12 + i + 232, 12); x.lineTo(12 + i, 244); x.stroke(); }
+  x.strokeStyle = '#ffd86b'; x.lineWidth = 4; x.strokeRect(20, 20, 136, 216);
+  x.fillStyle = '#8a1022'; x.beginPath(); x.arc(88, 128, 30, 0, 7); x.fill(); x.strokeStyle = '#ffd86b'; x.lineWidth = 3; x.stroke();
+  x.fillStyle = '#ffd86b'; x.font = 'bold 38px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('P', 88, 130);
+});
 // energy katana: curved single-edge blade with a glowing core and aura, wrapped grip, gem guard, crystal pommel
 function addKatana(g, gm, gunMat, gunMat2, side, twin = false, tint = null) {
   const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), C = (r1, r2, l, sg = 14) => new THREE.CylinderGeometry(r1, r2, l, sg), T = (r, t) => new THREE.TorusGeometry(r, t, 8, 22), H = Math.PI / 2;
@@ -2779,11 +2802,20 @@ function buildGun(id) {
       break;
     }
     case 'cards': {
-      // a deck in the hand with three cards fanned out ready to throw
-      const red = new THREE.MeshStandardMaterial({ color: 0x9a1424, roughness: 0.5 }), white = new THREE.MeshStandardMaterial({ color: 0xf2ece0, roughness: 0.6 });
-      add(B(.055, .08, .028), red, 0, -.07, .02); add(B(.052, .077, .03), white, 0, -.07, .02).scale.set(1, 1, 0.92);
-      for (let k = 0; k < 3; k++) add(B(.045, .068, .003), k === 1 ? red : white, (k - 1) * .032, -.005, -.04, -.35, 0, (1 - k) * .4);
-      add(B(.012, .012, .012), gm, 0, -.005, -.045); add(B(.045, .1, .05), gunMat, 0, -.14, .07, .3); mz = -.12;
+      // a hand of five playing cards fanned out between gloved fingers
+      const hand = new THREE.Group(); hand.position.set(-.03, -.05, -.06); hand.rotation.set(-.18, .15, -.12); g.add(hand);
+      const glove = new THREE.MeshStandardMaterial({ color: 0x1c1a22, roughness: 0.8 });
+      const pl = new THREE.PlaneGeometry(.085, .124); pl.translate(0, .062, 0);
+      [['A', '♠'], ['K', '♥'], ['Q', '♣'], ['J', '♦'], ['A', '♥']].forEach(([r, su], k) => {
+        const piv = new THREE.Group(); piv.rotation.z = (2 - k) * .22; piv.position.set(0, 0, k * .0015); hand.add(piv);
+        const front = new THREE.Mesh(pl, new THREE.MeshStandardMaterial({ map: cardFace(r, su), roughness: 0.45 })), back = new THREE.Mesh(pl, new THREE.MeshStandardMaterial({ map: cardBack(), roughness: 0.45 }));
+        back.rotation.y = Math.PI; back.position.z = -.0004; piv.add(front, back);
+      });
+      const palm = new THREE.Mesh(new THREE.SphereGeometry(.03, 12, 10), glove); palm.position.set(0, -.006, -.012); palm.scale.set(1.3, 0.9, 0.8); hand.add(palm);
+      for (let k = 0; k < 3; k++) { const f = new THREE.Mesh(new THREE.CapsuleGeometry(.009, .022, 4, 8), glove); f.position.set(-.016 + k * .014, .016, .012); f.rotation.x = .5; hand.add(f); }
+      { const th = new THREE.Mesh(new THREE.CapsuleGeometry(.01, .03, 4, 8), glove); th.position.set(.03, .008, .012); th.rotation.set(.3, 0, -.9); hand.add(th); }
+      add(B(.04, .09, .05), gunMat, 0, -.15, .05, .3);
+      mz = -.1;
       break;
     }
     case 'blade': addKatana(g, gm, gunMat, gunMat2, 1); mz = -.3; break;
