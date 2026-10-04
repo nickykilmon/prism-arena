@@ -123,8 +123,15 @@ button,input,select{font:inherit;color:inherit}
 #board td.n,#board th.n{text-align:right}
 #board .bot{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6px}
 #dmg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,30,70,.55) 100%)}
+#slotm{position:fixed;left:50%;top:19%;transform:translateX(-50%);min-width:300px;max-width:92vw;z-index:3;pointer-events:none;background:linear-gradient(#4a1428,#1a0610);border:3px solid #ffd86b;border-radius:12px;padding:10px 14px 8px;box-shadow:0 0 30px rgba(255,216,107,.45);text-align:center;font-family:var(--display)}
+#slotm .reels{display:flex;gap:8px;justify-content:center}
+#slotm .reels span{width:62px;height:62px;display:grid;place-items:center;font-size:38px;background:#fff8e8;border-radius:8px;box-shadow:inset 0 0 10px rgba(0,0,0,.45)}
+#slotm .slab{margin-top:6px;color:#ffd86b;letter-spacing:.08em;font-size:14px;line-height:1.3}
+#slotm.win{box-shadow:0 0 50px rgba(255,216,107,.9)}
+#slotm.bust{border-color:#ff4d6a;box-shadow:0 0 40px rgba(255,77,106,.7)}
 #slowfx{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(255,205,110,.38) 100%)}
 #chillfx{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(150,215,255,.5) 100%);box-shadow:inset 0 0 60px rgba(220,245,255,.6)}
+#scope::after{content:'';position:absolute;left:50%;top:50%;width:min(64vw,64vh);height:min(64vw,64vh);transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(255,214,107,calc(var(--ch,0)*.9));box-shadow:0 0 calc(var(--ch,0)*34px) rgba(255,214,107,calc(var(--ch,0)*.55)),inset 0 0 calc(var(--ch,0)*24px) rgba(255,214,107,calc(var(--ch,0)*.35))}
 #dmg.poison{background:radial-gradient(ellipse at center,transparent 35%,rgba(60,230,50,.75) 100%)}
 #ks{position:absolute;right:16px;bottom:calc(120px + env(safe-area-inset-bottom,0px));font-size:12px;letter-spacing:.14em;color:#ff8a3d;background:var(--panel);border:1px solid rgba(255,138,61,.45);padding:6px 10px;border-radius:4px;text-align:right}
 #ks b{color:var(--fg)}
@@ -383,6 +390,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
 <div id="stage"></div>
 <div id="dmg"></div>
 <div id="scope" hidden></div>
+<div id="slotm" hidden><div class="reels"><span></span><span></span><span></span></div><div class="slab"></div></div>
 <div id="slowfx" hidden></div><div id="chillfx" hidden></div>
 
 <div id="hud" hidden>
@@ -640,9 +648,12 @@ const WEAPONS = {
   claw:    { name: 'Infected Claws', melee: true, rate: 0.38, dmg: 100, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [0.6, 3.0, 0.5], css: '#7dff4a', blurb: 'Infected only' },
   inferno: { name: 'Inferno',       auto: true,  rate: 0.06,  dmg: 6,   mag: 100, reload: 2.2, spread: 0, ads: 0, pellets: 1, range: 11, zoom: 72, recoil: 0.15, color: [3.0, 1.1, 0.2], css: '#ff7a1f', blurb: 'Flamethrower · sets drones on fire', flame: true },
   arc:     { name: 'Arc Thrower',   auto: true,  rate: 0.16,  dmg: 16,  mag: 30, reload: 1.6,  spread: 0.01,  ads: 0.004, pellets: 1, range: 45, zoom: 60, recoil: 0.6, color: [1.8, 2.6, 3.0], css: '#c8e8ff', blurb: 'Lightning that jumps to 3 more targets', chain: 3 },
+  autocannon: { name: 'Twin Autocannon', auto: true, rate: 0.13, dmg: 24, mag: 40, reload: 1.9, spread: 0.012, ads: 0.004, pellets: 1, range: 350, zoom: 58, recoil: 1.2, color: [3.0, 1.6, 0.4], css: '#ff9a3c', blurb: 'Heavy twin-barrel auto' },
+  minigun: { name: 'Mech Minigun', auto: true, rate: 0.05, dmg: 14, mag: 999, reload: 0.2, spread: 0.03, ads: 0.03, pellets: 1, range: 320, zoom: 70, recoil: 0.25, color: [3.0, 1.4, 0.3], css: '#ff8a3c', blurb: 'Mech only' },
+  cards:   { name: 'Card Thrower', auto: false, rate: 0.3, dmg: 22, mag: 21, reload: 1.4, spread: 0.045, ads: 0.03, pellets: 3, range: 220, zoom: 64, recoil: 0.8, color: [3.0, 2.4, 0.9], css: '#ffd86b', blurb: '3 cards a throw · 1 in 5 crits for triple', cards: true },
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
 };
-const WIDS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'dual', 'blade', 'claw', 'inferno', 'arc'];
+const WIDS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'dual', 'blade', 'claw', 'inferno', 'arc', 'autocannon', 'minigun', 'cards'];
 const LOADOUT = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'inferno', 'arc'];
 const LADDER = ['smg', 'rifle', 'arc', 'lmg', 'inferno', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
 const FFA_GOAL = 20;
@@ -653,19 +664,19 @@ const STREAK_DEF = { air: { name: 'AIR STRIKE', at: 5 }, sentry: { name: 'SENTRY
 const CLASSES = {
   medic:   { name: 'Medic',   hp: 110, css: '#74ffb5', guns: ['rifle'],            q: 'heal',  g: 'shield', blurb: 'Keeps the squad alive.', qText: 'Healing zone (8s)', gText: 'Shield bubble (20s)' },
   fighter: { name: 'Fighter', hp: 150, css: '#ffbf6b', guns: ['smg', 'rail'],      q: 'rally', g: 'nade',   blurb: 'Front-line damage.',    qText: 'Rally: team +10% damage', gText: 'Cybernade' },
-  sniper:  { name: 'Sniper',  hp: 90,  css: '#b48cff', guns: ['rail', 'cannon'],   q: 'wall',  g: 'smoke',  blurb: 'Spots and picks off drones.', qText: 'Wallhack for the team (30s)', gText: 'Smoke: drones can\'t see you' },
-  berserker: { name: 'Berserker', hp: 200, css: '#ff3d6e', guns: ['dual'], q: 'rift', g: 'hook', blurb: 'Twin blades. Right-click deflects drone shots back at the shooter.', qText: 'Rift Dash: cut through everything in a line', gText: 'Chain Hook: yank a drone to you' },
+  sniper:  { name: 'Sniper',  hp: 90,  css: '#b48cff', guns: ['rail', 'cannon'],   q: 'mark',  g: 'smoke',  blurb: 'Hold still while scoped to charge a shot that goes through drones.', qText: 'Mark for Death: drones in view take +40% damage (10s)', gText: 'Smoke: drones can\'t see you' },
   spray:   { name: 'Spray & Pray', hp: 140, css: '#ff6b4a', guns: ['lmg', 'smg'], q: 'frenzy', g: 'popper', blurb: 'Suppressing fire for days.', qText: 'Frenzy: teammates fire 20% faster (12s)', gText: 'Popper (3 weak pops)' },
-  engineer: { name: 'Engineer', hp: 130, css: '#ffd23a', guns: ['rifle', 'scatter'], q: 'turret', g: 'repair', blurb: 'Builds defenses that hold the line.', qText: 'Auto-turret that shoots drones (25s)', gText: 'Repair beacon: heals and refills ammo' },
+  engineer: { name: 'Engineer', hp: 130, css: '#ffd23a', guns: ['rifle', 'scatter'], q: 'turret', g: 'repair', blurb: 'Builds defenses that hold the line.', qText: 'Auto-turrets: up to 2 at once (40s)', gText: 'Repair beacon: heals, ammo, +50 bonus shield, upgrades turrets with rockets' },
   summoner: { name: 'Summoner', hp: 110, css: '#6fb8ff', guns: ['cannon', 'smg'], q: 'drones', g: 'decoy', blurb: 'Fights alongside a pair of attack drones.', qText: 'Two attack drones follow you (20s)', gText: 'Hologram decoy that drones chase' },
   gravity: { name: 'Gravity Mage', hp: 115, css: '#e07dff', guns: ['smg', 'nova'], q: 'hole', g: 'antigrav', blurb: 'Bends gravity around the fight.', qText: 'Black hole: pulls in and crushes drones', gText: 'Anti-grav field: float and jump higher' },
   tank: { name: 'Tank', hp: 250, css: '#a8b8cc', guns: ['lmg', 'scatter'], q: 'barrier', g: 'taunt', blurb: 'Soaks damage and shields the squad. A bit slower.', qText: 'Shield box around you: no drones or shots get in (10s)', gText: 'Iron Roar: every drone within 35 m targets you for 6s, and you take half damage' },
   pyro: { name: 'Pyro', hp: 160, css: '#ff7a1f', guns: ['inferno', 'scatter'], q: 'firering', g: 'heatwave', blurb: 'Burns everything up close. Burning drones keep taking damage.', qText: 'Ring of Fire: a flame wall circles you and burns drones (8s)', gText: 'Heatwave: a blast of heat that knocks drones back and sets them on fire' },
   storm: { name: 'Stormcaller', hp: 115, css: '#c8e8ff', guns: ['arc', 'cannon'], q: 'thunder', g: 'tesla', blurb: 'Chain lightning that tears through swarms.', qText: 'Thunderstrike: 5 lightning bolts where you aim', gText: 'Tesla Coil: zaps drones that come close (15s)' },
-  jetpack: { name: 'Jetpack', hp: 125, css: '#5ff2ff', guns: ['scatter', 'nova'],  q: null,    g: 'pad',    blurb: 'Hold jump in the air to fly (4s fuel).', qText: 'Jetpack: hold jump', gText: 'Jump pad (3 uses)' },
+  mech: { name: 'Mech Pilot', hp: 140, css: '#ff9a3c', guns: ['autocannon', 'scatter'], q: 'mech', g: 'mines', blurb: 'Calls a giant mech down from the sky.', qText: 'Call the Mech: 400 armor, minigun + rocket salvo (15s)', gText: 'Sky Mines: 5 floating mines drones blow up on' },
+  gambler: { name: 'Gambler', hp: 120, css: '#ffd86b', guns: ['cards', 'cannon'], q: 'slots', g: 'coin', blurb: 'Lives and dies by luck.', qText: 'Slot Machine: jackpot, triple damage, team heal, cash… or bust', gText: 'Lucky Coin: fire, ice or lightning' },
 };
-const QDEF = { turret: { name: 'TURRET', cd: 30 }, drones: { name: 'DRONE PAIR', cd: 30 }, hole: { name: 'BLACK HOLE', cd: 20 }, barrier: { name: 'BARRIER', cd: 20 }, pounce: { name: 'POUNCE', cd: 5 }, pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 }, rift: { name: 'RIFT DASH', cd: 8 }, firering: { name: 'RING OF FIRE', cd: 20 }, thunder: { name: 'THUNDERSTRIKE', cd: 22 } };
-const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name: 'DECOY', max: 2, re: 16 }, antigrav: { name: 'ANTI-GRAV', max: 1, re: 22 }, slam: { name: 'GROUND SLAM', max: 2, re: 12 }, taunt: { name: 'IRON ROAR', max: 1, re: 18 }, none: { name: 'NO GADGET', max: 0, re: 1 }, nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 }, hook: { name: 'CHAIN HOOK', max: 2, re: 10 }, heatwave: { name: 'HEATWAVE', max: 2, re: 12 }, tesla: { name: 'TESLA COIL', max: 1, re: 20 } };
+const QDEF = { turret: { name: 'TURRET', cd: 18 }, drones: { name: 'DRONE PAIR', cd: 30 }, hole: { name: 'BLACK HOLE', cd: 20 }, barrier: { name: 'BARRIER', cd: 20 }, pounce: { name: 'POUNCE', cd: 5 }, pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 }, rift: { name: 'RIFT DASH', cd: 8 }, firering: { name: 'RING OF FIRE', cd: 20 }, thunder: { name: 'THUNDERSTRIKE', cd: 22 }, mark: { name: 'MARK FOR DEATH', cd: 25 }, mech: { name: 'CALL THE MECH', cd: 40 }, slots: { name: 'SLOT MACHINE', cd: 25 } };
+const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name: 'DECOY', max: 2, re: 16 }, antigrav: { name: 'ANTI-GRAV', max: 1, re: 22 }, slam: { name: 'GROUND SLAM', max: 2, re: 12 }, taunt: { name: 'IRON ROAR', max: 1, re: 18 }, none: { name: 'NO GADGET', max: 0, re: 1 }, nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 }, hook: { name: 'CHAIN HOOK', max: 2, re: 10 }, heatwave: { name: 'HEATWAVE', max: 2, re: 12 }, tesla: { name: 'TESLA COIL', max: 1, re: 20 }, mines: { name: 'SKY MINES', max: 1, re: 18 }, coin: { name: 'LUCKY COIN', max: 2, re: 10 } };
 const JET_MAX = 4;
 const isCoopMode = m => m === 'waves' || m === 'boss';
 const coop = () => isCoopMode(mode);
@@ -960,6 +971,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'class-shakeup', date: '2026-10-04', title: 'Class Shake-Up: Mech Pilot & Gambler',
+    lines: ['New Mech Pilot: Twin Autocannon, call a giant mech from the sky (400 armor, minigun, right-click rocket salvo) and drop floating sky mines', 'New Gambler: Card Thrower with critical cards, a Slot Machine (jackpot, triple damage, team heal, cash… or bust) and a Lucky Coin that explodes as fire, ice or lightning', 'Engineer: 2 turrets at once that last longer and shoot faster. Throw the repair beacon next to a turret to give it a rocket pod. The beacon also gives +50 bonus shield', 'Sniper: hold still while scoped to charge a shot up to double damage. The Rail Lance now goes through drones and weak spots take triple. New Q: Mark for Death', 'Jetpack and Berserker have retired'] },
   { id: 'six-bosses', date: '2026-10-04', title: 'Boss Raid: Six New Bosses',
     lines: ['The Titan has company. Boss Raid now cycles through 7 bosses, one per round: Titan, Mirror Queen, Inferno Colossus, Void Eye, Clockwork Reaper, Frost Wyrm and The Overmind', 'Every round they get tougher, and every lap through the list they all come back faster with more attacks', 'Mirror Queen splits into fakes (find the shimmer). The Colossus stomps and leaves fire. The Void Eye only opens to fire its laser (jump it). The Reaper dashes and slows time. The Frost Wyrm breathes ice and lands to rest. The Overmind hides behind a spinning shield ring'] },
   { id: 'gucci-streaks', date: '2026-10-04', title: 'Gucci Bucket Hat & Streak Fix',
@@ -2313,6 +2326,9 @@ const sfx = {
       case 'cannon': noise(0.12, 0.32 * v, 2500, 'bandpass', 0.6, pan); tone(110, 35, 0.3, 0.5 * v, 'sine', pan); tone(900, 200, 0.1, 0.06 * v, 'square', pan); break;
       case 'rail': tone(2600, 180, 0.35, 0.12 * v, 'sawtooth', pan); noise(0.3, 0.25 * v, 6000, 'highpass', 0.7, pan); tone(80, 30, 0.4, 0.4 * v, 'sine', pan); break;
       case 'nova': noise(0.35, 0.28 * v, 800, 'bandpass', 1, pan, 0, 200); tone(300, 80, 0.3, 0.22 * v, 'triangle', pan); break;
+      case 'autocannon': noise(0.1, 0.32 * v, 1800, 'bandpass', 0.7, pan); tone(95, 32, 0.22, 0.45 * v, 'sine', pan); break;
+      case 'minigun': noise(0.05, 0.2 * v, 3000, 'bandpass', 0.8, pan); tone(140, 60, 0.05, 0.2 * v, 'square', pan); break;
+      case 'cards': noise(0.1, 0.16 * v, 3500, 'bandpass', 2, pan, 0, 1400); tone(2200, 3200, 0.05, 0.03 * v, 'triangle', pan); break;
       case 'inferno': if (v >= 1 && !pan) flameRoar(); else { noise(0.3, 0.3 * v, 600, 'lowpass', 0.9, pan, 0, 1800); noise(0.12, 0.08 * v, 2600, 'bandpass', 1, pan); } break;
       case 'arc': tone(3200, 500, 0.08, 0.05 * v, 'sawtooth', pan); noise(0.08, 0.16 * v, 7000, 'highpass', 0.8, pan); tone(120, 60, 0.08, 0.15 * v, 'square', pan); break;
       case 'blade': case 'dual': case 'claw': noise(0.2, 0.22 * v, 1200, 'bandpass', 2, pan, 0, 5000); break;
@@ -2559,6 +2575,7 @@ function spawnPlayer() {
   player.pos.copy(p); player.vel.set(0, 0, 0);
   const look = mode === 'ctf' ? new V3(0, 0, p.z * 0.3) : new V3();
   player.yaw = Math.atan2(p.x - look.x, p.z - look.z); player.pitch = -0.05;
+  player.over = 0; player.mechUntil = 0; player.chillUntil = 0;
   player.hp = maxHp(); player.alive = true; player.downed = false; player.invuln = 2; player.dashCd = 0; player.pulseCd = 0; player.jumps = 0; nadeCount = GDEF[kit().g].max; nadeT = 0; jetFuel = JET_MAX;
   for (const k in ammoBy) delete ammoBy[k]; ammo = null; player.poisonUntil = 0;
   if (mode === 'gungame') setWeapon(LADDER[Math.min(ggLv, LADDER.length - 1)], true);
@@ -2593,7 +2610,7 @@ function updatePlayer(dt) {
   if (!coop() && time - player.lastDmgT > 4 && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 15 * dt);
   const wish = player.downed ? pWish.set(0, 0, 0) : wishDir(pWish);
   const carrying = mode === 'ctf' && GS.fl.some(f => f[0] === 1 && f[1] === myId);
-  const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1);
+  const spd = (ads ? 6 : 9.5) * (carrying ? 0.92 : 1) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.8 : 1);
   updateRift(dt);
   if (player.dashT > 0) player.dashT -= dt;
   else if (player.onGround) { v.x = damp(v.x, wish.x * spd, 14, dt); v.z = damp(v.z, wish.z * spd, 14, dt); }
@@ -2746,6 +2763,27 @@ function buildGun(id) {
       for (let k = 0; k < 3; k++) { const a = k / 3 * Math.PI * 2 + H; add(B(.012, .012, .13), gunMat2, Math.cos(a) * .04, .01 + Math.sin(a) * .04, -.5); }
       add(new THREE.SphereGeometry(.028, 12, 8), gm, 0, .01, -.47); add(B(.03, .035, .1), gm, 0, .075, -.03);
       add(B(.06, .15, .07), gunMat, 0, -.11, .1, .3); mz = -.52;
+      break;
+    }
+    case 'autocannon':
+      add(B(.13, .13, .44), gunMat, 0, 0, -.02); for (const sx of [-1, 1]) { add(C(.026, .028, .42), gunMat2, sx * .038, .02, -.42, H); add(C(.04, .04, .07, 10), gunMat, sx * .038, .02, -.64, H); add(T(.04, .009), gm, sx * .038, .02, -.68); }
+      add(C(.07, .07, .08, 16), gunMat2, 0, -.11, -.08, 0, 0, H); add(T(.072, .01), gm, 0, -.11, -.08, 0, H, 0); add(B(.135, .025, .3), gm, 0, .08, -.04);
+      add(B(.06, .15, .07), gunMat, 0, -.11, .14, .3); mz = -.7;
+      break;
+    case 'minigun': {
+      add(C(.11, .12, .34, 18), gunMat, 0, 0, .02, H); add(B(.08, .1, .2), gunMat2, 0, .14, .02); add(B(.14, .14, .16), gunMat2, .12, -.08, .06);
+      const spin = new THREE.Group(); spin.position.z = -.2; g.add(spin); g.userData.spin = spin;
+      for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2, b = new THREE.Mesh(C(.022, .022, .62), gunMat2); b.rotation.x = H; b.position.set(Math.cos(a) * .065, Math.sin(a) * .065, -.3); spin.add(b); }
+      for (const z of [-.12, -.5]) { const r = new THREE.Mesh(T(.09, .014), gm); r.position.z = z; spin.add(r); }
+      mz = -.65;
+      break;
+    }
+    case 'cards': {
+      // a deck in the hand with three cards fanned out ready to throw
+      const red = new THREE.MeshStandardMaterial({ color: 0x9a1424, roughness: 0.5 }), white = new THREE.MeshStandardMaterial({ color: 0xf2ece0, roughness: 0.6 });
+      add(B(.055, .08, .028), red, 0, -.07, .02); add(B(.052, .077, .03), white, 0, -.07, .02).scale.set(1, 1, 0.92);
+      for (let k = 0; k < 3; k++) add(B(.045, .068, .003), k === 1 ? red : white, (k - 1) * .032, -.005, -.04, -.35, 0, (1 - k) * .4);
+      add(B(.012, .012, .012), gm, 0, -.005, -.045); add(B(.045, .1, .05), gunMat, 0, -.14, .07, .3); mz = -.12;
       break;
     }
     case 'blade': addKatana(g, gm, gunMat, gunMat2, 1); mz = -.3; break;
@@ -3650,13 +3688,12 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   const foot = add(footGeo, vis, 0, 0.06, 0, av); foot.rotation.x = Math.PI / 2; foot.scale.setScalar(0.62);
   const body = add(PG.hit, hitMat, 0, 1.25, 0, av);
   const lab = nameSprite(blight ? '☣ ' + label : label, look.css, through); lab.position.y = 2.5; av.add(lab);
-  if (cls) {
+  if (cls && CLASSES[cls]) {
     const c = new THREE.Color(CLASSES[cls].css).multiplyScalar(2.2), gl = new THREE.MeshBasicMaterial({ color: c });
     const part = (geo, m, x, y, z, sx, sy, sz, parent = rig) => { const o = add(geo, m, x, y, z, parent); o.scale.set(sx, sy, sz); return o; };
     if (cls === 'medic') { part(PG.box, gunMat2, 0, 1.18, 0.34, 0.36, 0.34, 0.12); part(PG.box, gl, 0, 1.18, 0.41, 0.07, 0.24, 0.02); part(PG.box, gl, 0, 1.18, 0.41, 0.24, 0.07, 0.02); }
     if (cls === 'fighter') for (const g of arms) { part(PG.box, gunMat, 0, 0.27, 0, 0.24, 0.1, 0.3, g); part(PG.box, gl, 0, 0.33, 0, 0.25, 0.02, 0.31, g); }
     if (cls === 'sniper') { part(PG.box, gunMat, 0.27, 0.2, -0.3, 0.1, 0.1, 0.12, head); part(PG.box, gl, 0.27, 0.2, -0.37, 0.07, 0.07, 0.02, head); part(PG.box, gunMat, -0.18, 0.5, 0.1, 0.03, 0.4, 0.03, head); }
-    if (cls === 'berserker') for (const sx of [-1, 1]) { const h = part(PG.horn, gl, sx * 0.2, 0.38, -0.05, 1, 1, 1, head); h.rotation.z = -sx * 0.45; }
     if (cls === 'spray') { part(PG.box, gunMat, 0, 1.15, 0.36, 0.42, 0.3, 0.16); part(PG.box, gl, 0, 1.15, 0.45, 0.36, 0.05, 0.02); part(PG.box, gl, 0, 1.25, 0.45, 0.36, 0.05, 0.02); }
     if (cls === 'engineer') { part(PG.box, gunMat, 0, 1.2, 0.36, 0.42, 0.42, 0.18); part(PG.box, gunMat, 0.13, 1.6, 0.36, 0.03, 0.5, 0.03); part(PG.box, gl, 0.13, 1.87, 0.36, 0.09, 0.09, 0.09); part(PG.box, gl, 0, 0.42, 0, 0.08, 0.06, 0.72, head); }
     if (cls === 'summoner') for (const sx of [-1, 1]) part(PG.hand, gl, sx * 0.5, 1.92, 0.12, 0.75, 0.75, 0.75);
@@ -3664,7 +3701,8 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     if (cls === 'tank') { for (const g of arms) { part(PG.box, gunMat, 0, 0.3, 0, 0.38, 0.16, 0.42, g); part(PG.box, gl, 0, 0.39, 0, 0.39, 0.03, 0.43, g); } part(PG.box, gunMat, 0, 1.28, -0.34, 0.56, 0.42, 0.1); part(PG.box, gl, 0, 1.28, -0.4, 0.3, 0.05, 0.02); }
     if (cls === 'pyro') { for (const sx of [-1, 1]) { part(PG.tank, gunMat, sx * 0.13, 1.25, 0.38, 1.1, 1.1, 1.1); part(PG.box, gl, sx * 0.13, 1.52, 0.38, 0.14, 0.05, 0.14); } part(PG.box, gl, 0, 0.98, 0.38, 0.4, 0.05, 0.05); part(PG.box, gunMat2, 0, -0.07, -0.2, 0.26, 0.1, 0.06, head); }
     if (cls === 'storm') { part(PG.box, gunMat, 0, 0.45, 0, 0.03, 0.4, 0.03, head); const o = part(PG.box, gl, 0, 0.68, 0, 0.1, 0.1, 0.1, head); o.rotation.set(0.6, 0.6, 0); for (const g of arms) { const r = part(PG.gring, gl, 0, 0.18, 0, 0.32, 0.32, 0.32, g); r.rotation.x = Math.PI / 2; } }
-    if (cls === 'jetpack') for (const sx of [-1, 1]) { part(PG.tank, gunMat, sx * 0.15, 1.22, 0.38, 1, 1, 1); part(PG.box, gl, sx * 0.15, 0.94, 0.38, 0.13, 0.05, 0.13); }
+    if (cls === 'mech') { part(PG.box, gunMat, -0.42, 1.62, 0, 0.3, 0.14, 0.36); part(PG.box, gl, -0.42, 1.7, 0, 0.31, 0.03, 0.37); part(PG.box, gunMat, 0.2, 0.35, 0, 0.03, 0.4, 0.03, head); part(PG.box, gl, 0.2, 0.56, 0, 0.06, 0.06, 0.06, head); }
+    if (cls === 'gambler') { for (const sx of [-1, 1]) { const b = part(PG.box, gl, sx * 0.07, 1.6, -0.24, 0.12, 0.08, 0.03); b.rotation.z = sx * 0.4; } for (let k = 0; k < 3; k++) { const c = part(PG.box, k === 1 ? gl : gunMat2, 0.14 + k * 0.03, 1.32, -0.25, 0.07, 0.1, 0.01); c.rotation.z = (k - 1) * 0.3; } }
     av.userData.gearMat = gl;
   }
   scene.add(av);
@@ -4412,7 +4450,7 @@ function removeEnt(e, fx) {
       else if (e.type === 'warden' || hashStr(e.id) % 100 < 16) spawnPickup(e.pos);
     }
   }
-  if (e.kind === 'drone') { scene.remove(e.vis.g); e.vis.coreMat.dispose(); e.vis.glowMat.dispose(); for (const m of e.vis.extra || []) m.dispose(); for (const g of e.vis.geos || []) g.dispose(); for (const o of e.vis.objs || []) scene.remove(o); }
+  if (e.kind === 'drone') { scene.remove(e.vis.g); e.vis.coreMat.dispose(); e.vis.glowMat.dispose(); for (const m of e.vis.extra || []) m.dispose(); for (const g of e.vis.geos || []) g.dispose(); for (const o of e.vis.objs || []) scene.remove(o); if (e.vis.mark) scene.remove(e.vis.mark); }
   else disposeAvatar(e.vis);
   ents.delete(e.id);
 }
@@ -4426,10 +4464,13 @@ function syncEntVis(e, dt) {
   e.flash = Math.max(0, e.flash - dt * 7);
   if (e.kind === 'drone') {
     const v = e.vis; v.g.position.copy(e.pos);
-    if (v.anim) { v.xray.visible = time < teamFx.wallUntil; v.anim(e, dt); return; }
+    const marked = (e.markUntil || 0) > time;
+    if (marked && !v.mark) { v.mark = new THREE.Mesh(markGeo, markMat); v.mark.renderOrder = 999; scene.add(v.mark); } else if (!marked && v.mark) { scene.remove(v.mark); v.mark = null; }
+    if (v.mark) { v.mark.position.set(e.pos.x, e.pos.y + TYPES[e.type].scale * 1.4 + 0.9, e.pos.z); v.mark.rotation.y += dt * 3; }
+    if (v.anim) { v.xray.visible = time < teamFx.wallUntil || marked; v.anim(e, dt); return; }
     if (v.face) { v.face.lookAt(camera.position); v.orbit.rotation.y = time * 0.75; } else v.g.lookAt(camera.position);
     v.ring.rotation.z += dt * 3; v.ring2.rotation.x += dt * 2.2;
-    v.xray.visible = time < teamFx.wallUntil;
+    v.xray.visible = time < teamFx.wallUntil || marked;
     v.coreMat.emissive.setScalar(e.flash * 1.5);
     const ch = e.charge || 0; v.eye.scale.setScalar(1 + ch * 0.9 + (e.type === 'charger' ? Math.sin(time * 20 + hashStr(e.id)) * 0.2 : 0));
   } else {
@@ -4497,7 +4538,7 @@ function initSim(e) {
 function resetMatchWorld() {
   clearEnts(); clearHazards(); while (orbs.length) killOrb(orbs.length - 1); while (rockets.length) killRocket(rockets.length - 1);
   for (const n of grenades) { scene.remove(n.g); n.glowM.dispose(); } grenades.length = 0; timers.length = 0;
-  while (deploys.length) removeDeploy(0); for (const r of reflects) { scene.remove(r.m); r.m.material.dispose(); } reflects.length = 0; teamFx.rallyUntil = teamFx.wallUntil = teamFx.frenzyUntil = 0;
+  while (deploys.length) removeDeploy(0); for (const r of reflects) { scene.remove(r.m); r.m.material.dispose(); } reflects.length = 0; teamFx.rallyUntil = teamFx.wallUntil = teamFx.frenzyUntil = teamFx.tripleUntil = 0; slotUI = null; while (drops.length) disposeMech(drops.pop().m);
   for (const k of pickups) scene.remove(k.m); pickups.length = 0;
   for (const id of [...peers.keys()]) removePeer(id);
   Object.assign(GS, { wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', gm: 0, inf: [], it: INF_TIME, ip: mode === 'infect' ? INF_PRE : 0, bhp: 0, bp: 0 });
@@ -5619,10 +5660,11 @@ function updateOrbs(dt) {
 }
 const rocketGeo = new THREE.CylinderGeometry(0.07, 0.1, 0.5, 10); rocketGeo.rotateX(Math.PI / 2);
 const rockets = [];
-function spawnRocket(from, vel, mine) {
+function spawnRocket(from, vel, mine, sc = 1) {
   const m = new THREE.Mesh(rocketGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.2, 0.35) }));
   m.position.copy(from); m.lookAt(tA.copy(from).add(vel)); scene.add(m);
-  rockets.push({ m, vel: vel.clone(), life: 3, age: 0, mine });
+  if (sc < 1) m.scale.setScalar(0.7);
+  rockets.push({ m, vel: vel.clone(), life: 3, age: 0, mine, sc });
 }
 function killRocket(i) { scene.remove(rockets[i].m); rockets[i].m.material.dispose(); rockets.splice(i, 1); }
 function updateRockets(dt) {
@@ -5636,11 +5678,12 @@ function updateRockets(dt) {
     if (!boom) for (const e of ents.values()) if (e.kind === 'bot' && e.alive && capsuleDist(p, e.pos) < 0.7 && (!r.mine || enemyOf(myTeam, e.team))) { boom = true; break; }
     if (!boom) for (const o of peers.values()) if (o.av.visible && capsuleDist(p, o.pos) < 0.7 && (!r.mine || enemyOf(myTeam, o.team))) { boom = true; break; }
     if (!boom && !r.mine && player.alive && capsuleDist(p, player.pos) < 0.7) boom = true;
-    if (boom) { if (p.y < 0.05 && Math.hypot(p.x, p.z) < ARENA_R) p.y = 0.1; else if (pointInWorld(p)) p.copy(prev); rocketExplode(p.clone(), r.mine); killRocket(i); }
+    if (boom) { if (p.y < 0.05 && Math.hypot(p.x, p.z) < ARENA_R) p.y = 0.1; else if (pointInWorld(p)) p.copy(prev); rocketExplode(p.clone(), r.mine, r.sc); killRocket(i); }
   }
 }
-function rocketExplode(p, mine) {
+function rocketExplode(p, mine, sc = 1) {
   const W = WEAPONS.nova, col = new THREE.Color(3, 1.1, 0.3), hot = new THREE.Color(3, 2.4, 1.2);
+  if (sc < 1) { explosionFX(p, col, 1); if (mine) blast(p, W.dmg * sc, W.splash * 0.7, 0, 0.5); return; }
   explosionFX(p, col, 2.2);
   shockRing(p, hot, 18, 0.55); shockRing(p.clone().setY(p.y + 1.2), col, 13, 0.45); shockRing(p.clone().setY(p.y + 2.4), new THREE.Color(2.4, 0.6, 0.2), 9, 0.4);
   burst(p, 70, hot, 22, 0.5, 0.18, 2); burst(p.clone().setY(p.y + 0.5), 40, new THREE.Color(0.5, 0.42, 0.4), 6, 1.6, 0.35, -1.5);
@@ -5674,15 +5717,16 @@ const NADE_MAX = 2, NADE_RECHARGE = 7, NADE_FUSE = 1.7;
 let nadeCount = NADE_MAX, nadeT = 0, nadeSeq = 0, lastNade = null;
 const grenades = [];
 const nadeCore = new THREE.SphereGeometry(0.14, 14, 10), nadeRing = new THREE.TorusGeometry(0.2, 0.025, 6, 24);
-const THROW_COL = { tesla: [1.8, 2.6, 3.0], hole: [1.6, 0.4, 2.9], repair: [2.9, 2.0, 0.4], decoy: [0.4, 2.6, 2.9], antigrav: [1.2, 0.9, 2.9], popper: [2.9, 0.8, 0.5], nade: [0.4, 2.4, 2.9], heal: [0.5, 2.8, 1.2], shield: [0.6, 2.2, 3], smoke: [1.4, 1.5, 1.7], pad: [2.9, 1.5, 0.4] };
-function spawnNade(from, vel, mine, kind = 'nade') {
+const THROW_COL = { coin: [3.0, 2.4, 0.6], tesla: [1.8, 2.6, 3.0], hole: [1.6, 0.4, 2.9], repair: [2.9, 2.0, 0.4], decoy: [0.4, 2.6, 2.9], antigrav: [1.2, 0.9, 2.9], popper: [2.9, 0.8, 0.5], nade: [0.4, 2.4, 2.9], heal: [0.5, 2.8, 1.2], shield: [0.6, 2.2, 3], smoke: [1.4, 1.5, 1.7], pad: [2.9, 1.5, 0.4] };
+function spawnNade(from, vel, mine, kind = 'nade', elem = 0) {
   const g = new THREE.Group();
   g.add(new THREE.Mesh(nadeCore, gunMat));
   const glowM = new THREE.MeshBasicMaterial({ color: new THREE.Color(...THROW_COL[kind]) });
   const r1 = new THREE.Mesh(nadeRing, glowM), r2 = new THREE.Mesh(nadeRing, glowM); r2.rotation.x = Math.PI / 2;
   g.add(r1, r2); g.position.copy(from); scene.add(g);
   if (kind === 'popper') g.scale.setScalar(0.75);
-  grenades.push({ g, glowM, vel: vel.clone(), fuse: kind === 'popper' ? 1.1 : NADE_FUSE, beep: 0, mine, kind, base: new THREE.Color(...THROW_COL[kind]) });
+  if (kind === 'coin') g.scale.set(1, 0.35, 1);
+  grenades.push({ g, glowM, vel: vel.clone(), fuse: kind === 'popper' ? 1.1 : kind === 'coin' ? 1.3 : NADE_FUSE, beep: 0, mine, kind, elem, base: new THREE.Color(...THROW_COL[kind]) });
 }
 function nadeHit(q) { return pointInWorld(q) || (q.y < 0.14 && q.y > -1.5 && Math.hypot(q.x, q.z) < ARENA_R); }
 function updateNades(dt) {
@@ -5701,7 +5745,7 @@ function updateNades(dt) {
       v.y *= -0.42; v.x *= 0.72; v.z *= 0.72; if (Math.abs(v.y) < 1.2) v.y = 0;
     }
     n.g.rotation.x += dt * 9; n.g.rotation.y += dt * 6;
-    if (n.kind !== 'nade' && n.kind !== 'popper') {
+    if (n.kind !== 'nade' && n.kind !== 'popper' && n.kind !== 'coin') {
       if (n.landed || n.fuse < -1.3 || p.y < -30) {
         if (n.mine && p.y > -5) deploy(n.kind, p.clone());
         scene.remove(n.g); n.glowM.dispose(); grenades.splice(i, 1);
@@ -5715,7 +5759,7 @@ function updateNades(dt) {
       n.glowM.color.setRGB(3, 3, 3);
     } else n.glowM.color.lerp(n.base, 0.25);
     if (n.fuse <= 0 || p.y < -30) {
-      nadeExplode(p.clone(), n.mine, n.kind);
+      nadeExplode(p.clone(), n.mine, n.kind, n.elem);
       scene.remove(n.g); n.glowM.dispose(); grenades.splice(i, 1);
     }
   }
@@ -5733,14 +5777,17 @@ function throwNade() {
   if (k.g === 'hook') { if (chainHook()) { nadeCount--; if (nadeT <= 0) nadeT = gd.re; } return; }
   if (k.g === 'slam') { nadeCount--; if (nadeT <= 0) nadeT = gd.re; groundSlam(); return; }
   if (k.g === 'heatwave') { nadeCount--; if (nadeT <= 0) nadeT = gd.re; heatwave(); return; }
+  if (k.g === 'mines') { nadeCount--; if (nadeT <= 0) nadeT = gd.re; const ex = [myId, r2(player.yaw), `${myId}-${abSeq + 1}`]; pushAb('mines', player.pos, ex); applyAb('mines', player.pos.x, player.pos.y, player.pos.z, ex, settings.name); return; }
   if (k.g === 'taunt') {
     nadeCount--; if (nadeT <= 0) nadeT = gd.re;
     pushAb('taunt', player.pos, myId); applyAb('taunt', player.pos.x, player.pos.y, player.pos.z, myId, settings.name);
     announce('IRON ROAR', 'Drones are coming for you · half damage for 6s', '#ff8a3d'); return;
   }
   nadeCount--; if (nadeT <= 0) nadeT = gd.re;
-  const { from, vel } = throwThing(k.g, k.g === 'nade' || k.g === 'popper' ? 21 : 16);
-  if (k.g === 'nade' || k.g === 'popper') { nadeSeq++; lastNade = [nadeSeq, r2(from.x), r2(from.y), r2(from.z), r2(vel.x), r2(vel.y), r2(vel.z), k.g === 'popper' ? 1 : 0]; }
+  const boomy = k.g === 'nade' || k.g === 'popper' || k.g === 'coin', elem = (Math.random() * 3) | 0;
+  const { from, vel } = throwThing(k.g, boomy ? 21 : 16);
+  if (k.g === 'coin') grenades[grenades.length - 1].elem = elem;
+  if (boomy) { nadeSeq++; lastNade = [nadeSeq, r2(from.x), r2(from.y), r2(from.z), r2(vel.x), r2(vel.y), r2(vel.z), k.g === 'popper' ? 1 : k.g === 'coin' ? 2 + elem : 0]; }
   noise(0.18, 0.12, 900, 'bandpass', 1.5, 0, 0, 2400); vmKick = Math.min(vmKick + 1.2, 3);
 }
 function useAbility() {
@@ -5771,12 +5818,15 @@ function useAbility() {
   }
   else if (k.q === 'firering') { pushAb('firering', player.pos, myId); applyAb('firering', player.pos.x, player.pos.y, player.pos.z, myId, settings.name); }
   else if (k.q === 'thunder') thunderstrike();
+  else if (k.q === 'mark') markForDeath();
+  else if (k.q === 'mech') callMech();
+  else if (k.q === 'slots') spinSlots();
   else if (k.q === 'drones') { pushAb('drones', player.pos, myId); applyAb('drones', player.pos.x, player.pos.y, player.pos.z, myId, settings.name); }
   else { pushAb(k.q, player.pos); applyAb(k.q, player.pos.x, player.pos.y, player.pos.z, 0, settings.name); }
 }
 // ability events travel in presence so every teammate builds the same zones and buffs
 let abSeq = 0;
-const abList = [], deploys = [], teamFx = { rallyUntil: 0, wallUntil: 0, frenzyUntil: 0 };
+const abList = [], deploys = [], teamFx = { rallyUntil: 0, wallUntil: 0, frenzyUntil: 0, tripleUntil: 0 };
 function pushAb(type, pos, extra = 0) { abSeq++; abList.push([abSeq, type, r2(pos.x), r2(pos.y), r2(pos.z), extra]); while (abList.length > 6) abList.shift(); }
 function groundBelow(p) {
   let y = Math.hypot(p.x, p.z) < ARENA_R + 0.3 && p.y > -1 ? 0 : p.y;
@@ -5790,7 +5840,7 @@ function deploy(kind, p) {
   pushAb(kind, p, extra); applyAb(kind, p.x, p.y, p.z, extra, settings.name);
 }
 const DEP = { heal: { dur: 8, r: 4 }, shield: { dur: 20, r: 4.5 }, smoke: { dur: 12, r: 6 }, pad: { dur: 45, r: 1.2 },
-  taunt: { dur: 6, r: 0 }, turret: { dur: 25, r: 0.9 }, repair: { dur: 15, r: 4 }, decoy: { dur: 9, r: 1 }, hole: { dur: 4.5, r: 13 }, antigrav: { dur: 12, r: 5 }, barrier: { dur: 10, r: 2.7 }, drones: { dur: 20, r: 0 }, sentry: { dur: 30, r: 0 }, firering: { dur: 8, r: 6 }, tesla: { dur: 15, r: 10 } };
+  taunt: { dur: 6, r: 0 }, turret: { dur: 40, r: 0.9 }, repair: { dur: 15, r: 4 }, decoy: { dur: 9, r: 1 }, hole: { dur: 4.5, r: 13 }, antigrav: { dur: 12, r: 5 }, barrier: { dur: 10, r: 2.7 }, drones: { dur: 20, r: 0 }, sentry: { dur: 30, r: 0 }, firering: { dur: 8, r: 6 }, tesla: { dur: 15, r: 10 }, mines: { dur: 40, r: 0 } };
 // ally guns: turret, Summoner drones and the FFA sentry
 const MINIS = { drones: { n: 2, rate: 0.4, dmg: 11, range: 30, col: new THREE.Color(0.6, 1.8, 3.0), s: 1 }, sentry: { n: 1, rate: 0.28, dmg: 8, range: 36, col: new THREE.Color(3.0, 0.9, 0.4), s: 1.5 } };
 const softTex = () => canvasTex('soft', x => {
@@ -5810,6 +5860,7 @@ const depGeo = {
   tBase: new THREE.CylinderGeometry(0.42, 0.6, 0.5, 12), tHead: new THREE.BoxGeometry(0.5, 0.34, 0.56), tBarrel: new THREE.CylinderGeometry(0.06, 0.06, 0.7, 8).rotateX(Math.PI / 2),
   tEye: new THREE.SphereGeometry(0.07, 8, 6), tStripe: new THREE.BoxGeometry(0.52, 0.04, 0.58), beacon: new THREE.OctahedronGeometry(0.35, 0),
   holeCore: new THREE.SphereGeometry(1, 24, 16), holeDisk: new THREE.RingGeometry(1.25, 3.4, 48), plane: new THREE.PlaneGeometry(1, 1), edge: new THREE.BoxGeometry(1, 1, 1),
+  pod: new THREE.BoxGeometry(0.3, 0.24, 0.42), mine: new THREE.IcosahedronGeometry(0.32, 0), mspike: new THREE.ConeGeometry(0.06, 0.26, 5),
   fireWall: new THREE.CylinderGeometry(1, 1, 1, 48, 1, true), teslaCol: new THREE.CylinderGeometry(0.1, 0.16, 1.6, 10), teslaRing: new THREE.TorusGeometry(0.24, 0.035, 6, 20).rotateX(Math.PI / 2),
   mini: new THREE.IcosahedronGeometry(0.26, 0), miniRing: new THREE.TorusGeometry(0.4, 0.03, 6, 24),
 };
@@ -5831,6 +5882,25 @@ function applyAb(type, x, y, z, extra, who) {
     return;
   }
   if (type === 'bx') { if (Array.isArray(extra)) bossFx(String(extra[0]), x, y, z, extra.slice(1)); return; }
+  if (type === 'mark') { let n = 0; if (Array.isArray(extra)) for (const id of extra) { const e = ents.get(String(id)); if (e) { e.markUntil = time + 10; n++; } } announce('MARKED FOR DEATH', `${who} marked ${n} drone${n === 1 ? '' : 's'} · +40% damage for 10s`, '#b48cff'); sfx.alert(); return; }
+  if (type === 'mech') { mechDrop(new V3(x, y, z), String(extra)); if (String(extra) !== myId) feedHTML(`<b>${esc(who)}</b> <i>called in a mech</i>`); return; }
+  if (type === 'mechx') { const p = new V3(x, y + 2, z); explosionFX(p, new THREE.Color(3, 1.4, 0.3), 2); burst(p, 40, new THREE.Color(0.5, 0.5, 0.55), 10, 1.2, 0.3, 4); return; }
+  if (type === 'salvo') { const d = Array.isArray(extra) ? new V3(+extra[0] || 0, +extra[1] || 0, +extra[2] || -1).normalize() : new V3(0, 0, -1); for (let k = 0; k < 6; k++) { const v = d.clone().add(new V3(rand(-0.06, 0.06), rand(-0.03, 0.05), rand(-0.06, 0.06))).normalize().multiplyScalar(42); later(k * 0.08, () => spawnRocket(new V3(x, y, z), v, false, 0.5)); } return; }
+  if (type === 'slots') { slotUI = { t0: time, o: Array.isArray(extra) ? clamp(+extra[1] || 0, 0, 4) : 0, owner: Array.isArray(extra) ? String(extra[0]) : '', who, pos: new V3(x, y, z), done: false }; return; }
+  if (type === 'freeze') {
+    const p = new V3(x, y, z);
+    for (const e of ents.values()) if (e.kind === 'drone' && e.alive && e.pos.distanceTo(p) < 9 + TYPES[e.type].scale) { burst(e.pos, 12, ICE[0], 4, 0.6, 0.12, 2); if (isHost) e.stunT = Math.max(e.stunT || 0, isBoss(e) ? 1 : 3); }
+    return;
+  }
+  if (type === 'mpop') {
+    const d = deploys.find(q => q.kind === 'mines' && q.id === String(Array.isArray(extra) ? extra[0] : '')), k = Array.isArray(extra) ? +extra[1] : -1, m = d && d.mines[k];
+    if (!m || !m.live) return;
+    m.live = false; m.g.visible = false;
+    const p = new V3(x, y, z), c = new THREE.Color(3, 1.4, 0.3);
+    explosionFX(p, c, 1); shockRing(p, c, 8, 0.35);
+    if (d.owner === myId) areaDrones(p, 6, e => damageEnt(e, 90, e.pos.clone(), true));
+    return;
+  }
   if (type === 'heat') {
     const from = new V3(x, y, z), dir = Array.isArray(extra) ? new V3(+extra[0] || 0, +extra[1] || 0, +extra[2] || -1).normalize() : new V3(0, 0, -1);
     const o = from.clone().addScaledVector(dir, 0.8);
@@ -5929,6 +5999,7 @@ function addDeploy(kind, pos, extra) {
     d.rings = [0, 1].map(() => { const r = new THREE.Mesh(depGeo.ring, M(new THREE.Color(2.6, 1.4, 0.4), 0.8)); g.add(r); return r; });
   } else if (kind === 'turret') {
     d.owner = String(extra); d.fireT = 0.6; d.col = new THREE.Color(2.9, 2.1, 0.4);
+    const own = deploys.filter(q => q.kind === 'turret' && q.owner === d.owner && q.until > time); if (own.length >= 2) own.reduce((a, b) => a.born < b.born ? a : b).until = 0;
     const base = new THREE.Mesh(depGeo.tBase, stoneMat); base.position.y = 0.25; base.castShadow = true;
     const head = new THREE.Group(); head.position.y = 0.87;
     const box = new THREE.Mesh(depGeo.tHead, gunMat); box.castShadow = true;
@@ -5945,6 +6016,7 @@ function addDeploy(kind, pos, extra) {
     const pil = new THREE.Mesh(depGeo.pillar, M(col.clone().multiplyScalar(0.5), 0.5)); pil.position.y = 1.5;
     const beacon = new THREE.Mesh(depGeo.beacon, M(col, 1, false)); beacon.position.y = 1.7; beacon.scale.y = 1.5;
     g.add(disc, ring, pil, beacon); d.beacon = beacon;
+    for (const t of deploys) if (t.kind === 'turret' && t.until > time && t.pos.distanceTo(pos) < 6) upgradeTurret(t);
   } else if (kind === 'decoy') {
     const col = new THREE.Color(0.4, 2.4, 3.0), holo = new THREE.Group();
     const hm = M(col.clone().multiplyScalar(0.45), 0.55), wm = M(col, 0.45, true, { wireframe: true });
@@ -6002,6 +6074,17 @@ function addDeploy(kind, pos, extra) {
     const halo = new THREE.Mesh(depGeo.bubble, M(d.col.clone().multiplyScalar(0.3), 0.3, true, { side: THREE.BackSide })); halo.position.y = 1.95; halo.scale.setScalar(0.45);
     const ring = new THREE.Mesh(depGeo.ring, M(d.col.clone().multiplyScalar(0.5), 0.6)); ring.scale.setScalar(D.r); ring.position.y = 0.06;
     g.add(base, col, d.coil, d.orb, halo, ring);
+  } else if (kind === 'mines') {
+    const ex = Array.isArray(extra) ? extra : [], yaw = +ex[1] || 0, col = new THREE.Color(3, 1.4, 0.3);
+    d.owner = String(ex[0] || ''); d.id = String(ex[2] || ''); d.mines = [];
+    for (let k = 0; k < 5; k++) {
+      const a = yaw + (k - 2) * 0.32, dist = 7 + (k % 2) * 3.5, mg = new THREE.Group(), base = new V3(-Math.sin(a) * dist, 3 + (k % 3) * 2.2, -Math.cos(a) * dist);
+      mg.position.copy(base); g.add(mg);
+      mg.add(new THREE.Mesh(depGeo.mine, gunMat));
+      for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const sp = new THREE.Mesh(depGeo.mspike, gunMat2); sp.position.set(dx * 0.34, dy * 0.34, dz * 0.34); sp.lookAt(dx * 2, dy * 2, dz * 2); sp.rotateX(Math.PI / 2); mg.add(sp); }
+      const light = new THREE.Mesh(depGeo.tEye, M(col, 1, false)); light.scale.setScalar(1.6); mg.add(light);
+      d.mines.push({ g: mg, light, live: true, base });
+    }
   } else if (kind === 'drones' || kind === 'sentry') {
     d.owner = String(extra); d.fireT = 0.8; d.shot = 0; d.cfg = MINIS[kind];
     d.minis = Array.from({ length: d.cfg.n }, () => {
@@ -6029,6 +6112,7 @@ function updateDeploys(dt) {
     if (d.kind === 'firering') updFireRing(d, dt);
     if (d.kind === 'turret') updTurret(d, dt);
     else if (d.kind === 'tesla') updTesla(d, dt);
+    else if (d.mines) updMines(d, dt);
     else if (d.minis) { if (!updMinis(d, dt)) { removeDeploy(i); continue; } }
     else if (d.follow) { const op = d.owner === myId ? player.pos : peers.get(d.owner)?.pos; if (!op) { removeDeploy(i); continue; } d.g.position.copy(op); d.pos.copy(op); }
     else if (d.kind === 'hole') updHole(d, dt);
@@ -6063,12 +6147,13 @@ function allyShoot(d, from, t, dmg, col) {
 function updTurret(d, dt) {
   d.fireT -= dt;
   if (d.aimYaw != null) { let dy = d.aimYaw - d.head.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); d.head.rotation.y += dy * (1 - Math.exp(-14 * dt)); } else d.head.rotation.y += dt * 0.6;
+  if (d.up) { d.rkT -= dt; if (d.rkT <= 0) { const from = d.pos.clone().setY(d.pos.y + 1.1), t = allyTarget(from, 40, d.owner); d.rkT = t ? 2.2 : 0.5; if (t) { const v = tA.subVectors(t.c, from).normalize(); spawnRocket(from.addScaledVector(v, 0.8), v.multiplyScalar(36), d.owner === myId, 0.35); } } }
   if (d.fireT > 0) return;
-  d.fireT = 0.22;
-  const from = d.pos.clone().setY(d.pos.y + 0.89), t = allyTarget(from, 32, d.owner);
+  d.fireT = 0.15;
+  const from = d.pos.clone().setY(d.pos.y + 0.89), t = allyTarget(from, 38, d.owner);
   if (!t) { d.aimYaw = null; d.fireT = 0.35; return; }
   d.aimYaw = Math.atan2(from.x - t.c.x, from.z - t.c.z);
-  allyShoot(d, from.clone().addScaledVector(tA.subVectors(t.c, from).normalize(), 0.85), t, 9, d.col);
+  allyShoot(d, from.clone().addScaledVector(tA.subVectors(t.c, from).normalize(), 0.85), t, 12, d.col);
 }
 function updMinis(d, dt) {
   const op = d.owner === myId ? player.pos : peers.get(d.owner)?.pos;
@@ -6134,6 +6219,7 @@ function deployEffects(dt) {
   if (inShield(p) && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 4 * dt);
   if (insideDep('repair', p)) {
     if (player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 10 * dt);
+    if ((player.over || 0) < 50) player.over = Math.min(50, (player.over || 0) + 25 * dt);
     const W = WEAPONS[curW];
     if (!W.melee && ammo < W.mag && reloadT <= 0) { repairAmmo += W.mag * 0.6 * dt; const add = Math.floor(repairAmmo); if (add) { ammo = Math.min(W.mag, ammo + add); repairAmmo -= add; hudCache.ammo = null; } }
   }
@@ -6143,7 +6229,8 @@ function deployEffects(dt) {
     pushAb('pu', d.pos, d.id); applyAb('pu', 0, 0, 0, d.id, settings.name);
   }
 }
-function nadeExplode(p, mine, kind = 'nade') {
+function nadeExplode(p, mine, kind = 'nade', elem = 0) {
+  if (kind === 'coin') return coinExplode(p, mine, elem);
   if (kind === 'popper') {
     const c = new THREE.Color(2.9, 0.8, 0.5);
     burst(p, 45, c, 14, 0.5, 0.11, 2); burst(p, 20, WHITE, 10, 0.25, 0.07, 0); shockRing(p, c, 10, 0.35); blastShell(p, c, 7.5, 0.35); flash(p, c, 70, 0.2);
@@ -6188,6 +6275,8 @@ const dmgOut = {}, edm = {};
 function damageEnt(e, dmg, point, quiet) {
   if (!e.alive) return;
   if (e.kind === 'bot' && !enemyOf(myTeam, e.team)) return;
+  if ((e.markUntil || 0) > time) dmg *= 1.4;
+  if (coop() && time < (teamFx.tripleUntil || 0)) dmg *= 3;
   if (e.kind === 'drone' && isBoss(e)) {
     const k = bossDmgMul(e);
     if (k <= 0) { burst(point, 6, BLOCKC, 4, 0.25, 0.07); if (!quiet && time - mirrorT > 0.12) { mirrorT = time; tone(520, 430, 0.05, 0.05, 'square'); } return; }
@@ -6254,14 +6343,17 @@ function fire() {
     const targets = shotTargets(); let first = null, anyHit = false;
     for (let k = 0; k < W.pellets; k++) {
       const dir = new V3(rand(-spread, spread), rand(-spread, spread), -1).normalize().applyQuaternion(camera.quaternion);
-      const r = hitscan(camera.position, dir, W, targets);
+      const crit = W.cards && Math.random() < 0.2, Wp = crit ? Object.assign({}, W, { dmg: W.dmg * 3 }) : W;
+      const r = curW === 'rail' ? railShot(camera.position, dir, W, targets, 1 + scopeCharge) : hitscan(camera.position, dir, Wp, targets);
       if (!first) first = r.point; if (r.hitTarget) anyHit = true;
+      if (crit && r.hitTarget) { hitmarker('crit'); burst(r.point, 12, GOLD, 7, 0.4, 0.1); tone(2600, 3400, 0.06, 0.06, 'triangle'); }
       if (W.chain) { bolt(mp, r.point, col, 1.3, 0.1, 0.25); if (r.hitTarget) chainFrom(r.point, new Set([r.hitTarget]), Math.round(W.dmg * 0.75), W.chain, col, true); }
-      else if (k < 5) tracer(mp, r.point, col, curW === 'rail' ? 2.4 : 1, curW === 'rail' ? 0.35 : 0.14);
+      else if (k < 5) tracer(mp, r.point, crit ? GOLD : curW === 'rail' && scopeCharge > 0.95 ? GOLD : col, curW === 'rail' ? 2.4 + scopeCharge * 2 : crit ? 2 : 1, curW === 'rail' ? 0.35 : 0.14);
     }
     if (W.pellets > 1 && anyHit) { hitmarker(false); sfx.hit(); }
     shotSeq++; lastShot = [shotSeq, r2(mp.x), r2(mp.y), r2(mp.z), r2(first.x), r2(first.y), r2(first.z), WIDS.indexOf(curW)];
   }
+  if (curW === 'rail') { scopeCharge = 0; chargePinged = false; }
   flashSprite.visible = true; flashSprite.material.rotation = rand(0, 6); flashSprite.userData.t = 0.04;
   muzzleLight.position.copy(mp); muzzleLight.color.copy(col).multiplyScalar(0.35); muzzleLight.intensity = 18;
   vmKick = Math.min(vmKick + W.recoil, 3); recoilP += (ads ? 0.006 : 0.011) * W.recoil; shake = Math.max(shake, 0.03 * W.recoil);
@@ -6377,6 +6469,195 @@ function updFireRing(d, dt) {
     if (r < R + big + 0.8 && h < 6 + big && h > -2) { damageEnt(e, Math.abs(r - R) < 1.8 + big ? 12 : 6, e.pos.clone(), true); ignite('e', e.id, 3); }
   }
 }
+// ---------- Sniper: Mark for Death, charged + piercing Rail Lance ----------
+const markGeo = new THREE.OctahedronGeometry(0.4, 0), markMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.35, 0.5), depthTest: false, transparent: true });
+let scopeCharge = 0, chargePinged = false;
+function markForDeath() {
+  const look = new V3(0, 0, -1).applyQuaternion(camera.quaternion), ids = [];
+  for (const e of ents.values()) if (e.alive && e.kind === 'drone') { const to = tA.subVectors(e.pos, camera.position), d = to.length(); if (d < 160 && to.normalize().dot(look) > 0.72) ids.push(e.id); }
+  const list = ids.slice(0, 30);
+  pushAb('mark', player.pos, list); applyAb('mark', player.pos.x, player.pos.y, player.pos.z, list, settings.name);
+}
+// the Rail Lance goes through drones (each one after the first takes 75%), weak spots take triple
+function railShot(origin, dir, W, targets, mult) {
+  raycaster.set(origin, dir); raycaster.far = W.range;
+  const hits = raycaster.intersectObjects(targets, false);
+  let groundT = dir.y < 0 ? -origin.y / dir.y : Infinity;
+  if (groundT < Infinity) { const gp = tB.copy(origin).addScaledVector(dir, groundT); if (Math.hypot(gp.x, gp.z) > ARENA_R || groundT > W.range) groundT = Infinity; }
+  const done = new Set(); let end = null, any = false, n = 0;
+  for (const h of hits) {
+    if (h.distance > groundT) break;
+    const u = h.object.userData;
+    if (u.ent) {
+      if (done.has(u.ent)) continue;
+      const e = ents.get(u.ent); if (!e) continue;
+      done.add(u.ent); any = true;
+      damageEnt(e, Math.round(W.dmg * mult * (n ? 0.75 : 1) * (u.weak ? 3 : 1)), h.point.clone(), u.weak);
+      if (u.weak) { hitmarker('crit'); tone(2400, 2400, 0.05, 0.08, 'triangle'); burst(h.point, 14, GOLD, 8, 0.4, 0.1); onWeakHit(); }
+      n++; continue;
+    }
+    if (u.peer) { const o = peers.get(u.peer); if (o) { damagePeer(o, Math.round(W.dmg * mult), h.point, false); any = true; } end = h.point.clone(); break; }
+    if (u.mirror) mirrorBounce(h.point);
+    end = h.point.clone(); break;
+  }
+  if (!end) end = origin.clone().addScaledVector(dir, groundT < Infinity ? groundT : Math.min(W.range, 300));
+  burst(end, 8, wColor(curW), 5, 0.35, 0.07);
+  return { point: end, hitTarget: any };
+}
+// ---------- Engineer: turret upgrades ----------
+function upgradeTurret(t) {
+  t.until = time + DEP.turret.dur; t.rkT = 0.8;
+  burst(t.pos.clone().setY(t.pos.y + 1), 30, new THREE.Color(2.9, 2.0, 0.4), 8, 0.5, 0.1, 0); shockRing(t.pos.clone().setY(t.pos.y + 0.2), new THREE.Color(2.9, 2.0, 0.4), 4, 0.4);
+  if (t.up) return;
+  t.up = true;
+  const pod = new THREE.Mesh(depGeo.pod, gunMat2); pod.position.set(0.38, 0.12, 0); t.head.add(pod);
+  for (let k = 0; k < 4; k++) { const tb = new THREE.Mesh(depGeo.tEye, new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.2, 0.3) })); tb.position.set(0.32 + (k % 2) * 0.12, 0.06 + (k >> 1) * 0.12, -0.2); tb.scale.setScalar(0.6); t.head.add(tb); t.mats.push(tb.material); }
+  if (t.owner === myId) toast('Turret upgraded: rocket pod online');
+}
+// ---------- Mech Pilot ----------
+const MG = {
+  hip: new THREE.BoxGeometry(1.6, 0.5, 1.0), thigh: new THREE.BoxGeometry(0.38, 1.2, 0.42), shin: new THREE.BoxGeometry(0.32, 1.1, 0.36), foot: new THREE.BoxGeometry(0.6, 0.18, 0.95),
+  torso: new THREE.BoxGeometry(2.0, 1.4, 1.6), plate: new THREE.BoxGeometry(2.04, 0.18, 1.64), canopy: new THREE.SphereGeometry(0.62, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(-Math.PI / 2),
+  pod: new THREE.BoxGeometry(0.62, 0.46, 0.8), tube: new THREE.CylinderGeometry(0.065, 0.065, 0.05, 8).rotateX(Math.PI / 2), shoulder: new THREE.BoxGeometry(0.55, 0.55, 0.7),
+  barrel: new THREE.CylinderGeometry(0.05, 0.05, 0.95, 8).rotateX(Math.PI / 2), ring: new THREE.TorusGeometry(0.18, 0.03, 6, 16), light: new THREE.BoxGeometry(0.14, 0.08, 0.04),
+};
+function buildMech() {
+  const g = new THREE.Group(), mats = [];
+  const S = o => { const m = new THREE.MeshStandardMaterial(o); mats.push(m); return m; };
+  const metal = S({ color: 0x3a3f4a, metalness: 0.85, roughness: 0.35 }), dark = S({ color: 0x1c1f26, metalness: 0.7, roughness: 0.5 }), paint = S({ color: 0xff8a2a, metalness: 0.4, roughness: 0.4 });
+  const glass = S({ color: 0x88d8ff, metalness: 0.2, roughness: 0.05, emissive: 0x1a5a8a, transparent: true, opacity: 0.85 }), glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.6, 0.4) }); mats.push(glow);
+  const add = (geo, m, x, y, z, p) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; p.add(o); return o; };
+  const body = new THREE.Group(); g.add(body);
+  add(MG.hip, dark, 0, 2.0, 0, body);
+  const legs = [-1, 1].map(sx => { const p = new THREE.Group(); p.position.set(sx * 0.75, 2.0, 0); g.add(p); add(MG.thigh, metal, 0, -0.5, -0.22, p).rotation.x = 0.5; add(MG.shin, paint, 0, -1.33, 0.1, p).rotation.x = -0.35; add(MG.foot, dark, 0, -1.91, -0.15, p); return p; });
+  add(MG.torso, metal, 0, 3.05, 0, body); add(MG.plate, paint, 0, 3.55, 0, body); add(MG.canopy, glass, 0, 3.15, -0.8, body);
+  for (const sx of [-1, 1]) add(MG.light, glow, sx * 0.55, 2.6, -0.81, body);
+  for (const sx of [-1, 1]) { add(MG.pod, paint, sx * 1.05, 3.95, 0.1, body); for (let i = 0; i < 6; i++) add(MG.tube, glow, sx * 1.05 + (i % 3 - 1) * 0.18, 3.95 + (i < 3 ? 0.1 : -0.1), -0.31, body); }
+  const guns = [-1, 1].map(sx => { const a = new THREE.Group(); a.position.set(sx * 1.35, 2.85, -0.2); body.add(a); add(MG.shoulder, dark, 0, 0.1, 0.2, a); const spin = new THREE.Group(); spin.position.z = -0.6; a.add(spin); for (let k = 0; k < 6; k++) { const an = k / 6 * Math.PI * 2; add(MG.barrel, metal, Math.cos(an) * 0.12, Math.sin(an) * 0.12, -0.3, spin); } add(MG.ring, glow, 0, 0, -0.78, spin); return spin; });
+  return { g, legs, guns, mats, body, ph: 0, fireT: 0 };
+}
+function animateMech(m, speed, dt) {
+  const k = Math.min(1, speed / 3); m.ph += dt * speed * 1.1;
+  m.legs[0].rotation.x = Math.sin(m.ph) * 0.35 * k; m.legs[1].rotation.x = -Math.sin(m.ph) * 0.35 * k;
+  m.body.position.y = Math.abs(Math.sin(m.ph)) * 0.1 * k;
+  m.fireT = Math.max(0, m.fireT - dt); for (const s of m.guns) s.rotation.z += dt * (m.fireT > 0 ? 30 : 1.5);
+}
+function disposeMech(m) { scene.remove(m.g); for (const x of m.mats) x.dispose(); }
+const drops = [];
+function mechDrop(p, owner) {
+  const m = buildMech(); m.g.position.copy(p).setY(p.y + 45); scene.add(m.g);
+  drops.push({ m, p: p.clone(), t: 0, owner });
+  const pf = panFor(p); tone(1800, 300, 0.6, 0.12 * Math.max(0.3, pf.v), 'sine', pf.pan);
+}
+function updateDrops(dt) {
+  for (let i = drops.length - 1; i >= 0; i--) {
+    const d = drops[i]; d.t += dt; const k = Math.min(1, d.t / 0.6);
+    d.m.g.position.y = d.p.y + 45 * (1 - k * k);
+    burst(tA.copy(d.m.g.position).setY(d.m.g.position.y + 0.3), 2, FIRE[0], 3, 0.4, 0.2, -6);
+    if (k >= 1) {
+      const c = new THREE.Color(2.9, 1.5, 0.4);
+      shockRing(d.p.clone().setY(d.p.y + 0.15), c, 20, 0.6); burst(d.p, 60, new THREE.Color(0.6, 0.5, 0.45), 14, 0.9, 0.25, 6); flash(d.p, c, 120, 0.3);
+      const pf = panFor(d.p); sfx.boom(Math.max(0.4, pf.v) * 1.3, pf.pan);
+      const near = d.p.distanceTo(player.pos); if (near < 25) shake = Math.max(shake, 0.5 * (1 - near / 25));
+      if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && e.alive && !isBoss(e) && e.pos.distanceTo(d.p) < 13) e.stunT = Math.max(e.stunT || 0, 1.5);
+      disposeMech(d.m); drops.splice(i, 1);
+    }
+  }
+}
+let mechOn = false, mechPrevW = null, salvoCd = 0;
+const inMech = () => player.alive && coop() && time >= (player.mechStart || 0) && time < (player.mechUntil || 0) && player.mechArmor > 0;
+function callMech() {
+  player.mechStart = time + 0.6; player.mechUntil = time + 15.6; player.mechArmor = 400;
+  pushAb('mech', player.pos, myId); applyAb('mech', player.pos.x, player.pos.y, player.pos.z, myId, settings.name);
+}
+function updateMech(dt) {
+  salvoCd = Math.max(0, salvoCd - dt);
+  updateDrops(dt);
+  const on = inMech();
+  if (on && !mechOn) { mechOn = true; mechPrevW = curW; setWeapon('minigun', true); announce('MECH ONLINE', `400 armor · ${bindLabel('zoom').toUpperCase()} fires a rocket salvo`, '#ff9a3c'); }
+  else if (!on && mechOn) {
+    mechOn = false; player.mechUntil = 0; player.mechArmor = 0;
+    setWeapon(mechPrevW && kit().guns.includes(mechPrevW) ? mechPrevW : kit().guns[0], true);
+    pushAb('mechx', player.pos); applyAb('mechx', player.pos.x, player.pos.y, player.pos.z, 0, settings.name);
+  }
+}
+function mechSalvo() {
+  if (salvoCd > 0) return;
+  salvoCd = 4;
+  const dir = new V3(0, 0, -1).applyQuaternion(camera.quaternion), from = camera.position.clone().add(new V3(0, 0.6, 0));
+  for (let k = 0; k < 6; k++) { const d = dir.clone().add(new V3(rand(-0.06, 0.06), rand(-0.03, 0.05), rand(-0.06, 0.06))).normalize(); later(k * 0.08, () => { if (player.alive) spawnRocket(from.clone(), d.multiplyScalar(42), true, 0.5); }); }
+  pushAb('salvo', from, [r2(dir.x), r2(dir.y), r2(dir.z)]);
+  noise(0.5, 0.3, 900, 'bandpass', 1, 0, 0, 200); tone(300, 90, 0.4, 0.2, 'sawtooth'); vmKick = 3;
+}
+// ---------- Gambler: slot machine ----------
+const SLOT_SYM = ['💎', '7️⃣', '🍒', '💰', '💀'], SLOT_TXT = ['JACKPOT! Lightning hits every drone', 'TRIPLE DAMAGE for the squad · 8s', 'FULL TEAM HEAL', 'CASH OUT · bonus coins', 'BUST!'];
+let slotUI = null, slotTick = 0;
+function spinSlots() {
+  const r = Math.random(), o = r < 0.1 ? 0 : r < 0.3 ? 1 : r < 0.55 ? 2 : r < 0.8 ? 3 : 4;
+  pushAb('slots', player.pos, [myId, o]); applyAb('slots', player.pos.x, player.pos.y, player.pos.z, [myId, o], settings.name);
+}
+function updateSlots(dt) {
+  const el = $('slotm');
+  if (!slotUI) { if (!el.hidden) el.hidden = true; return; }
+  const t = time - slotUI.t0, sp = el.querySelectorAll('.reels span');
+  el.hidden = false; el.classList.toggle('win', t > 1.4 && slotUI.o !== 4); el.classList.toggle('bust', t > 1.4 && slotUI.o === 4);
+  sp.forEach((s, i) => { const stop = 0.8 + i * 0.3; s.textContent = t < stop ? SLOT_SYM[(Math.floor(t * 16) + i * 2) % 5] : SLOT_SYM[slotUI.o]; });
+  el.querySelector('.slab').textContent = t < 1.4 ? `${slotUI.who} pulls the lever…` : SLOT_TXT[slotUI.o];
+  if (t < 1.4) { slotTick -= dt; if (slotTick <= 0) { slotTick = 0.07; tone(900 + Math.random() * 300, 900, 0.03, 0.04, 'square'); } }
+  if (t > 1.4 && !slotUI.done) { slotUI.done = true; slotPay(slotUI); }
+  if (t > 3.6) slotUI = null;
+}
+function slotPay(s) {
+  const mine = s.owner === myId, o = s.o;
+  if (o === 0) {
+    announce('JACKPOT!', `${s.who} hit the jackpot`, '#ffd86b'); sfx.win(); shake = Math.max(shake, 0.3);
+    for (const e of [...ents.values()]) if (e.alive && e.kind === 'drone') { bolt(e.pos.clone().setY(e.pos.y + 40), e.pos.clone(), GOLD, 3, 0.3, 1.2); burst(e.pos, 20, GOLD, 8, 0.5, 0.12); if (mine) damageEnt(e, isBoss(e) ? 450 : 260, e.pos.clone(), true); }
+    tone(1200, 2400, 0.5, 0.15, 'triangle');
+  } else if (o === 1) { teamFx.tripleUntil = time + 8; announce('TRIPLE DAMAGE', `${s.who} hit 7-7-7 · 8 seconds`, '#ff5a5a'); sfx.levelup(); }
+  else if (o === 2) { if (player.downed) reviveMe(1, s.who); else if (player.alive) { player.hp = maxHp(); curePoison(); } announce('FULL HEAL', `${s.who} hit the cherries`, '#74ffb5'); sfx.pickup(); }
+  else if (o === 3) { if (mine) { const c = 40 + 10 * (GS.wv || 1); addCoins(c); announce('CASH OUT', `+${c} coins`, '#ffd86b'); } sfx.pickup(); }
+  else {
+    explosionFX(s.pos.clone().setY(s.pos.y + 1), new THREE.Color(2.4, 0.4, 0.4), 1);
+    if (mine) { hurt(30, { text: 'Busted at the slots' }); player.vel.y += 8; announce('BUST', 'The house always wins', '#ff4d6a'); }
+  }
+}
+// ---------- Gambler: lucky coin (fire, ice or lightning) ----------
+const COIN_NAME = ['🔥 FIRE', '❄️ ICE', '⚡ LIGHTNING'];
+function areaDrones(p, R, fn) { for (const e of [...ents.values()]) if (e.alive && (e.kind === 'drone' || enemyOf(myTeam, e.team)) && e.pos.distanceTo(p) < R + (e.kind === 'drone' ? TYPES[e.type].scale * 0.8 : 0)) fn(e); }
+function coinExplode(p, mine, elem) {
+  const pf = panFor(p), v = Math.max(0.3, pf.v);
+  if (mine) toast(`${COIN_NAME[elem] || COIN_NAME[0]} COIN`);
+  if (elem === 1) {
+    burst(p, 60, ICE[0], 14, 0.7, 0.14, 4); shockRing(p, ICE[1], 18, 0.5); flash(p, ICE[1], 90, 0.3);
+    for (let i = 0; i < 24; i++) spray(p, tA.set(rand(-1, 1), rand(0, 1), rand(-1, 1)).normalize(), 1, ICE[(i & 1)], rand(8, 16), 0.7, 1.6, 2, 0.1);
+    noise(0.4, 0.3 * v, 6000, 'highpass', 1, pf.pan); tone(1800, 600, 0.3, 0.1 * v, 'triangle', pf.pan);
+    if (mine) { areaDrones(p, 9, e => damageEnt(e, 35, e.pos.clone(), true)); pushAb('freeze', p, 0); applyAb('freeze', p.x, p.y, p.z, 0, settings.name); }
+  } else if (elem === 2) {
+    const col = new THREE.Color(1.6, 2.3, 3.0);
+    bolt(p.clone().setY(p.y + 30), p, col, 6, 0.3, 1.4); flash(p, col, 140, 0.3); burst(p, 30, col, 10, 0.4, 0.1, 0);
+    noise(0.4, 0.4 * v, 3000, 'highpass', 0.7, pf.pan); tone(90, 30, 0.4, 0.3 * v, 'sine', pf.pan);
+    chainFrom(p, new Set(), 70, 5, col, mine);
+  } else {
+    explosionFX(p, FIRE[0], 1.4);
+    for (let i = 0; i < 30; i++) spray(p, tA.set(rand(-1, 1), rand(0.2, 1), rand(-1, 1)).normalize(), 1, fireCol(), rand(6, 14), 0.8, 2.2, -3, 0.2);
+    if (mine) areaDrones(p, 8, e => { damageEnt(e, 45, e.pos.clone(), true); ignite('e', e.id, 5); });
+  }
+  const near = p.distanceTo(player.pos); if (near < 20) shake = Math.max(shake, 0.25 * (1 - near / 20));
+}
+// ---------- Mech Pilot: sky mines ----------
+function updMines(d, dt) {
+  let live = 0;
+  d.mines.forEach((m, k) => {
+    if (!m.live) return; live++;
+    m.g.position.y = m.base.y + Math.sin(time * 2 + k) * 0.25; m.g.rotation.y += dt * 1.5;
+    m.light.visible = Math.sin(time * 8 + k) > -0.2;
+    if (d.owner !== myId) return;
+    const wp = tB.copy(d.pos).add(m.g.position);
+    let trip = false; areaDrones(wp, 4.2, () => { trip = true; });
+    if (trip) { pushAb('mpop', wp, [d.id, k]); applyAb('mpop', wp.x, wp.y, wp.z, [d.id, k], settings.name); }
+  });
+  if (!live) d.until = 0;
+}
 let swingSide = 1, lastHand = 1;
 const HAND_SWING = 0.3, handSwing = [0, 0];
 function melee() {
@@ -6442,7 +6723,12 @@ function updateWeapon(dt) {
   const g = curGun(), heat = 1 + vmKick * 0.4;
   if (guns.lmgcam.g.visible) guns.lmgcam.g.userData.rec.visible = Math.sin(time * 6) > 0;
   g.gm.color.copy(g.base).multiplyScalar(reloadT > 0 ? 0.3 + 0.7 * (1 - reloadT / Math.max(W.reload, 0.01)) : heat);
+  // Rail Lance: holding still while scoped charges the next shot up to double damage
+  if (curW === 'rail' && ads && player.onGround && Math.hypot(player.vel.x, player.vel.z) < 1.5 && reloadT <= 0) { scopeCharge = Math.min(1, scopeCharge + dt / 1.5); if (scopeCharge >= 1 && !chargePinged) { chargePinged = true; tone(1600, 2400, 0.12, 0.06, 'triangle'); } }
+  else if (curW !== 'rail' || !ads) { scopeCharge = 0; chargePinged = false; }
+  { const sp = curGun().g.userData.spin; if (sp) { sp.userData.v = damp(sp.userData.v || 0, firing ? 32 : 2, 6, dt); sp.rotation.z += dt * sp.userData.v; } }
   const scoped = curW === 'rail' && ads && camera.fov < 34;
+  if (scoped) $('scope').style.setProperty('--ch', scopeCharge.toFixed(2));
   $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && !scoped;
 }
 
@@ -6451,6 +6737,9 @@ function hurt(dmg, src) {
   if (!player.alive || player.invuln > 0 || !inMatch() || GS.ph === 1) return;
   if (coop() && inShield(player.pos)) { shockRing(player.pos.clone().setY(player.pos.y + 1), new THREE.Color(0.6, 2.2, 3), 1.5, 0.25); return; }
   if (coop() && deploys.some(d => d.kind === 'taunt' && d.owner === myId)) dmg *= 0.5;
+  // the mech's armor and the repair beacon's bonus shield soak damage first
+  if (mechOn && player.mechArmor > 0) { player.mechArmor -= dmg; burst(tA.copy(player.pos).setY(player.pos.y + 3), 6, new THREE.Color(3, 1.6, 0.4), 5, 0.3, 0.08); tone(300, 200, 0.05, 0.08, 'square'); shake = Math.max(shake, 0.08); return; }
+  if (player.over > 0) { const a = Math.min(player.over, dmg); player.over -= a; dmg -= a; if (dmg <= 0) { tone(1400, 1100, 0.05, 0.05, 'triangle'); return; } }
   player.hp -= dmg; player.lastDmgT = time;
   if (src.poison) tone(160, 120, 0.08, 0.05, 'sine');
   else { dmgFlash = Math.min(1, dmgFlash + 0.5 + dmg / 40); shake = Math.max(shake, 0.18); sfx.hurt(); }
@@ -6697,7 +6986,7 @@ function creditKill(kind, pts, name) {
 }
 
 // ================= peers =================
-function removePeer(id) { const o = peers.get(id); if (o) { disposeAvatar(o); peers.delete(id); delete dmgOut[peerKey(id)]; delete H.bd[peerKey(id)]; H.seen.delete(id); } }
+function removePeer(id) { const o = peers.get(id); if (o) { if (o.mech) disposeMech(o.mech); disposeAvatar(o); peers.delete(id); delete dmgOut[peerKey(id)]; delete H.bd[peerKey(id)]; H.seen.delete(id); } }
 function updatePeers(dt, list) {
   const myKey = peerKey(myId), seen = new Set();
   for (const p of list) {
@@ -6726,13 +7015,16 @@ function updatePeers(dt, list) {
     let dy = (+d.yw || 0) - o.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); o.yaw += dy * (1 - Math.exp(-14 * dt));
     o.av.position.copy(o.pos); o.av.rotation.y = o.yaw; o.av.visible = d.st === 'p' && (!!d.al || !!d.dn); o.down = !!d.dn;
     o.flash = Math.max(0, o.flash - dt * 7); avatarFX(o);
+    // a teammate in a mech: show the mech instead of their body
+    if (d.mk && o.av.visible) { if (!o.mech) { o.mech = buildMech(); scene.add(o.mech.g); } o.mech.g.position.copy(o.pos); o.mech.g.rotation.y = o.yaw; animateMech(o.mech, Math.hypot(o.vel.x, o.vel.z), dt); o.av.visible = false; }
+    else if (o.mech) { disposeMech(o.mech); o.mech = null; }
     // damage this peer dealt to me
     const dmv = d.dm && typeof d.dm[myKey] === 'number' ? d.dm[myKey] : 0;
     if (o.dmgSeen === null) o.dmgSeen = dmv;
     else if (dmv > o.dmgSeen) { const delta = Math.min(dmv - o.dmgSeen, 120); o.dmgSeen = dmv; if (d.al && enemyOf(myTeam, team)) hurt(delta, { killer: p.id, from: o.pos, weapon: WIDS[d.wp] }); }
     if (Array.isArray(d.sh) && d.sh.length >= 7) {
       if (d.sh[0] !== o.shSeen) {
-        o.shSeen = d.sh[0];
+        o.shSeen = d.sh[0]; if (o.mech) o.mech.fireT = 0.25;
         const a = new V3(+d.sh[1], +d.sh[2], +d.sh[3]), b = new V3(+d.sh[4], +d.sh[5], +d.sh[6]), wid = WIDS[+d.sh[7]] || 'rifle';
         if (a.distanceTo(b) < 650) { const RW = WEAPONS[wid]; if (RW.flame) { const dir = b.clone().sub(a).normalize(); spray(a, dir, 10, FIRE[0], 30, 0.5, 1.8); spray(a, dir, 6, FIRE[1], 26, 0.45, 1.3); } else { if (RW.chain) bolt(a, b, wColor(wid), 1.3, 0.12, 0.3); else if (!RW.melee) tracer(a, b, wColor(wid), wid === 'rail' ? 2.2 : 1, wid === 'rail' ? 0.35 : 0.14); burst(b, 6, wColor(wid), 4, 0.3, 0.07); } const pf = panFor(a); sfx.shot(wid, pf.v * 0.8, pf.pan); }
       }
@@ -6744,7 +7036,7 @@ function updatePeers(dt, list) {
     if (d.jt && o.av.visible) burst(tA.copy(o.pos).setY(o.pos.y + 0.4), 2, JETC, 2.5, 0.35, 0.11, -8);
     if (Array.isArray(d.gn) && d.gn.length >= 7 && d.gn[0] !== o.gnSeen) {
       o.gnSeen = d.gn[0];
-      spawnNade(new V3(+d.gn[1], +d.gn[2], +d.gn[3]), new V3(+d.gn[4], +d.gn[5], +d.gn[6]), false, d.gn[7] === 1 ? 'popper' : 'nade');
+      { const c = +d.gn[7] || 0; spawnNade(new V3(+d.gn[1], +d.gn[2], +d.gn[3]), new V3(+d.gn[4], +d.gn[5], +d.gn[6]), false, c === 1 ? 'popper' : c >= 2 ? 'coin' : 'nade', Math.max(0, c - 2)); }
     }
     if (Array.isArray(d.ct) && d.ct.length === 2 && d.ct[0] !== o.ctSeen) {
       o.ctSeen = d.ct[0];
@@ -6768,7 +7060,7 @@ let presT = 0;
 function buildPresence() {
   const p = player.pos;
   const o = {
-    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet !== 'none' ? settings.pet : '', cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
+    n: settings.name, h: settings.hue, sk: settings.skin, fn: settings.finish, ht: settings.hat, pt: settings.pet !== 'none' ? settings.pet : '', cl: coop() ? settings.cls : '', jt: jetting ? 1 : 0, mk: mechOn ? 1 : 0, ab: abList.length ? abList : null, md: mode, tm: mode === 'ctf' ? myTeam : -1,
     st: state === 'menu' ? 'm' : state === 'dead' ? 'x' : 'p', al: player.alive ? 1 : 0,
     x: r2(p.x), y: r2(p.y), z: r2(p.z), yw: r2(player.yaw), wp: WIDS.indexOf(curW), lv: ggLv, f: frags, d: deaths, s: score,
     hp: Math.max(0, Math.round(player.hp)), mh: maxHp(), dn: player.downed ? 1 : 0, rp: reviveTarget && reviveT > 0 ? [reviveTarget, r2(reviveT)] : null,
@@ -6835,7 +7127,7 @@ function buildTop() {
 const flagWord = f => f[0] === 0 ? 'HOME' : f[0] === 1 ? 'TAKEN' : 'DROPPED';
 function updateHUD() {
   const hp = Math.max(0, Math.ceil(player.hp));
-  setText('hpnum', String(hp));
+  setText('hpnum', player.over >= 1 ? `${hp}+${Math.floor(player.over)}` : String(hp));
   const hpPct = Math.round(hp / maxHp() * 100), bar = $('hpbar'); setStyle(bar, 'width', hpPct + '%'); bar.classList.toggle('low', hpPct <= 30); bar.classList.toggle('poison', player.poisonUntil > time);
   if (mode === 'waves') {
     setText('hWave', String(GS.wv || 1)); setText('hScore', score.toLocaleString());
@@ -6896,6 +7188,8 @@ function updateHUD() {
     if (time < teamFx.rallyUntil) fx.push(`RALLY ${Math.ceil(teamFx.rallyUntil - time)}s`);
     if (time < teamFx.frenzyUntil) fx.push(`FRENZY ${Math.ceil(teamFx.frenzyUntil - time)}s`);
     if (time < teamFx.wallUntil) fx.push(`WALLHACK ${Math.ceil(teamFx.wallUntil - time)}s`);
+    if (time < (teamFx.tripleUntil || 0)) fx.push(`TRIPLE DAMAGE ${Math.ceil(teamFx.tripleUntil - time)}s`);
+    if (mechOn) fx.push(`MECH ${Math.ceil(player.mechArmor)} ARMOR · ${Math.ceil(player.mechUntil - time)}s · ROCKETS ${salvoCd > 0 ? Math.ceil(salvoCd) + 's' : 'READY'}`);
     if (inShield(player.pos)) fx.push('SHIELDED');
     const roar = deploys.find(d => d.kind === 'taunt' && d.owner === myId); if (roar) fx.push(`IRON ROAR ${Math.ceil(roar.until - time)}s · HALF DAMAGE`);
     if (player.poisonUntil > time) fx.push(`☠ POISONED ${Math.ceil(player.poisonUntil - time)}s`);
@@ -7219,8 +7513,8 @@ function toggleStudy() {
 function actionDown(a) {
   switch (a) {
     case 'fire': firing = true; break;
-    case 'zoom': if (curW === 'dual') tryParry(); else adsKey = true; break;
-    case 'zoomToggle': if (curW === 'dual') tryParry(); else adsToggle = !adsToggle; break;
+    case 'zoom': if (mechOn) mechSalvo(); else if (curW === 'dual') tryParry(); else adsKey = true; break;
+    case 'zoomToggle': if (mechOn) mechSalvo(); else if (curW === 'dual') tryParry(); else adsToggle = !adsToggle; break;
     case 'jump': tryJump(); break;
     case 'dash': tryDash(); break;
     case 'reload': startReload(); break;
@@ -7232,7 +7526,7 @@ function actionDown(a) {
     case 'board': renderBoard(); $('board').hidden = false; break;
     default: {
       const m = /^w([1-9])$/.exec(a);
-      if (m && mode !== 'gungame') { const id = kit().guns[+m[1] - 1]; if (id && id !== curW) setWeapon(id); }
+      if (m && mode !== 'gungame' && !mechOn) { const id = kit().guns[+m[1] - 1]; if (id && id !== curW) setWeapon(id); }
     }
   }
 }
@@ -7513,7 +7807,7 @@ function frame(now) {
   syncInfect(); runTimers();
   onGSChange();
   if (state === 'playing') { updatePlayer(dt); stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
-  updateOrbs(dt); updateHazards(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
+  updateOrbs(dt); updateHazards(dt); updateMech(dt); updateSlots(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
   updateWeapon(dt); updateFlags(dt); updateMyPet(dt);
   sendPresence(dt);
@@ -7548,7 +7842,7 @@ function frame(now) {
     landDip = damp(landDip, 0, 8, dt); fovKick = damp(fovKick, 0, 5, dt); shake = damp(shake, 0, 9, dt);
     const hs = Math.hypot(player.vel.x, player.vel.z), bob = player.onGround ? Math.sin(bobT) * 0.045 * Math.min(hs / 9.5, 1) : 0;
     if (state === 'dead') { camera.position.y = damp(camera.position.y, player.pos.y + 5, 2, dt); player.pitch = damp(player.pitch, -0.6, 2, dt); }
-    else { const sh = opts.shake ? shake : 0; camera.position.set(player.pos.x + rand(-sh, sh), player.pos.y + (player.downed ? 0.55 : EYE) + bob - landDip + rand(-sh, sh), player.pos.z + rand(-sh, sh)); }
+    else { const sh = opts.shake ? shake : 0; camera.position.set(player.pos.x + rand(-sh, sh), player.pos.y + (player.downed ? 0.55 : EYE + (mechOn ? 2.4 : 0)) + bob - landDip + rand(-sh, sh), player.pos.z + rand(-sh, sh)); }
     camera.rotation.set(player.pitch + recoilP, player.yaw, Math.sin(bobT * 0.5) * 0.004 * Math.min(hs, 9) + (player.poisonUntil > time ? Math.sin(time * 1.7) * 0.06 : 0), 'YXZ');
     const zoom = ads && !WEAPONS[curW].melee ? Math.min(WEAPONS[curW].zoom, opts.fov) : opts.fov;
     camera.fov = damp(camera.fov, zoom + (ads ? 0 : fovKick + Math.min(Math.max(hs - 10, 0), 15) * 0.5), 12, dt);
