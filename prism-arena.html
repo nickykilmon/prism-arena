@@ -5530,6 +5530,7 @@ function hostUpdateDrone(e, dt, hs) {
   if (e.type === 'charger') {
     want.copy(to).normalize().multiplyScalar(tgt ? T.speed * (GS.wv > 6 ? 1.15 : 1) : 3);
     if (tgt && dist < 1.8 && tgt.decoy) { e.alive = false; removeEnt(e, true); return; }
+    if (tgt && tgt.id === 'obj' && dist < 2.6) { missionHit(30); e.alive = false; removeEnt(e, true); return; }
     if (tgt && dist < 1.8) {
       if (tgt.me) { player.vel.addScaledVector(dOff.copy(to).normalize(), 14); player.vel.y += 5; }
       hostHitHuman(tgt, 22, e.pos, { id: e.id });
@@ -6219,7 +6220,15 @@ function mirrorBounce(point) {
   const dir = tB.copy(camera.position).sub(point).normalize();
   spawnOrb(point.clone().addScaledVector(dir, 0.6), dir.multiplyScalar(18), 6, DTYPES.indexOf('overmind'), '', false, true);
 }
+// where drone shots hit the mission objective
+function missionObjCenter() {
+  if (mode !== 'mission' || !MO || GS.mres) return null;
+  if (MO.st.t === 'defend') return missionSpots().reactor.clone().setY(missionSpots().reactor.y + 1.7);
+  if (MO.st.t === 'escort') return pathAt(GS.mpos);
+  return null;
+}
 function updateOrbs(dt) {
+  const objC = missionObjCenter();
   for (let i = orbs.length - 1; i >= 0; i--) {
     const o = orbs[i]; o.life -= dt;
     if (o.home && player.alive) { const to = tC.copy(player.pos).setY(player.pos.y + 1.1).sub(o.m.position), d = to.length(); if (d < 45 && d > 1) { const sp = o.vel.length(); o.vel.lerp(to.multiplyScalar(sp / d), Math.min(1, dt * 1.3)).setLength(sp); } }
@@ -6227,6 +6236,7 @@ function updateOrbs(dt) {
     o.m.children[0].scale.setScalar(1 + Math.sin(time * 30 + i) * 0.15);
     if (Math.random() < 0.5) burst(o.m.position, 1, o.color, 0.5, 0.25, 0.08, 0);
     if (deploys.length && deploys.some(d => (d.kind === 'shield' && o.m.position.distanceTo(d.pos) < d.r) || (d.kind === 'barrier' && barrierBlocks(d, o.m.position)))) { burst(o.m.position, 12, new THREE.Color(0.6, 2.2, 3), 5, 0.35, 0.08); killOrb(i); continue; }
+    if (objC && o.m.position.distanceTo(objC) < 2.6) { if (isHost) missionHit(o.dmg); objHitFx(o.m.position, o.color); killOrb(i); continue; }
     if (parryT > 0 && player.alive && capsuleDist(o.m.position, player.pos) < 2.4) { reflectOrb(o); killOrb(i); continue; }
     if (player.alive && inMatch() && capsuleDist(o.m.position, player.pos) < 0.7) {
       player.vel.addScaledVector(tA.copy(o.vel).normalize(), 6);
@@ -8582,6 +8592,10 @@ function missionTarget() {
   if (st.t === 'escort') return { id: 'obj', name: 'Power cell', pos: pathAt(GS.mpos), vel: new V3(), alive: true };
   return null;
 }
+function objHitFx(p, c) {
+  burst(p, 14, c, 5, 0.35, 0.09); if (MO) MO.hitT = time;
+  const pf = panFor(p); tone(300, 140, 0.08, 0.08 * Math.max(0.3, pf.v), 'square', pf.pan);
+}
 function missionHit(dmg) { const M = H.M; if (!M || GS.mres) return; M.hp -= dmg; GS.mh = Math.max(0, Math.round(M.hp / M.max * 100)); if (M.hp <= 0) missionEnd(false, M); }
 // what everyone sees: cores, terminals, the reactor, the power cell
 let MO = null, mlogT = 0;
@@ -8620,7 +8634,8 @@ function updateMission(dt) {
   for (let i = 0; i < MO.cores.length; i++) { const [m, b] = MO.cores[i], got = !!(GS.mc & (1 << i)); m.visible = b.visible = !got; m.rotation.y += dt * 2; m.position.y = missionSpots().cores[i].y + 1.3 + Math.sin(time * 2 + i) * 0.2; }
   MO.terms.forEach((T, i) => { const v = (GS.mhk[i] || 0) / 100; T.sc.material.color.setRGB(v >= 1 ? 0.4 : 0.4 + v * 2.4, v >= 1 ? 2.8 : 1.8, v >= 1 ? 0.6 : 2.6 - v * 2); T.ring.material.opacity = v >= 1 ? 0.15 : 0.35 + Math.sin(time * 4) * 0.2; });
   for (const r of MO.ring) { r.rotation.x += dt * 1.3; r.rotation.y += dt * 0.9; }
-  if (MO.core) MO.core.scale.setScalar(0.7 + 0.3 * (GS.mh / 100) + Math.sin(time * 5) * 0.05);
+  if (MO.core) { MO.core.scale.setScalar(0.7 + 0.3 * (GS.mh / 100) + Math.sin(time * 5) * 0.05); const hit = time - (MO.hitT || -9) < 0.12; MO.core.material.color.setRGB(hit ? 3 : 2.9, hit ? 0.3 : 0.4 + 1.2 * GS.mh / 100, hit ? 0.3 : 0.4 * GS.mh / 100); }
+  if (MO.cart) { const hit = time - (MO.hitT || -9) < 0.12; MO.cart.children[1].material.color.setRGB(hit ? 3 : 0.5 + (1 - GS.mh / 100) * 2.4, hit ? 0.3 : 2.8 * GS.mh / 100 + 0.3, hit ? 0.3 : 1.4 * GS.mh / 100); }
   if (MO.cart) { const p = pathAt(GS.mpos); MO.cart.position.lerp(p, 1 - Math.exp(-6 * dt)); MO.cart.rotation.y += dt * 0.3; }
   if (mlogT && time > mlogT) { $('mlog').hidden = true; mlogT = 0; }
 }
