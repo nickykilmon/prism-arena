@@ -1107,6 +1107,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'boss-skins', date: '2026-10-04', title: 'Boss Skins', lines: ['Five new suits in the shop, each with its own model based on a Boss Raid boss', 'Titan Warlord: armoured giant with one burning eye, a molten core and a pod orbiting him', 'Mirror Queen: crystal gown, shard wings and crown, with mirrors circling her', 'Clockwork Reaper: tattered cloak, skull in a hood, a ticking chest clock and a scythe on his back', 'Frost Wyrm: an ice dragon warrior with horns, wings and a swishing tail', 'The Overmind: a chrome body with a brain in a glass dome and hex shields orbiting it', '3,000 coins each'] },
   { id: 'boss-models', date: '2026-10-04', title: 'Boss Makeover', lines: ["Five bosses got brand new, far more detailed models", "The Titan: split armour plates over a molten heart, a slit-pupil eye, rear thrusters and a caged weak-spot pod", "Mirror Queen: a faceted crystal gown, a shard collar, a taller crown, a mirror sceptre and hexagonal mirrors orbiting her", "Clockwork Reaper: a tattered cloak and hood, a grinning skull, a sun-ray clock with a swinging pendulum, more gears and a proper crescent scythe", "Frost Wyrm: a toothed, opening jaw with icy breath, horns and frills, armoured belly plates and full bat-style wings with crystal claws", "The Overmind: a wrinkled brain with firing synapses, a ribbed dome, sensor lenses, hex-patterned shields and cable tendrils", 'Hit spots and weak points are exactly where they were'] },
   { id: 'campaign', date: '2026-10-04', title: 'Missions: The Full Campaign', lines: ['Missions is now a 20-mission campaign in 6 chapters plus a finale', 'Every chapter builds up over a couple of missions to a boss fight: Mirror Queen, Inferno Colossus, Frost Wyrm, Void Eye, Clockwork Reaper and the Titan', 'The Overmind waits at the very end in Core Meltdown'] },
   { id: 'hub-missions', date: '2026-10-04', title: 'Hub Plaza, Missions, Duels & Prop Hunt',
@@ -1328,6 +1329,11 @@ const SUITS = {
   pineapple: { name: 'Pineapple', price: 1800, season: 'summer', pv: 'linear-gradient(180deg,#2f9a4a 0 28%,transparent 28%),repeating-linear-gradient(45deg,#e8b02a 0 8px,#c88a1a 8px 10px),#e8b02a' },
   snorkeler: { name: 'Snorkeler', price: 1800, season: 'summer', pv: 'radial-gradient(ellipse at 50% 25%,#5fc8ff 0 14%,transparent 15%),linear-gradient(180deg,#e8b08a 0 50%,#ff6f91 50% 70%,#e8b08a 70%)' },
   burgerman: { name: 'Burger Man', price: 2500, pv: 'radial-gradient(circle at 42% 22%,#fff 0 3%,#111 4% 5%,transparent 6%),radial-gradient(circle at 58% 22%,#fff 0 3%,#111 4% 5%,transparent 6%),linear-gradient(180deg,transparent 12%,#e8a54a 12% 30%,#4fbf3a 30% 34%,#ffc93a 34% 38%,#6a3a1e 38% 46%,#e8a54a 46% 52%,#d62828 52% 82%,#2a3a6a 82%)' },
+  titanlord: { name: 'Titan Warlord', price: 3000, pv: 'radial-gradient(circle at 50% 24%,#fff3c4 0 4%,#ff9a3a 5% 9%,#2a2030 10% 17%,transparent 18%),radial-gradient(circle at 50% 52%,#ff7a2a 0 6%,transparent 7%),linear-gradient(90deg,transparent 22%,#1f1a28 22% 47%,#ff7a2a 47% 53%,#1f1a28 53% 78%,transparent 78%),#3a2c22' },
+  mirrorqueen: { name: 'Mirror Queen', price: 3000, pv: 'radial-gradient(circle at 50% 46%,#ff7ae0 0 4%,transparent 5%),conic-gradient(from 330deg at 50% 18%,#bfe0ff 0 60deg,transparent 60deg),linear-gradient(180deg,transparent 30%,#e6f2ff 30% 50%,transparent 50%),conic-gradient(from 160deg at 50% 50%,transparent 0 0,#bfe0ff 0 40deg,transparent 40deg),#5a6a9a' },
+  clockreaper: { name: 'Clockwork Reaper', price: 3000, pv: 'radial-gradient(circle at 50% 50%,#f2e6c4 0 9%,#c9a24a 10% 12%,transparent 13%),radial-gradient(circle at 50% 22%,#e8e0c8 0 7%,#030206 8% 13%,#16101e 14% 17%,transparent 18%),linear-gradient(160deg,transparent 40%,#cfd6e2 40% 43%,transparent 43%),#16101e' },
+  wyrmkin: { name: 'Frost Wyrm', price: 3000, pv: 'radial-gradient(circle at 44% 22%,#bff4ff 0 3%,transparent 4%),radial-gradient(circle at 56% 22%,#bff4ff 0 3%,transparent 4%),conic-gradient(from 200deg at 50% 40%,#2a6aa8 0 90deg,transparent 90deg),linear-gradient(90deg,transparent 30%,#4f8fc8 30% 70%,transparent 70%),#cfe8f8' },
+  overmind: { name: 'The Overmind', price: 3000, pv: 'radial-gradient(circle at 50% 22%,#ff9fc8 0 10%,#d8f0ff55 11% 15%,transparent 16%),linear-gradient(90deg,#4a1a60 0 20%,transparent 20% 80%,#4a1a60 80%),linear-gradient(180deg,transparent 35%,#8a86a0 35%),#2a2236' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -1729,6 +1735,11 @@ function suitMaterial(id, col, glowCol) {
     case 'zebra': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: zebraTex(), metalness: 0.05, roughness: 0.55 });
     case 'tiger': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: tigerTex(), metalness: 0.05, roughness: 0.55 });
     case 'matrix': return new THREE.MeshStandardMaterial({ color: 0x020a05, roughness: 0.35, metalness: 0.4, emissive: 0x2bff6a, emissiveMap: matrixTex(), emissiveIntensity: 2.2 });
+    case 'titanlord': return new THREE.MeshStandardMaterial({ color: 0x1f1a28, metalness: 0.9, roughness: 0.3, flatShading: true });
+    case 'mirrorqueen': return new THREE.MeshPhysicalMaterial({ color: 0xbfe0ff, metalness: 0.75, roughness: 0.05, iridescence: 1, iridescenceIOR: 1.7, clearcoat: 1, flatShading: true });
+    case 'clockreaper': return new THREE.MeshStandardMaterial({ color: 0x16101e, roughness: 0.95, side: THREE.DoubleSide, flatShading: true });
+    case 'wyrmkin': return new THREE.MeshStandardMaterial({ color: 0x4f8fc8, roughness: 0.2, metalness: 0.35, emissive: 0x0a2a48, flatShading: true });
+    case 'overmind': return new THREE.MeshStandardMaterial({ color: 0x3a3048, metalness: 0.85, roughness: 0.3 });
     case 'austen': return new THREE.MeshPhysicalMaterial({ color: 0xb84a2c, roughness: 0.35, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.3 });
     case 'diamond': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0, clearcoat: 1, clearcoatRoughness: 0, iridescence: 1, iridescenceIOR: 2.4, iridescenceThicknessRange: [100, 900], flatShading: true, emissive: 0x30304a, emissiveIntensity: 0.4 });
     default: return new THREE.MeshStandardMaterial({ color: col, metalness: 0.45, roughness: 0.35 });
@@ -4139,6 +4150,201 @@ function animatePet(pet, t, moving) {
   if (u.legs) u.legs.forEach((l, i) => { l.rotation.x = moving ? Math.sin(t * 12 + (i % 2) * Math.PI) * 0.5 : 0; });
   if (u.wings) u.wings.forEach((w, i) => { w.rotation.z = (i ? -1 : 1) * Math.sin(t * 10) * 0.5; });
 }
+// ---------- boss skins: humanoid versions of the Boss Raid bosses ----------
+const bossGlow = (c, col, o = {}) => { const m = new THREE.MeshBasicMaterial({ color: col, ...o }); c.extra.push(m); return m; };
+Object.assign(BODIES, {
+  titanlord: c => {
+    // the Titan as an armoured warlord: one burning eye, a molten core behind the chest plates, a pod orbiting him
+    const { add, head, mat, M, rig } = c, trim = M(0x4a3626, { metalness: 1, roughness: 0.25, flatShading: true }), dark = M(0x050308);
+    const hot = bossGlow(c, new THREE.Color(3, 1.1, 0.25)), eyeG = bossGlow(c, new THREE.Color(3, 2.2, 0.8)), weakG = bossGlow(c, new THREE.Color(3, 2.6, 0.9));
+    const flameM = bossGlow(c, new THREE.Color(1.6, 0.6, 0.15), { transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false });
+    const B = person(c, mat, mat, trim, { tw: 1.25, tr: 0.3, ar: 0.11, lr: 0.11 });
+    const core = add(gq('tlCore', () => new THREE.IcosahedronGeometry(0.16, 1)), hot, 0, 1.38, -0.2);
+    for (const sx of [-1, 1]) { const p = add(gq('tlPl', () => new THREE.BoxGeometry(0.26, 0.46, 0.08)), mat, sx * 0.18, 1.38, -0.27); p.rotation.y = sx * 0.35; p.castShadow = true; }
+    add(gq('tlBelt', () => new THREE.TorusGeometry(0.34, 0.05, 6, 20).rotateX(Math.PI / 2)), trim, 0, 1.06, 0).scale.z = 0.82;
+    for (const sx of [-1, 1]) {
+      const sh = add(gq('tlSh', () => new THREE.SphereGeometry(0.21, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2)), trim, sx * 0.42, 1.66, 0); sh.scale.set(1, 0.8, 1.1); sh.castShadow = true;
+      for (let k = 0; k < 3; k++) { const s = add(gq('tlSp', () => new THREE.ConeGeometry(0.045, 0.24, 6)), dark, sx * (0.38 + k * 0.06), 1.84 - k * 0.03, (k - 1) * 0.1); s.rotation.z = -sx * (0.3 + k * 0.25); add(gq('tlSpT', () => new THREE.ConeGeometry(0.018, 0.07, 6)), hot, 0, 0.12, 0, s); }
+    }
+    const flames = [];
+    for (const sx of [-1, 1]) { add(gq('tlTh', () => new THREE.CylinderGeometry(0.07, 0.09, 0.22, 10)), trim, sx * 0.15, 1.42, 0.3); flames.push(add(gq('tlFl', () => new THREE.ConeGeometry(0.06, 0.3, 8).rotateX(Math.PI)), flameM, sx * 0.15, 1.18, 0.3)); }
+    head.position.y = 1.98;
+    add(gq('tlH', () => new THREE.IcosahedronGeometry(0.27, 1)), mat, 0, 0, 0, head).castShadow = true;
+    add(gq('tlSock', () => new THREE.TorusGeometry(0.11, 0.03, 6, 18)), trim, 0, 0.01, -0.235, head);
+    const eye = add(gq('tlEye', () => new THREE.SphereGeometry(0.09, 16, 12)), eyeG, 0, 0.01, -0.2, head);
+    add(gq('tlPup', () => new THREE.BoxGeometry(0.03, 0.12, 0.01)), dark, 0, 0.01, -0.292, head);
+    add(gq('tlJaw', () => new THREE.BoxGeometry(0.3, 0.08, 0.12)), trim, 0, -0.19, -0.15, head);
+    for (let k = 0; k < 5; k++) { const a = (k - 2) * 0.55, s = add(gq('tlCr', () => new THREE.ConeGeometry(0.045, 0.28, 6)), dark, Math.sin(a) * 0.2, 0.22, Math.cos(a) * 0.1 + 0.04, head); s.rotation.set(0.35, 0, -Math.sin(a) * 0.6); add(gq('tlSpT', () => new THREE.ConeGeometry(0.018, 0.07, 6)), hot, 0, 0.14, 0, s); }
+    const orbit = new THREE.Group(); orbit.position.y = 1.35; orbit.rotation.x = 0.3; rig.add(orbit);
+    add(gq('tlPod', () => new THREE.SphereGeometry(0.065, 14, 10)), weakG, 0.72, 0, 0, orbit);
+    const cage = add(gq('tlCage', () => new THREE.TorusGeometry(0.09, 0.012, 4, 16)), trim, 0.72, 0, 0, orbit);
+    add(gq('tlRing', () => new THREE.TorusGeometry(0.72, 0.01, 4, 48).rotateX(Math.PI / 2)), hot, 0, 0, 0, orbit);
+    return { ...B, arm: { x: 0.5, y: 1.6, len: 0.42, r: 0.11, spread: 0.14 }, hat: [0.28, 0.24], tick(t) {
+      orbit.rotation.y = t * 1.4; cage.rotation.y = t * 3; cage.rotation.x = t * 2;
+      eye.scale.setScalar(1 + Math.sin(t * 3) * 0.08); core.scale.setScalar(1 + Math.sin(t * 5) * 0.08); core.rotation.y = t;
+      for (const f of flames) f.scale.y = 0.8 + Math.random() * 0.5;
+    } };
+  },
+  mirrorqueen: c => {
+    // the Mirror Queen: crystal gown, shard collar and wings, mirrors circling her
+    const { add, head, mat, M, rig } = c, mirror = M(0xe6f2ff, { metalness: 1, roughness: 0.04, flatShading: true }), silver = M(0x9aa8c4, { metalness: 1, roughness: 0.2, flatShading: true });
+    const glow = bossGlow(c, new THREE.Color(1.4, 2.4, 3.0)), gemM = bossGlow(c, new THREE.Color(3, 1.2, 2.6));
+    const lathe = (k, pts, n) => gq(k, () => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), n));
+    const oct = (k, r) => gq(k, () => new THREE.OctahedronGeometry(r, 0));
+    add(lathe('mqGown', [[0.2, 1.08], [0.27, 0.9], [0.36, 0.6], [0.46, 0.3], [0.54, 0.06], [0.57, 0.0]], 10), mat, 0, 0, 0).castShadow = true;
+    for (const [r, y] of [[0.28, 0.9], [0.37, 0.6], [0.53, 0.08]]) add(gq('mqBand' + r, () => new THREE.TorusGeometry(r, 0.014, 4, 10).rotateX(Math.PI / 2)), silver, 0, y, 0);
+    for (let k = 0; k < 10; k++) { const a = (k + 0.5) / 10 * Math.PI * 2, s = add(oct('mqHem', 1), mat, Math.cos(a) * 0.55, 0.04, Math.sin(a) * 0.55); s.scale.set(0.035, 0.12 + (k % 2) * 0.05, 0.035); }
+    const bod = add(lathe('mqBod', [[0.17, 1.0], [0.22, 1.12], [0.25, 1.35], [0.22, 1.55], [0.12, 1.7]], 8), mirror, 0, 0, 0); bod.scale.z = 0.75; bod.castShadow = true;
+    add(gq('mqHs', () => new THREE.TorusGeometry(0.06, 0.012, 4, 12)), silver, 0, 1.42, -0.185);
+    const heart = add(oct('mqHeart', 0.05), gemM, 0, 1.42, -0.2); heart.scale.y = 1.25;
+    for (let k = 0; k < 7; k++) { const g = new THREE.Group(); g.position.set(0, 1.68, 0.07); g.rotation.z = (k - 3) * 0.38; rig.add(g); const s = add(oct('mqCol', 1), mat, 0, 0.2, 0, g); s.scale.set(0.04, 0.22 - Math.abs(k - 3) * 0.025, 0.01); add(gq('mqColG', () => new THREE.BoxGeometry(0.007, 0.32, 0.014)), glow, 0, 0.2, 0, g).scale.y = 1 - Math.abs(k - 3) * 0.12; }
+    const wings = [];
+    for (let k = 0; k < 6; k++) { const sx = k < 3 ? -1 : 1, i = k % 3, w = new THREE.Group(), len = 0.95 - i * 0.18; w.position.set(sx * 0.08, 1.5, 0.2); rig.add(w); add(oct('mqW', 0.5), mat, sx * (0.22 + i * 0.07), 0.1 + i * 0.07, 0, w).scale.set(0.15, len, 0.02); add(gq('mqWG', () => new THREE.BoxGeometry(0.01, 0.9, 0.03)), glow, sx * (0.22 + i * 0.07), 0.1 + i * 0.07, 0, w).scale.y = len; w.userData.base = sx * (0.5 + i * 0.32); w.rotation.z = w.userData.base; wings.push(w); }
+    head.position.y = 1.9;
+    const hd = add(oct('mqHead', 0.17), mirror, 0, 0, 0, head); hd.scale.set(0.78, 1.12, 0.82); hd.castShadow = true;
+    for (const sx of [-1, 1]) add(gq('mqEye', () => new THREE.BoxGeometry(0.05, 0.018, 0.02)), glow, sx * 0.055, 0.02, -0.13, head);
+    for (let k = 0; k < 5; k++) { const h = add(oct('mqHair', 1), mat, (k - 2) * 0.05, -0.06 - Math.abs(k - 2) * 0.03, 0.12, head); h.scale.set(0.045, 0.2 - k % 2 * 0.04, 0.045); h.rotation.set(0.5, 0, (k - 2) * 0.15); }
+    const crown = new THREE.Group(); crown.position.y = 0.16; head.add(crown);
+    add(gq('mqCrR', () => new THREE.TorusGeometry(0.11, 0.016, 4, 7).rotateX(Math.PI / 2)), silver, 0, 0, 0, crown);
+    for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2, s = add(gq('mqCrS' + (k ? 1 : 0), () => new THREE.ConeGeometry(0.03, k ? 0.24 : 0.34, 4)), k ? mat : gemM, Math.sin(a) * 0.12, 0.09, -Math.cos(a) * 0.12, crown); s.rotation.set(-Math.cos(a) * 0.3, 0, -Math.sin(a) * 0.3); }
+    const gem = add(oct('mqGem', 0.04), gemM, 0, 0.02, -0.13, crown);
+    const orbit = new THREE.Group(); orbit.position.y = 1.1; rig.add(orbit);
+    for (let k = 0; k < 4; k++) { const a = k / 4 * Math.PI * 2, p = new THREE.Group(); p.position.set(Math.cos(a) * 0.8, Math.sin(k * 2) * 0.15, Math.sin(a) * 0.8); p.rotation.y = Math.PI / 2 - a; orbit.add(p); add(gq('mqPane', () => new THREE.CylinderGeometry(0.1, 0.1, 0.015, 6).rotateX(Math.PI / 2)), mirror, 0, 0, 0, p); add(gq('mqPaneR', () => new THREE.CylinderGeometry(0.11, 0.11, 0.025, 6, 1, true).rotateX(Math.PI / 2)), silver, 0, 0, 0, p); }
+    return { arm: { x: 0.31, y: 1.58, len: 0.4, r: 0.055, spread: 0.12 }, hat: [0.16, 0.2], limb: silver, tick(t) {
+      orbit.rotation.y = t * 0.9; wings.forEach((w, k) => { w.rotation.z = w.userData.base + Math.sin(t * 1.3 + k) * 0.08; });
+      gem.scale.setScalar(1 + Math.sin(t * 6) * 0.3); heart.scale.set(1 + Math.sin(t * 4) * 0.12, 1.25 + Math.sin(t * 4) * 0.15, 1);
+    } };
+  },
+  clockreaper: c => {
+    // the Clockwork Reaper: tattered cloak, skull in a hood, a ticking clock for a heart and the scythe slung on his back
+    const { add, head, mat, M, rig } = c, bone = M(0xe8e0c8, { roughness: 0.6 }), brass = M(0xc9a24a, { metalness: 0.9, roughness: 0.3 }), steel = M(0xcfd6e2, { metalness: 1, roughness: 0.2 });
+    const eyeM = bossGlow(c, new THREE.Color(3, 2.4, 0.8)), edge = bossGlow(c, new THREE.Color(2.8, 2.3, 0.9)), voidM = bossGlow(c, 0x030206, { side: THREE.BackSide }), hole = bossGlow(c, 0x050307);
+    const wispM = bossGlow(c, new THREE.Color(1.2, 0.95, 0.35), { transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false });
+    const clockM = M(0xffffff, { map: clockTex(), roughness: 0.5, emissive: 0xffffff, emissiveMap: clockTex(), emissiveIntensity: 0.35 });
+    const rag = (k, r, h, n, cut) => gq(k, () => { const geo = new THREE.ConeGeometry(r, h, n, 4, true), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), a = Math.atan2(x, z), t = (h / 2 - y) / h, f = 1 + Math.sin(a * n / 2) * 0.07 * t; p.setXYZ(i, x * f, y + (y < -h / 2 + 1e-3 && (Math.round((a + Math.PI) / (Math.PI * 2) * n) % 2) ? cut : 0), z * f); } geo.computeVertexNormals(); return geo; });
+    add(rag('crCloak', 0.5, 1.2, 16, 0.14), mat, 0, 0.62, 0).castShadow = true;
+    add(gq('crT', () => new THREE.CapsuleGeometry(0.24, 0.36, 6, 14)), mat, 0, 1.36, 0).scale.set(1.12, 1, 0.82);
+    add(rag('crMantle', 0.38, 0.42, 12, 0.08), mat, 0, 1.56, 0);
+    for (const sx of [-1, 1]) { add(gq('crSh', () => new THREE.SphereGeometry(0.11, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2)), brass, sx * 0.3, 1.66, 0).scale.set(1, 0.7, 1.1); const s = add(gq('crShS', () => new THREE.ConeGeometry(0.025, 0.13, 5)), brass, sx * 0.33, 1.73, 0); s.rotation.z = -sx * 0.6; }
+    // chest clock
+    const clk = new THREE.Group(); clk.position.set(0, 1.36, -0.235); rig.add(clk);
+    add(gq('crFace', () => new THREE.CylinderGeometry(0.13, 0.13, 0.025, 24).rotateX(Math.PI / 2).rotateZ(Math.PI)), clockM, 0, 0, 0, clk);
+    add(gq('crRim', () => new THREE.TorusGeometry(0.135, 0.018, 6, 24)), brass, 0, 0, 0, clk);
+    for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, r = add(gq('crRay' + (k % 3 ? 0 : 1), () => new THREE.ConeGeometry(0.016, k % 3 ? 0.045 : 0.08, 4)), brass, Math.cos(a) * (k % 3 ? 0.165 : 0.18), Math.sin(a) * (k % 3 ? 0.165 : 0.18), 0, clk); r.rotation.z = a - Math.PI / 2; }
+    const hourH = new THREE.Group(), minH = new THREE.Group(); hourH.position.z = minH.position.z = -0.02; clk.add(hourH, minH);
+    add(gq('crHh', () => new THREE.BoxGeometry(0.016, 0.07, 0.006)), edge, 0, 0.03, 0, hourH); add(gq('crMh', () => new THREE.BoxGeometry(0.011, 0.11, 0.006)), edge, 0, 0.05, 0, minH);
+    const pend = new THREE.Group(); pend.position.set(0, 1.2, -0.22); rig.add(pend);
+    add(gq('crPr', () => new THREE.BoxGeometry(0.008, 0.26, 0.008)), brass, 0, -0.13, 0, pend); add(gq('crPb', () => new THREE.CylinderGeometry(0.04, 0.04, 0.01, 14).rotateX(Math.PI / 2)), brass, 0, -0.27, 0, pend);
+    // gears on the back
+    const gear = (k, r, x, y, z) => { const g = new THREE.Group(); g.position.set(x, y, z); rig.add(g); add(gq('crG' + k, () => new THREE.TorusGeometry(r, r * 0.14, 6, 24)), brass, 0, 0, 0, g); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; add(gq('crGt' + k, () => new THREE.BoxGeometry(r * 0.22, r * 0.22, r * 0.12)), brass, Math.cos(a) * r * 1.13, Math.sin(a) * r * 1.13, 0, g).rotation.z = a; } for (let i = 0; i < 3; i++) add(gq('crGs' + k, () => new THREE.BoxGeometry(r * 1.9, r * 0.1, r * 0.07)), brass, 0, 0, 0, g).rotation.z = i * Math.PI / 3; return g; };
+    const gears = [gear(0, 0.2, 0.08, 1.82, 0.26), gear(1, 0.12, -0.2, 1.6, 0.28)];
+    // scythe slung across the back
+    const scy = new THREE.Group(); scy.position.set(0, 1.25, 0.34); scy.rotation.z = 0.55; rig.add(scy);
+    add(gq('crShaft', () => new THREE.CylinderGeometry(0.02, 0.02, 1.7, 8)), mat, 0, 0, 0, scy);
+    for (const y of [-0.5, 0.2, 0.7]) add(gq('crRing', () => new THREE.CylinderGeometry(0.03, 0.03, 0.04, 10)), brass, 0, y, 0, scy);
+    const bs = new THREE.Shape(); bs.moveTo(0.01, 0.86); bs.quadraticCurveTo(-0.3, 1.1, -0.72, 0.74); bs.quadraticCurveTo(-0.33, 0.92, 0.01, 0.72); bs.lineTo(0.01, 0.86);
+    add(gq('crBlade', () => new THREE.ExtrudeGeometry(bs, { depth: 0.014, bevelEnabled: true, bevelThickness: 0.005, bevelSize: 0.008, bevelSegments: 1, curveSegments: 14 }).translate(0, 0, -0.007)), steel, 0, 0, 0, scy);
+    add(gq('crEdge', () => new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new V3(0.01, 0.865, 0), new V3(-0.3, 1.11, 0), new V3(-0.72, 0.74, 0)), 16, 0.009, 4)), edge, 0, 0, 0, scy);
+    head.position.y = 1.92;
+    const hs = Math.PI * 1.5 + 0.75, hl = Math.PI * 2 - 1.5;
+    add(gq('crHood', () => new THREE.SphereGeometry(0.27, 18, 12, hs, hl, 0, Math.PI * 0.72)), mat, 0, 0.02, 0.03, head).castShadow = true;
+    add(gq('crHoodIn', () => new THREE.SphereGeometry(0.255, 18, 12, hs, hl, 0, Math.PI * 0.72)), voidM, 0, 0.02, 0.03, head);
+    const pk = add(gq('crPeak', () => new THREE.ConeGeometry(0.08, 0.24, 8)), mat, 0, 0.28, 0.14, head); pk.rotation.x = 0.7;
+    add(gq('crSkull', () => new THREE.SphereGeometry(0.17, 16, 12)), bone, 0, 0, -0.04, head).scale.set(0.9, 1, 1);
+    for (const sx of [-1, 1]) add(gq('crSock', () => new THREE.SphereGeometry(0.045, 8, 6)), hole, sx * 0.062, 0.025, -0.185, head);
+    const eyes = [-1, 1].map(sx => add(gq('crEyeG', () => new THREE.SphereGeometry(0.026, 8, 6)), eyeM, sx * 0.062, 0.025, -0.222, head));
+    add(gq('crJaw', () => new THREE.BoxGeometry(0.13, 0.05, 0.1)), bone, 0, -0.13, -0.08, head);
+    for (let k = 0; k < 6; k++) add(gq('crTooth', () => new THREE.BoxGeometry(0.013, 0.025, 0.01)), bone, (k - 2.5) * 0.019, -0.1, -0.15, head);
+    const wisps = [];
+    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2, w = add(gq('crWisp', () => new THREE.ConeGeometry(0.05, 0.22, 6).rotateX(Math.PI)), wispM, Math.cos(a) * 0.32, 0.06, Math.sin(a) * 0.32); w.userData.k = k; wisps.push(w); }
+    return { arm: { x: 0.37, y: 1.58, len: 0.42, r: 0.05, spread: 0.12 }, hat: [0.27, 0.22], limb: bone, tick(t) {
+      gears[0].rotation.z = t * 1.8; gears[1].rotation.z = -t * 2.8; hourH.rotation.z = -t * 0.4; minH.rotation.z = -Math.floor(t * 2) * 0.35;
+      pend.rotation.z = Math.sin(t * 3.4) * 0.4; for (const m of eyes) m.scale.setScalar(1 + Math.sin(t * 4) * 0.15);
+      for (const w of wisps) { const s = 0.7 + Math.sin(t * 5 + w.userData.k * 1.7) * 0.3; w.scale.set(s, 0.6 + s, s); }
+    } };
+  },
+  wyrmkin: c => {
+    // the Frost Wyrm as a dragon warrior: horned ice-dragon head, crystal spines, wings and a tail
+    const { add, head, mat, M, rig } = c, belly = M(0xcfe8f8, { roughness: 0.35, flatShading: true }), fang = M(0xf2fbff, { roughness: 0.15 });
+    const crystal = bossGlow(c, new THREE.Color(0.5, 2.0, 3.0)), membrane = bossGlow(c, new THREE.Color(0.15, 0.45, 0.9), { transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false });
+    const breath = bossGlow(c, new THREE.Color(0.6, 1.8, 3.0), { transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false });
+    const B = person(c, mat, mat, mat, { tw: 1.15, tr: 0.28, ar: 0.095, lr: 0.1 });
+    add(gq('wkBelly', () => new THREE.BoxGeometry(0.3, 0.55, 0.06)), belly, 0, 1.3, -0.22);
+    for (let k = 0; k < 4; k++) add(gq('wkBl', () => new THREE.BoxGeometry(0.32, 0.015, 0.07)), mat, 0, 1.08 + k * 0.14, -0.235);
+    for (const sx of [-1, 1]) for (let k = 0; k < 2; k++) { const s = add(gq('wkShS', () => new THREE.ConeGeometry(0.04, 0.2, 5)), crystal, sx * (0.38 + k * 0.08), 1.74 - k * 0.04, 0.02); s.rotation.z = -sx * (0.5 + k * 0.4); }
+    for (let k = 0; k < 4; k++) { const s = add(gq('wkSp', () => new THREE.ConeGeometry(0.05, 0.2, 5)), crystal, 0, 1.68 - k * 0.17, 0.24 + k * 0.01); s.rotation.x = 0.6; s.scale.setScalar(1 - k * 0.15); }
+    // tail
+    const tail = new THREE.Group(); tail.position.set(0, 1.0, 0.22); rig.add(tail);
+    let tp = tail; const tsegs = [];
+    for (let k = 0; k < 5; k++) { const s = new THREE.Group(); s.position.set(0, k ? -0.04 : 0, k ? 0.17 : 0); tp.add(s); add(gq('wkTs', () => new THREE.IcosahedronGeometry(0.1, 0)), mat, 0, 0, 0.08, s).scale.set(1 - k * 0.15, 1 - k * 0.15, 1.3); tsegs.push(s); tp = s; }
+    const fin = add(gq('wkTf', () => new THREE.ConeGeometry(0.1, 0.32, 4).rotateX(Math.PI / 2)), crystal, 0, 0, 0.26, tp); fin.scale.y = 0.25;
+    // wings
+    const wings = [-1, 1].map(sx => {
+      const w = new THREE.Group(); w.position.set(sx * 0.14, 1.6, 0.22); rig.add(w);
+      const P = [[0, 0], [0.5, 0.42], [0.95, 0.15], [0.78, -0.08], [0.72, -0.34], [0.52, -0.22], [0.36, -0.46], [0.2, -0.22], [0, -0.3]];
+      const sh = new THREE.Shape(); P.forEach(([x, y], k) => k ? sh.lineTo(sx * x, y) : sh.moveTo(sx * x, y));
+      add(gq('wkWing' + sx, () => new THREE.ShapeGeometry(sh)), membrane, 0, 0, 0, w);
+      const bone = (ax, ay, bx, by) => { const m = add(gq('wkBone', () => new THREE.CylinderGeometry(0.012, 0.022, 1, 5)), mat, (ax + bx) / 2, (ay + by) / 2, 0, w); m.scale.y = Math.hypot(bx - ax, by - ay); m.rotation.z = Math.atan2(-(bx - ax), by - ay); };
+      bone(0, 0, sx * 0.5, 0.42); for (const [x, y] of [[0.95, 0.15], [0.72, -0.34], [0.36, -0.46]]) bone(sx * 0.5, 0.42, sx * x, y);
+      add(gq('wkClaw', () => new THREE.ConeGeometry(0.025, 0.1, 5)), crystal, sx * 0.5, 0.48, 0, w);
+      return w;
+    });
+    head.position.y = 1.92;
+    add(gq('wkSk', () => new THREE.DodecahedronGeometry(0.19, 0)), mat, 0, 0.02, 0.04, head).scale.set(0.95, 0.85, 1.05);
+    const snout = add(gq('wkSn', () => new THREE.ConeGeometry(0.13, 0.52, 6).rotateX(-Math.PI / 2)), mat, 0, -0.01, -0.3, head); snout.scale.y = 0.65;
+    for (let k = 0; k < 4; k++) for (const sx of [-1, 1]) { const t = add(gq('wkT', () => new THREE.ConeGeometry(0.012, 0.05, 4)), fang, sx * (0.095 - k * 0.017), -0.055, -0.15 - k * 0.07, head); t.rotation.x = Math.PI; }
+    const jaw = new THREE.Group(); jaw.position.set(0, -0.08, -0.04); head.add(jaw);
+    const jw = add(gq('wkJaw', () => new THREE.ConeGeometry(0.1, 0.44, 6).rotateX(-Math.PI / 2)), belly, 0, -0.02, -0.24, jaw); jw.scale.y = 0.45;
+    const mouth = add(gq('wkMouth', () => new THREE.SphereGeometry(0.04, 10, 8)), breath, 0, -0.07, -0.42, head);
+    for (const sx of [-1, 1]) {
+      add(gq('wkEye', () => new THREE.SphereGeometry(0.03, 8, 6)), crystal, sx * 0.1, 0.07, -0.12, head);
+      const br = add(gq('wkBrow', () => new THREE.BoxGeometry(0.1, 0.03, 0.12)), mat, sx * 0.1, 0.11, -0.1, head); br.rotation.set(-0.2, 0, -sx * 0.35);
+      for (let k = 0; k < 2; k++) { const h = add(gq('wkHorn' + k, () => new THREE.ConeGeometry(0.038, 0.44 - k * 0.14, 5)), crystal, sx * (0.1 + k * 0.05), 0.14, 0.08 + k * 0.05, head); h.rotation.set(-1.1, 0, -sx * 0.35); }
+      for (let k = 0; k < 2; k++) { const f = add(gq('wkFr', () => new THREE.ConeGeometry(0.025, 0.16, 5)), mat, sx * 0.17, 0 - k * 0.07, 0.1, head); f.rotation.set(-1.3, 0, -sx * (1.0 + k * 0.3)); }
+    }
+    for (let k = 0; k < 3; k++) { const s = add(gq('wkCrest', () => new THREE.ConeGeometry(0.025, 0.14, 5)), crystal, 0, 0.18 - k * 0.02, 0.0 + k * 0.08, head); s.rotation.x = -1.2; }
+    return { ...B, arm: { x: 0.43, y: 1.58, len: 0.42, r: 0.095, spread: 0.12 }, hat: [0.22, 0.2], tick(t) {
+      wings.forEach((w, i) => { w.rotation.y = (i ? -1 : 1) * (0.35 + Math.sin(t * 2.2) * 0.3); });
+      tsegs.forEach((s, k) => { s.rotation.y = Math.sin(t * 2 - k * 0.6) * 0.25; s.rotation.x = k ? 0.12 : 0.5; });
+      const m = (Math.sin(t * 0.9) + 1) / 2; jaw.rotation.x = m * 0.35; mouth.scale.setScalar(0.5 + m); breath.opacity = 0.1 + m * 0.3;
+    } };
+  },
+  overmind: c => {
+    // the Overmind in a chrome body: brain in a glass dome, antenna, cable tendrils and a pair of hex shields orbiting
+    const { add, head, mat, M, rig } = c, chrome = M(0x8a86a0, { metalness: 1, roughness: 0.15 }), dark = M(0x2a2236, { metalness: 0.9, roughness: 0.3 });
+    const brainM = M(0xffffff, { map: brainTex(), roughness: 0.55, emissive: 0xff4fa0, emissiveMap: brainTex(), emissiveIntensity: 0.8 });
+    const glass = new THREE.MeshPhysicalMaterial({ color: 0xd8f0ff, roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.25, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false }); c.extra.push(glass);
+    const glow = bossGlow(c, new THREE.Color(3.0, 0.55, 2.3)), sparkM = bossGlow(c, new THREE.Color(3, 2.2, 3));
+    const panelM = M(0x4a1a60, { map: shieldTex(), metalness: 0.95, roughness: 0.15, emissive: 0x5a0a50, emissiveMap: shieldTex(), side: THREE.DoubleSide });
+    const B = person(c, mat, dark, chrome, { tw: 1.1, tr: 0.26 });
+    add(gq('omChest', () => new THREE.BoxGeometry(0.4, 0.3, 0.06)), dark, 0, 1.42, -0.22);
+    const vents = []; for (let k = 0; k < 4; k++) vents.push(add(gq('omVent', () => new THREE.BoxGeometry(0.28, 0.02, 0.02)), glow, 0, 1.33 + k * 0.06, -0.255));
+    add(gq('omBelt', () => new THREE.TorusGeometry(0.3, 0.035, 6, 24).rotateX(Math.PI / 2)), chrome, 0, 1.06, 0).scale.z = 0.82;
+    add(gq('omCol', () => new THREE.CylinderGeometry(0.22, 0.27, 0.08, 20)), chrome, 0, 1.72, 0);
+    add(gq('omRing', () => new THREE.TorusGeometry(0.23, 0.015, 6, 28).rotateX(Math.PI / 2)), glow, 0, 1.77, 0);
+    const cables = [];
+    for (let k = 0; k < 4; k++) { const p = new THREE.Group(); p.position.set((k - 1.5) * 0.12, 1.5, 0.22); p.rotation.y = Math.PI / 2; rig.add(p); add(gq('omCab', () => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new V3(0, 0, 0), new V3(-0.12, -0.2, 0), new V3(-0.2, -0.5, 0), new V3(-0.18, -0.8, 0)]), 12, 0.022, 6)), dark, 0, 0, 0, p); add(gq('omCabT', () => new THREE.SphereGeometry(0.035, 8, 6)), glow, -0.18, -0.82, 0, p); p.userData.k = k; cables.push(p); }
+    head.position.y = 2.0;
+    const brain = new THREE.Group(); head.add(brain);
+    for (const sx of [-1, 1]) add(gq('omHemi', () => { const geo = new THREE.SphereGeometry(0.12, 28, 20), p = geo.attributes.position, v = new V3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const n = Math.sin(v.x * 75 + Math.sin(v.y * 52) * 2) * Math.sin(v.z * 60 + v.y * 38); v.multiplyScalar(1 + n * 0.07); p.setXYZ(i, v.x, v.y, v.z); } geo.computeVertexNormals(); return geo; }), brainM, sx * 0.062, 0.01, 0, brain).scale.set(0.88, 0.85, 1.3);
+    const sparks = []; for (let k = 0; k < 8; k++) sparks.push(add(gq('omSpk', () => new THREE.SphereGeometry(0.008, 5, 4)), sparkM, (k % 2 ? 1 : -1) * rand(0.03, 0.11), rand(0.05, 0.1), rand(-0.12, 0.12), brain));
+    add(gq('omDome', () => new THREE.SphereGeometry(0.25, 26, 16, 0, Math.PI * 2, 0, Math.PI * 0.6)), glass, 0, -0.08, 0, head);
+    for (let k = 0; k < 3; k++) add(gq('omRib', () => new THREE.TorusGeometry(0.255, 0.008, 4, 24, Math.PI)), chrome, 0, -0.08, 0, head).rotation.y = k * Math.PI / 3;
+    add(gq('omBase', () => new THREE.CylinderGeometry(0.25, 0.2, 0.08, 24)), dark, 0, -0.14, 0, head);
+    for (const sx of [-1, 1]) add(gq('omLens', () => new THREE.SphereGeometry(0.025, 10, 8)), glow, sx * 0.09, -0.14, -0.2, head);
+    add(gq('omAnt', () => new THREE.CylinderGeometry(0.006, 0.008, 0.16, 6)), chrome, 0, 0.24, 0, head);
+    const tip = add(gq('omTip', () => new THREE.SphereGeometry(0.025, 10, 8)), glow, 0, 0.33, 0, head);
+    const shields = new THREE.Group(); shields.position.y = 1.35; rig.add(shields);
+    for (let k = 0; k < 2; k++) { const t0 = k * Math.PI; add(gq('omSh', () => new THREE.CylinderGeometry(0.62, 0.62, 0.5, 6, 1, true, 0, 0.8)), panelM, 0, 0, 0, shields).rotation.y = t0; for (const y of [-0.26, 0.26]) add(gq('omShE', () => new THREE.CylinderGeometry(0.63, 0.63, 0.025, 6, 1, true, 0, 0.8)), glow, 0, y, 0, shields).rotation.y = t0; }
+    return { ...B, arm: { x: 0.4, y: 1.58, len: 0.42, r: 0.08, spread: 0.12 }, hat: [0.26, 0.15], limb: chrome, tick(t) {
+      shields.rotation.y = t * 0.8; brain.position.y = Math.sin(t * 1.8) * 0.01;
+      brainM.emissiveIntensity = 0.7 + Math.sin(t * 3) * 0.3; tip.scale.setScalar(1 + Math.sin(t * 8) * 0.3);
+      for (const s of sparks) s.visible = Math.random() < 0.4;
+      vents.forEach((v, k) => { v.visible = Math.sin(t * 6 - k) > -0.3; });
+      for (const p of cables) p.rotation.z = Math.sin(t * 1.5 + p.userData.k) * 0.2;
+    } };
+  },
+});
 function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none', pet = '') {
   const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
@@ -4252,7 +4458,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     av.userData.gearMat = gl;
   }
   scene.add(av);
-  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing, pet: petG, legs, armY: bodyCfg ? bodyCfg.arm.y : walla ? 1.66 : 1.12, jiggle: bodyCfg?.jiggle };
+  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing, pet: petG, legs, armY: bodyCfg ? bodyCfg.arm.y : walla ? 1.66 : 1.12, jiggle: bodyCfg?.jiggle, tick: bodyCfg?.tick };
 }
 function bubbleSprite(text) {
   const c = document.createElement('canvas'); c.width = 320; c.height = 96; const x = c.getContext('2d');
@@ -4385,6 +4591,7 @@ function avatarFX(a) {
     a.rig.rotation.x = damp(a.rig.rotation.x, P.nod, 8, 0.016);
     a.rig.rotation.y = P.spin != null ? wrapA(P.spin) : damp(wrapA(a.rig.rotation.y), 0, 8, 0.016);
     a.arms[0].position.y = a.armY + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = a.armY + Math.sin(t + 2.1) * 0.04;
+    if (a.tick) a.tick(time + a.phase * 9);
     if (a.jiggle) { const j = Math.sin(time * 5 + a.phase * 6) * 0.05; a.jiggle.scale.set(1 - j * 0.5, 1.25 + j * 1.5, 0.85 - j * 0.4); }
     if (a.legs) { const mv = a.vel && Math.hypot(a.vel.x, a.vel.z) > 1.5; a.legs.forEach((l, i) => { l.rotation.x = mv ? Math.sin(time * 10 + i * Math.PI) * 0.55 : damp(l.rotation.x, 0, 8, 0.016); }); }
     a.arms[0].rotation.x = damp(a.arms[0].rotation.x, P.l[0], 10, 0.016); a.arms[0].rotation.z = damp(a.arms[0].rotation.z, P.l[1], 10, 0.016);
