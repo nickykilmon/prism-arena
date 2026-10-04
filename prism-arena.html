@@ -945,6 +945,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'big-grenades', date: '2026-10-03', title: 'Grenades Hit Way Harder',
+    lines: ['Cybernades now explode in a 12 m sphere that reaches drones flying above you, and one grenade takes out a Poisoner anywhere in the blast', 'Poppers got the same treatment with a smaller blast', 'Bigger, louder explosions you can see expand in every direction'] },
   { id: 'poison-scramble', date: '2026-10-03', title: 'Poisoners Now Scramble Your Controls',
     lines: ['Get hit by a green Poisoner and your movement and aim flip backwards until the poison wears off', 'A green haze and a woozy camera tell you when you are poisoned', 'Cure it fast with a Medic heal zone or bubble, a health pickup, or a revive'] },
   { id: 'seasonal-emotes', date: '2026-10-03', title: 'Seasonal Emotes Come To The Game',
@@ -2067,7 +2069,12 @@ function updateFX(dt) {
   for (const r of rings) if (r.m.visible) { r.t += dt; const k = r.t / r.d; r.m.scale.setScalar(0.3 + k * r.s); r.m.material.opacity = Math.max(0, 1 - k); if (k >= 1) r.m.visible = false; }
   for (const f of flashes) { if (f.t > 0) { f.t -= dt; f.l.intensity = f.i * Math.max(0, f.t / f.d); } else f.l.intensity = 0; }
   muzzleLight.intensity = Math.max(0, muzzleLight.intensity - dt * 400);
+  for (const b of blastShells) if (b.m.visible) { b.t += dt; const k = Math.min(1, b.t / b.d); b.m.scale.setScalar(b.r * (0.15 + 0.85 * Math.sqrt(k))); b.m.material.opacity = 0.55 * (1 - k); if (k >= 1) b.m.visible = false; }
 }
+const shellGeo = new THREE.SphereGeometry(1, 28, 18);
+const blastShells = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(shellGeo, new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); m.visible = false; scene.add(m); return { m, t: 0, d: 0.4, r: 1 }; });
+let shellCur = 0;
+function blastShell(pos, color, r, dur = 0.4) { const b = blastShells[shellCur]; shellCur = (shellCur + 1) % blastShells.length; b.m.position.copy(pos); b.m.material.color.copy(color).multiplyScalar(0.5); b.t = 0; b.d = dur; b.r = r; b.m.visible = true; }
 const WHITE = new THREE.Color(2, 2, 2), ROSE = new THREE.Color(2.9, 0.5, 1.6), GREEN = new THREE.Color(0.5, 2.8, 1.2);
 const wColor = id => new THREE.Color(...WEAPONS[id].color);
 
@@ -4348,22 +4355,23 @@ function rocketExplode(p, mine) {
   const near = p.distanceTo(player.pos); if (near < 30) shake = Math.max(shake, 0.45 * (1 - near / 30));
   if (mine) blast(p, W.dmg, W.splash, 22);
 }
-function blast(p, dmgMax, R, push) {
+// blasts reach in every direction (a sphere), so they hit drones hovering above too
+function blast(p, dmgMax, R, push, falloff = 0.6, pvp = 1) {
   let hitAny = false;
   for (const e of [...ents.values()]) {
     if (!e.alive || (e.kind !== 'drone' && !enemyOf(myTeam, e.team))) continue;
-    const c = e.kind === 'drone' ? e.pos : tA.copy(e.pos).setY(e.pos.y + 0.9), d = c.distanceTo(p);
-    if (d < R) { damageEnt(e, Math.round(dmgMax * (1 - 0.6 * d / R)), c, true); hitAny = true; }
+    const c = e.kind === 'drone' ? e.pos : tA.copy(e.pos).setY(e.pos.y + 0.9), d = Math.max(0, c.distanceTo(p) - (e.kind === 'drone' ? TYPES[e.type].scale * 0.8 : 0));
+    if (d < R) { damageEnt(e, Math.round(dmgMax * (1 - falloff * d / R) * (e.kind === 'bot' ? pvp : 1)), c.clone(), true); hitAny = true; }
   }
   for (const o of peers.values()) {
     if (!o.av.visible || !enemyOf(myTeam, o.team)) continue;
     const d = tA.copy(o.pos).setY(o.pos.y + 0.9).distanceTo(p);
-    if (d < R) { damagePeer(o, Math.round(dmgMax * (1 - 0.6 * d / R)), tA, true); hitAny = true; }
+    if (d < R) { damagePeer(o, Math.round(dmgMax * (1 - falloff * d / R) * pvp), tA, true); hitAny = true; }
   }
   if (hitAny) { hitmarker(false); sfx.hit(); }
-  const me = tA.copy(player.pos).setY(player.pos.y + 0.9), d = me.distanceTo(p);
-  if (d < R && player.alive) {
-    const k = 1 - d / R, dir = me.sub(p).normalize();
+  const me = tA.copy(player.pos).setY(player.pos.y + 0.9), d = me.distanceTo(p), selfR = Math.min(R, 7);
+  if (d < selfR && player.alive) {
+    const k = 1 - d / selfR, dir = me.sub(p).normalize();
     player.vel.addScaledVector(dir, push * k); player.vel.y += 7 * k; player.onGround = false; player.lastGround = -9; shake = 0.25;
   }
 }
@@ -4763,16 +4771,21 @@ function deployEffects(dt) {
 function nadeExplode(p, mine, kind = 'nade') {
   if (kind === 'popper') {
     const c = new THREE.Color(2.9, 0.8, 0.5);
-    burst(p, 22, c, 8, 0.4, 0.09, 3); burst(p, 10, WHITE, 6, 0.2, 0.06, 0); shockRing(p, c, 4, 0.3); flash(p, c, 40, 0.15);
-    const pf = panFor(p); noise(0.12, 0.25 * Math.max(0.3, pf.v), 2500, 'bandpass', 0.8, pf.pan); tone(400, 120, 0.12, 0.15 * Math.max(0.3, pf.v), 'square', pf.pan);
-    if (mine) blast(p, 30, 3.5, 6);
+    burst(p, 45, c, 14, 0.5, 0.11, 2); burst(p, 20, WHITE, 10, 0.25, 0.07, 0); shockRing(p, c, 10, 0.35); blastShell(p, c, 7.5, 0.35); flash(p, c, 70, 0.2);
+    const pf = panFor(p); noise(0.18, 0.35 * Math.max(0.3, pf.v), 2000, 'bandpass', 0.8, pf.pan); tone(380, 90, 0.18, 0.2 * Math.max(0.3, pf.v), 'square', pf.pan);
+    const near = p.distanceTo(player.pos); if (near < 18) shake = Math.max(shake, 0.2 * (1 - near / 18));
+    if (mine) blast(p, 50, 7.5, 7, 0.35, 0.7);
     return;
   }
   const cyan = new THREE.Color(0.5, 2.6, 3), pink = new THREE.Color(2.9, 0.5, 2.2);
-  explosionFX(p, cyan, 1.3); shockRing(p, pink, 11, 0.55); shockRing(p.clone().setY(p.y + 0.4), cyan, 7, 0.35);
-  burst(p, 40, WHITE, 18, 0.35, 0.06, 0); burst(p, 30, pink, 10, 0.7, 0.1, 4);
-  const pf = panFor(p); tone(2400, 120, 0.4, 0.12 * Math.max(0.2, pf.v), 'sawtooth', pf.pan); noise(0.3, 0.25 * Math.max(0.2, pf.v), 5000, 'highpass', 0.7, pf.pan);
-  if (mine) blast(p, 90, 6, 15);
+  explosionFX(p, cyan, 2.2); shockRing(p, pink, 26, 0.6); shockRing(p.clone().setY(p.y + 0.4), cyan, 18, 0.45); shockRing(p.clone().setY(p.y + 4), pink, 14, 0.5);
+  blastShell(p, cyan, 12, 0.45); blastShell(p, pink, 8, 0.3);
+  burst(p, 90, WHITE, 30, 0.45, 0.08, 0); burst(p, 70, pink, 18, 0.9, 0.12, 2); burst(p, 50, cyan, 24, 0.7, 0.1, -1);
+  flash(p, cyan, 160, 0.4);
+  const pf = panFor(p); tone(2400, 90, 0.5, 0.16 * Math.max(0.2, pf.v), 'sawtooth', pf.pan); noise(0.4, 0.35 * Math.max(0.2, pf.v), 5000, 'highpass', 0.7, pf.pan); tone(60, 25, 0.6, 0.4 * Math.max(0.3, pf.v), 'sine', pf.pan);
+  const near = p.distanceTo(player.pos); if (near < 30) shake = Math.max(shake, 0.4 * (1 - near / 30));
+  // 120 at the centre, still about 80 at the 12 m edge: kills a Poisoner (75 hp) anywhere inside it
+  if (mine) blast(p, 120, 12, 16, 0.35, 0.7);
 }
 
 const pickups = [];
