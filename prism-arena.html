@@ -123,6 +123,7 @@ button,input,select{font:inherit;color:inherit}
 #board td.n,#board th.n{text-align:right}
 #board .bot{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6px}
 #dmg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,30,70,.55) 100%)}
+#dmg.poison{background:radial-gradient(ellipse at center,transparent 35%,rgba(60,230,50,.75) 100%)}
 #ks{position:absolute;right:16px;bottom:calc(120px + env(safe-area-inset-bottom,0px));font-size:12px;letter-spacing:.14em;color:#ff8a3d;background:var(--panel);border:1px solid rgba(255,138,61,.45);padding:6px 10px;border-radius:4px;text-align:right}
 #ks b{color:var(--fg)}
 #ks.ready{border-color:#ff8a3d;box-shadow:0 0 14px rgba(255,138,61,.45);animation:blink 1.2s infinite}
@@ -944,6 +945,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'poison-scramble', date: '2026-10-03', title: 'Poisoners Now Scramble Your Controls',
+    lines: ['Get hit by a green Poisoner and your movement and aim flip backwards until the poison wears off', 'A green haze and a woozy camera tell you when you are poisoned', 'Cure it fast with a Medic heal zone or bubble, a health pickup, or a revive'] },
   { id: 'seasonal-emotes', date: '2026-10-03', title: 'Seasonal Emotes Come To The Game',
     lines: ['Every season now has its own emote with a prop: Trick or Treat, Feast, Unwrap, Love Toss, Solidarity, Egg Hunt, Pride Wave and Ice Cream', 'Trick or Treat is in the Halloween shop right now: hold a glowing jack-o\'-lantern basket while candy rains into it', 'Bought emotes live in Customize and work all year (press H in a match)'] },
   { id: 'shop-customize', date: '2026-10-03', title: 'New Shop Layout & Customize Tab',
@@ -2360,7 +2363,9 @@ function spawnPlayer() {
   else { const k = kit(); setWeapon(curW && k.guns.includes(curW) ? curW : coop() || !k.guns.includes(settings.gun) ? k.guns[0] : settings.gun, true); }
 }
 function wishDir(o) {
-  const f = (held.forward ? 1 : 0) - (held.back ? 1 : 0), r = (held.right ? 1 : 0) - (held.left ? 1 : 0);
+  // Poisoner venom scrambles your controls: movement is reversed
+  const inv = player.poisonUntil > time ? -1 : 1;
+  const f = ((held.forward ? 1 : 0) - (held.back ? 1 : 0)) * inv, r = ((held.right ? 1 : 0) - (held.left ? 1 : 0)) * inv;
   const sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
   o.set(-sy * f + cy * r, 0, -cy * f - sy * r);
   if (o.lengthSq() > 0) o.normalize();
@@ -4940,7 +4945,7 @@ function hurt(dmg, src) {
   if (!player.alive || player.invuln > 0 || !inMatch() || GS.ph === 1) return;
   if (coop() && inShield(player.pos)) { shockRing(player.pos.clone().setY(player.pos.y + 1), new THREE.Color(0.6, 2.2, 3), 1.5, 0.25); return; }
   player.hp -= dmg; player.lastDmgT = time;
-  if (src.poison) { dmgFlash = Math.min(0.35, dmgFlash + 0.12); tone(160, 120, 0.08, 0.05, 'sine'); }
+  if (src.poison) tone(160, 120, 0.08, 0.05, 'sine');
   else { dmgFlash = Math.min(1, dmgFlash + 0.5 + dmg / 40); shake = Math.max(shake, 0.18); sfx.hurt(); }
   if (src.killer) { player.lastHitBy = src.killer; player.lastHitT = time; }
   if (player.hp <= 0) { player.hp = 0; if (coop()) goDown(src); else die(src); }
@@ -4980,7 +4985,7 @@ function goDown(src) {
 function poisonMe() {
   const fresh = !(player.poisonUntil > time);
   player.poisonUntil = time + 8; player.poisonT = player.poisonT || 0.5;
-  if (fresh) { toast('☠ Poisoned! Get healed by a medic or grab a health pickup'); tone(200, 90, 0.4, 0.12, 'sawtooth'); }
+  if (fresh) { toast('☠ Poisoned! Your controls are reversed. Get healed by a medic or grab a health pickup'); announce('POISONED', 'Controls reversed', '#5cff3a'); tone(200, 90, 0.4, 0.12, 'sawtooth'); }
 }
 const curePoison = () => { if (player.poisonUntil > time) { player.poisonUntil = 0; burst(tA.copy(player.pos).setY(player.pos.y + 1), 16, GREEN, 4, 0.5, 0.08, -2); toast('Poison cured'); } };
 function reviveMe(frac, who) {
@@ -5414,7 +5419,9 @@ function updateHUD() {
   const gap = (ads ? 3 : 7) + Math.min(hs, 12) * 0.5 + (player.onGround ? 0 : 6) + vmKick * 3 + (W.pellets > 1 ? 14 : 0);
   setStyle($('cross'), '--gap', Math.round(gap) + 'px');
   setStyle($('cross'), 'opacity', ads ? '0.6' : '1');
+  $('dmg').classList.toggle('poison', player.poisonUntil > time && player.alive && dmgFlash <= 0.05);
   if (dmgFlash > 0) { dmgFlash = Math.max(0, dmgFlash - 0.03); setStyle($('dmg'), 'opacity', dmgFlash.toFixed(2)); }
+  else if (player.poisonUntil > time && player.alive) { setStyle($('dmg'), 'opacity', (0.6 + Math.sin(time * 4) * 0.15).toFixed(2)); }
   else if (player.downed) setStyle($('dmg'), 'opacity', '0.45');
   else if (player.hp <= maxHp() * 0.3 && state === 'playing') setStyle($('dmg'), 'opacity', (0.25 + Math.sin(time * 5) * 0.12).toFixed(2));
   else setStyle($('dmg'), 'opacity', '0');
@@ -5656,7 +5663,8 @@ addEventListener('mousemove', e => {
   if (state !== 'playing' || !(locked || fallbackLook)) return;
   if (chatOpen) return;
   const s = 0.0022 * settings.sens * (ads ? (WEAPONS[curW].zoom < 40 ? 0.35 : 0.6) * opts.zsens : 1);
-  player.yaw -= e.movementX * s; player.pitch = clamp(player.pitch - e.movementY * s * (opts.invY ? -1 : 1), -1.55, 1.55);
+  const inv = player.poisonUntil > time ? -1 : 1; // and so is aiming
+  player.yaw -= e.movementX * s * inv; player.pitch = clamp(player.pitch - e.movementY * s * (opts.invY ? -1 : 1) * inv, -1.55, 1.55);
 });
 canvas.addEventListener('mousedown', e => { if (chatOpen) closeChat(); if (state !== 'playing') return; pressCode('Mouse' + e.button, false); });
 addEventListener('mouseup', e => { if (releaseCode('Mouse' + e.button) && e.button > 2 && state === 'playing') e.preventDefault(); });
@@ -6028,7 +6036,7 @@ function frame(now) {
     const hs = Math.hypot(player.vel.x, player.vel.z), bob = player.onGround ? Math.sin(bobT) * 0.045 * Math.min(hs / 9.5, 1) : 0;
     if (state === 'dead') { camera.position.y = damp(camera.position.y, player.pos.y + 5, 2, dt); player.pitch = damp(player.pitch, -0.6, 2, dt); }
     else { const sh = opts.shake ? shake : 0; camera.position.set(player.pos.x + rand(-sh, sh), player.pos.y + (player.downed ? 0.55 : EYE) + bob - landDip + rand(-sh, sh), player.pos.z + rand(-sh, sh)); }
-    camera.rotation.set(player.pitch + recoilP, player.yaw, Math.sin(bobT * 0.5) * 0.004 * Math.min(hs, 9), 'YXZ');
+    camera.rotation.set(player.pitch + recoilP, player.yaw, Math.sin(bobT * 0.5) * 0.004 * Math.min(hs, 9) + (player.poisonUntil > time ? Math.sin(time * 1.7) * 0.06 : 0), 'YXZ');
     const zoom = ads && !WEAPONS[curW].melee ? Math.min(WEAPONS[curW].zoom, opts.fov) : opts.fov;
     camera.fov = damp(camera.fov, zoom + (ads ? 0 : fovKick + Math.min(Math.max(hs - 10, 0), 15) * 0.5), 12, dt);
   }
