@@ -173,6 +173,12 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .arrows button:hover{border-color:var(--cyan)}
 .shoptop{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
 .shoptop .creator{flex:1;min-width:220px}
+.eslots{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:0 0 8px}
+.eslots button{display:flex;align-items:center;gap:6px;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:rgba(255,255,255,.04);color:var(--fg);cursor:pointer;font:inherit;font-size:12px;text-align:left}
+.eslots button.sel{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan);background:rgba(95,242,255,.08)}
+.eslots kbd{font-family:var(--display);font-weight:700;color:var(--cyan)}
+.eslots i{font-style:normal;font-size:16px}
+.eslots span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .item{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;min-width:0}
 .item .pv{height:46px;border-radius:4px;background:var(--pv)}
 .item b{font-family:var(--display);font-size:12px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -487,7 +493,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="scol"><div class="srh"><span class="sect">Hats<span class="n" id="ncHatItems"></span></span><span class="arrows" data-for="cHatItems"></span></div><div class="items hrow" id="cHatItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Gun finishes<span class="n" id="ncFinishItems"></span></span><span class="arrows" data-for="cFinishItems"></span></div><div class="items hrow" id="cFinishItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Pets<span class="n" id="ncPetItems"></span></span><span class="arrows" data-for="cPetItems"></span></div><div class="items hrow" id="cPetItems"></div></div>
-        <div class="scol"><div class="srh"><span class="sect">Emotes · H in a match<span class="n" id="ncEmoteItems"></span></span><span class="arrows" data-for="cEmoteItems"></span></div><div class="items hrow" id="cEmoteItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Emotes · in a match press H, then 1–4<span class="n" id="ncEmoteItems"></span></span><span class="arrows" data-for="cEmoteItems"></span></div><div class="eslots" id="eslots"></div><div class="items hrow" id="cEmoteItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Color</span></div><div class="swatches" id="swatches2"></div></div>
       </div>
     </div>
@@ -634,8 +640,8 @@ const WEAPONS = {
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
 };
 const WIDS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'dual', 'blade', 'claw', 'inferno', 'arc'];
-const LOADOUT = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg'];
-const LADDER = ['smg', 'rifle', 'lmg', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
+const LOADOUT = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'inferno', 'arc'];
+const LADDER = ['smg', 'rifle', 'arc', 'lmg', 'inferno', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
 const FFA_GOAL = 20;
 // FFA kill streak rewards (5 kills: air strike, 10 kills: sentry drone). Set to false to turn them off.
 const FFA_STREAKS = true;
@@ -951,6 +957,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'guns-emote-slots', date: '2026-10-04', title: 'Inferno & Arc Thrower For Everyone, Emote Loadout',
+    lines: ['The Inferno flamethrower and the Arc Thrower are now in Free-for-All, Capture the Flag and Infection (keys 8 and 9) and in the Gun Game ladder', 'Pick your 4 emotes in Customize: click a slot, then click an emote. In a match press H, then 1, 2, 3 or 4'] },
   { id: 'burger-poison', date: '2026-10-04', title: 'Burger Man & Poisoner Changes',
     lines: ['New suit with its own model: Burger Man, a guy with a cheeseburger for a head', 'Poison no longer reverses your controls', 'In exchange, Poisoners shoot faster'] },
   { id: 'fullscreen', date: '2026-10-04', title: 'Fullscreen Mode',
@@ -1270,6 +1278,19 @@ const PETS = {
   unicorn: { name: 'Rainbow Unicorn', price: 900, icon: '🦄', season: 'pride' },
 };
 // bundled items (like Tiger Ears) come free with the suit they belong to
+// the 4 emotes you take into a match (picked in Customize); empty slots fill with other emotes you own
+let emoteSaved = store.get('emotes', []), emoteSel = 0;
+const ownedEmotes = () => Object.keys(EMOTES).filter(id => owns('emote', id));
+function emoteSlots() {
+  const own = ownedEmotes(), s = [0, 1, 2, 3].map(i => Array.isArray(emoteSaved) && own.includes(emoteSaved[i]) ? emoteSaved[i] : null);
+  for (const id of own) { const k = s.indexOf(null); if (k < 0) break; if (!s.includes(id)) s[k] = id; }
+  return s;
+}
+function setEmoteSlot(i, id) {
+  const s = emoteSlots(), j = s.indexOf(id);
+  if (j >= 0 && j !== i) s[j] = s[i];
+  s[i] = id; emoteSaved = s; store.set('emotes', s);
+}
 const owns = (kind, id) => { const d = (kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : kind === 'pet' ? PETS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
 if (!owns('suit', settings.skin)) settings.skin = 'standard';
 if (!owns('finish', settings.finish)) settings.finish = 'factory';
@@ -2321,7 +2342,7 @@ const ACTIONS = [
   ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Ability (pulse / class)', ['KeyQ', null]], ['nade', 'Grenade / gadget', ['KeyG', null]],
   ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]],
   ['panic', 'Panic screen', ['Backquote', null]],
-  ...[1, 2, 3, 4, 5, 6, 7].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
 ];
 const DEFAULT_BINDS = Object.fromEntries(ACTIONS.map(([id, , b]) => [id, [...b]]));
 let binds = (() => {
@@ -2357,7 +2378,7 @@ function renderKeyLabels() {
     ['Dash', bindLabel('dash')], ['Fire', bindLabel('fire')],
     ['Revive (hold)', bindLabel('use')], ['Zoom (hold)', binds.zoom.filter(Boolean).map(keyName).join(' / ') || '—'], ['Zoom (toggle)', bindLabel('zoomToggle')],
     ['Ability', bindLabel('pulse')], ['Grenade / gadget', bindLabel('nade')],
-    ['Reload', bindLabel('reload')], ['Switch gun', [1, 2, 3, 4, 5, 6, 7].map(n => bindLabel('w' + n)).join(' ')],
+    ['Reload', bindLabel('reload')], ['Switch gun', [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => bindLabel('w' + n)).join(' ')],
     ['Chat', bindLabel('chat')], ['Scoreboard', bindLabel('board')],
     ['Emotes', bindLabel('emote')], ['Kill streak (FFA)', bindLabel('streak')],
     ['Music', bindLabel('music')], ['Panic screen', bindLabel('panic')], ['Pause', 'Esc'],
@@ -3758,7 +3779,7 @@ function buildShowcase() {
 }
 function refreshPreview() { applyFinish(vmMat, vmMat2, preview.finish || settings.finish); buildShowcase(); }
 function equip(kind, id) {
-  if (kind === 'emote') { if (showcase) startEmote(showcase, id); renderShop(); return; }
+  if (kind === 'emote') { setEmoteSlot(emoteSel, id); toast(`${EMOTES[id].name} is on emote key ${emoteSel + 1}`); emoteSel = (emoteSel + 1) % 4; if (showcase) startEmote(showcase, id); renderShop(); return; }
   if (kind === 'addon') {
     settings.lmgCam = !settings.lmgCam; store.set('lmgcam', settings.lmgCam);
     toast(settings.lmgCam ? 'Becket Cam on: your Havoc LMG is now a camera' : 'Becket Cam off');
@@ -3788,7 +3809,9 @@ function shopItem(kind, id, def, cur, el) {
   const pv = document.createElement('div'); pv.className = 'pv' + (def.icon ? ' em' : ''); if (def.icon) pv.textContent = def.icon;
   const nm = document.createElement('b'); nm.textContent = def.name;
   const sm = document.createElement('small'); if (!own && !closed && !def.bundle) sm.className = 'coin';
-  sm.textContent = eq ? 'EQUIPPED' : own ? (kind === 'emote' ? (def.price ? 'OWNED · PREVIEW' : 'FREE · PREVIEW') : 'OWNED · EQUIP') : closed ? `${SEASONS[def.season].name.toUpperCase()} ONLY` : def.bundle ? `WITH ${SUITS[def.bundle].name.toUpperCase()} SUIT` : def.price.toLocaleString();
+  const slot = kind === 'emote' && own ? emoteSlots().indexOf(id) : -1;
+  if (slot >= 0) b.classList.add('eq');
+  sm.textContent = eq ? 'EQUIPPED' : slot >= 0 ? `KEY ${slot + 1}` : own ? (kind === 'emote' ? `PUT ON KEY ${emoteSel + 1}` : 'OWNED · EQUIP') : closed ? `${SEASONS[def.season].name.toUpperCase()} ONLY` : def.bundle ? `WITH ${SUITS[def.bundle].name.toUpperCase()} SUIT` : def.price.toLocaleString();
   b.append(pv, nm, sm);
   if (def.season) { const t = document.createElement('span'); t.className = 'tagS'; t.textContent = `${SEASONS[def.season].icon} ${kind.toUpperCase()}`; b.insertBefore(t, nm); }
   if (kind !== 'emote') {
@@ -3843,6 +3866,15 @@ function renderShopInner() {
       else if (!def.season && !def.bundle) shopItem(kind, id, def, cur, el);
     }
   }
+  // emote slots: click one, then click an emote to put it there
+  const es = $('eslots'); es.textContent = '';
+  emoteSlots().forEach((id, i) => {
+    const b = document.createElement('button'), E = id && EMOTES[id]; b.className = i === emoteSel ? 'sel' : '';
+    b.innerHTML = `<kbd>${i + 1}</kbd><i>${E ? E.icon : '·'}</i><span>${E ? esc(E.name) : 'Empty'}</span>`;
+    b.title = 'Pick this slot, then click an emote below';
+    b.addEventListener('click', () => { emoteSel = i; renderShop(); if (id && showcase) startEmote(showcase, id); });
+    es.appendChild(b);
+  });
   // add-ons stack on top of the chosen finish
   for (const [id, def] of Object.entries(ADDONS)) {
     const own = owns('addon', id), on = own && settings.lmgCam;
@@ -4348,7 +4380,7 @@ function hostAddBot(team) {
   const used = new Set([...ents.values()].filter(e => e.kind === 'bot').map(e => e.name));
   const name = BOT_NAMES.find(n => !used.has(n)) || 'Bot';
   const e = { id: newId('b'), kind: 'bot', name, team, pos: new V3(0, -100, 0), yaw: 0, hp: 100, alive: false, lv: 0, f: 0, d: 0,
-    wp: mode === 'gungame' ? LADDER[0] : pick(['rifle', 'smg', 'scatter', 'cannon', 'rail', 'lmg']) };
+    wp: mode === 'gungame' ? LADDER[0] : pick(['rifle', 'smg', 'scatter', 'cannon', 'rail', 'lmg', 'inferno', 'arc']) };
   e.gun = e.wp;
   addEnt(e); initSim(e); e.respawnT = rand(0.3, 1.5);
 }
@@ -4423,7 +4455,7 @@ function hostUpdateBot(e, dt, acts) {
   const dir = bDir.set(goal.x - e.pos.x, 0, goal.z - e.pos.z); const gd = dir.length(); if (gd > 0.01) dir.divideScalar(gd);
   const urgent = mode === 'ctf' && (GS.fl[1 - e.team][1] === e.id || e.role === 'atk');
   if (e.target) {
-    const td = e.target.pos.distanceTo(e.pos), ideal = W.melee ? 0 : W.pellets > 1 ? 7 : e.wp === 'rail' ? 28 : 14;
+    const td = e.target.pos.distanceTo(e.pos), ideal = W.melee ? 0 : W.flame ? 5 : W.pellets > 1 ? 7 : e.wp === 'rail' ? 28 : 14;
     e.strafeT -= dt; if (e.strafeT <= 0) { e.strafe *= -1; e.strafeT = rand(0.6, 1.8); }
     if (!urgent || gd < 3) {
       const tx = e.target.pos.x - e.pos.x, tz = e.target.pos.z - e.pos.z, tl = Math.hypot(tx, tz) || 1;
@@ -4483,6 +4515,8 @@ function botShoot(e, t, dist, W) {
 }
 function showBotShot(from, to, wi) {
   const id = WIDS[wi] || 'rifle', col = wColor(id);
+  if (WEAPONS[id].flame) { const dir = tB.subVectors(to, from).normalize(); spray(from, dir, 8, FIRE[0], 26, 0.45, 1.6); spray(from, dir, 4, FIRE[1], 22, 0.4, 1.1); const pf = panFor(from); sfx.shot(id, pf.v * 0.75, pf.pan); return; }
+  if (WEAPONS[id].chain) bolt(from, to, col, 1.3, 0.12, 0.3); else
   tracer(from, to, col, id === 'rail' ? 2.2 : 1, id === 'rail' ? 0.35 : 0.14);
   burst(to, id === 'nova' ? 30 : 5, col, id === 'nova' ? 9 : 4, 0.3, 0.07);
   if (id === 'nova') { shockRing(to, col, 4, 0.4); flash(to, col, 40, 0.25); }
@@ -5798,14 +5832,14 @@ function useStreak() {
 }
 function onStreakUsed() { chal('streak'); }
 let emoteOpen = false, emoteT = 0, emSeq = 0, lastEmote = null, lastEmoteAt = -9;
-const EKEYS = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal'];
-const ownedEmotes = () => Object.keys(EMOTES).filter(id => owns('emote', id));
+const EKEYS = ['Digit1', 'Digit2', 'Digit3', 'Digit4'], EKEYS_NP = ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4'];
 function toggleEmotes() { if (emoteOpen) closeEmotes(); else openEmotes(); }
 function openEmotes() {
   if (state !== 'playing') return;
   emoteOpen = true; emoteT = time;
   const el = $('elist'); el.textContent = '';
-  ownedEmotes().forEach((id, i) => {
+  emoteSlots().forEach((id, i) => {
+    if (!id) return;
     const E = EMOTES[id], b = document.createElement('button');
     b.innerHTML = `<i>${E.icon}</i><span>${esc(E.name)}</span><kbd>${keyName(EKEYS[i] || '')}</kbd>`;
     b.addEventListener('click', () => playEmote(id)); el.appendChild(b);
@@ -6386,7 +6420,7 @@ function actionDown(a) {
     case 'music': setMusic(!A.musicOn); break;
     case 'board': renderBoard(); $('board').hidden = false; break;
     default: {
-      const m = /^w([1-7])$/.exec(a);
+      const m = /^w([1-9])$/.exec(a);
       if (m && mode !== 'gungame') { const id = kit().guns[+m[1] - 1]; if (id && id !== curW) setWeapon(id); }
     }
   }
@@ -6419,7 +6453,7 @@ addEventListener('keydown', e => {
   if (!studyOn && !chatOpen && state === 'dead' && (e.code === 'Enter' || (e.code === 'Space' && !codeMap.get('Space')?.includes('chat')))) { e.preventDefault(); redeploy(); return; }
   if (e.code === 'Escape') { if (fallbackLook && state === 'playing') pauseGame(); return; }
   if (emoteOpen && !e.repeat) {
-    const i = EKEYS.indexOf(e.code), list = ownedEmotes();
+    const i = Math.max(EKEYS.indexOf(e.code), EKEYS_NP.indexOf(e.code)), list = emoteSlots();
     if (i >= 0) { e.preventDefault(); if (list[i]) playEmote(list[i]); return; }
   }
   const used = pressCode(e.code, e.repeat);
