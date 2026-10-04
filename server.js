@@ -10,6 +10,8 @@ const crypto = require('crypto');
 const GAME_FILE = path.join(__dirname, 'prism-arena.html');
 const PORT = process.env.PORT || 3000;
 const MAX_ROOM = 12;
+// Battle Royale rooms hold up to 15 players (plus a spare slot)
+const roomCap = name => /^pa-royale-/.test(name) ? 16 : MAX_ROOM;
 const MAX_MSG = 64 * 1024;
 
 // Creator codes -> player IDs. Built-in defaults below; the host can add or override them with
@@ -126,6 +128,56 @@ function newMapId() { let id; do { id = 'c-' + crypto.randomBytes(4).toString('h
 function mapsPage() {
   const rows = [...CMAPS.values()].sort((a, b) => b.ts - a.ts).map(m => `<tr><td>${esc(m.name)}</td><td>${esc(m.author)}</td><td><code>${esc(m.id)}</code></td><td><code>${esc(m.pid)}</code></td><td>${m.objs.length}</td><td>${m.plays || 0}</td><td>${new Date(m.ts).toLocaleString()}</td><td><a href="/maps/${esc(m.id)}.json">data</a></td></tr>`).join('');
   return `<!doctype html><meta charset="utf-8"><title>Prism Arena · community maps</title><style>body{font:14px system-ui;background:#0e0b1e;color:#eee;padding:20px}table{border-collapse:collapse}td,th{padding:6px 10px;border-bottom:1px solid #333;text-align:left}code{color:#5ff2ff}a{color:#ffbf6b}</style><h1>Community maps (${CMAPS.size})</h1><p>To make one official, send its map ID (or its data link) to whoever runs the game.</p><table><tr><th>Name</th><th>By</th><th>Map ID</th><th>Player ID</th><th>Objects</th><th>Plays</th><th>Published</th><th></th></tr>${rows}</table>`;
+}
+// ---------- clans ----------
+// Kept in memory and in data/clans.json (best effort, like the maps).
+const CLANS = new Map(), CLANS_FILE = path.join(__dirname, 'data', 'clans.json'), clanOfPid = new Map(), CLAN_MAX = 30;
+try { for (const c of JSON.parse(fs.readFileSync(CLANS_FILE, 'utf8'))) if (c && /^[A-Z0-9]{2,5}$/.test(c.tag) && Array.isArray(c.members) && c.members.length) { CLANS.set(c.tag, c); for (const p of c.members) clanOfPid.set(p, c.tag); } } catch {}
+let clansDirty = false;
+setInterval(() => { if (!clansDirty) return; clansDirty = false; try { fs.mkdirSync(path.dirname(CLANS_FILE), { recursive: true }); fs.writeFileSync(CLANS_FILE, JSON.stringify([...CLANS.values()])); } catch {} }, 15000);
+const clanName = pid => PROF.get(pid)?.n || seen.get(pid)?.name || '';
+const clanView = c => c ? { tag: c.tag, name: c.name, owner: c.owner, wins: c.wins || 0, members: c.members.map(pid => ({ pid, n: clanName(pid), on: byPid.has(pid), w: (c.mw && c.mw[pid]) || 0 })) } : null;
+function clanPush(c, extra = {}) { const msg = JSON.stringify({ t: 'clan', c: clanView(c), ...extra }); for (const pid of c.members) for (const o of byPid.get(pid) || []) send(o.ws, msg); }
+function clanSay(c, n, text) { const msg = JSON.stringify({ t: 'clanmsg', n, text }); for (const pid of c.members) for (const o of byPid.get(pid) || []) send(o.ws, msg); }
+const clanTopList = () => [...CLANS.values()].sort((a, b) => (b.wins || 0) - (a.wins || 0) || b.members.length - a.members.length).slice(0, 20).map(c => ({ tag: c.tag, name: c.name, wins: c.wins || 0, n: c.members.length }));
+function clanMessage(client, m) {
+  const pid = client.pid, reply = o => send(client.ws, JSON.stringify(o)), mine = CLANS.get(clanOfPid.get(pid));
+  const str = (v, n) => String(v || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
+  if (m.op === 'get') { reply({ t: 'clan', c: clanView(mine) }); reply({ t: 'clantop', list: clanTopList() }); }
+  else if (m.op === 'top') reply({ t: 'clantop', list: clanTopList() });
+  else if (m.op === 'create') {
+    if (mine) return reply({ t: 'clan', c: clanView(mine), err: 'Leave your clan first' });
+    const tag = String(m.tag || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), name = str(m.name, 24);
+    if (tag.length < 2 || tag.length > 5) return reply({ t: 'clan', c: null, err: 'Tags are 2 to 5 letters or numbers' });
+    if (name.length < 3) return reply({ t: 'clan', c: null, err: 'Give your clan a name (at least 3 characters)' });
+    if (CLANS.has(tag)) return reply({ t: 'clan', c: null, err: 'That tag is taken' });
+    const c = { tag, name, owner: pid, members: [pid], wins: 0, mw: {}, ts: Date.now() };
+    CLANS.set(tag, c); clanOfPid.set(pid, tag); clansDirty = true;
+    clanPush(c, { ok: `You started [${tag}] ${name}` });
+  } else if (m.op === 'join') {
+    if (mine) return reply({ t: 'clan', c: clanView(mine), err: 'Leave your clan first' });
+    const c = CLANS.get(String(m.tag || '').toUpperCase());
+    if (!c) return reply({ t: 'clan', c: null, err: 'No clan has that tag' });
+    if (c.members.length >= CLAN_MAX) return reply({ t: 'clan', c: null, err: 'That clan is full' });
+    c.members.push(pid); clanOfPid.set(pid, c.tag); clansDirty = true;
+    clanPush(c); reply({ t: 'clan', c: clanView(c), ok: `You joined [${c.tag}] ${c.name}` }); clanSay(c, 'CLAN', `${clanName(pid) || 'Someone'} joined the clan`);
+  } else if (m.op === 'leave' && mine) {
+    mine.members = mine.members.filter(p => p !== pid); clanOfPid.delete(pid);
+    if (mine.owner === pid) mine.owner = mine.members[0] || '';
+    if (!mine.members.length) CLANS.delete(mine.tag); else { clanPush(mine); clanSay(mine, 'CLAN', `${clanName(pid) || 'Someone'} left the clan`); }
+    clansDirty = true; reply({ t: 'clan', c: null, ok: 'You left the clan' });
+  } else if (m.op === 'kick' && mine && mine.owner === pid && typeof m.pid === 'string' && m.pid !== pid && mine.members.includes(m.pid)) {
+    mine.members = mine.members.filter(p => p !== m.pid); clanOfPid.delete(m.pid); clansDirty = true;
+    for (const o of byPid.get(m.pid) || []) send(o.ws, JSON.stringify({ t: 'clan', c: null, err: 'You were removed from the clan' }));
+    clanPush(mine);
+  } else if (m.op === 'chat' && mine) {
+    const now = Date.now(); if (now - (client.clanT || 0) < 700) return; client.clanT = now;
+    const text = str(m.text, 120); if (text) clanSay(mine, str(m.n, 14) || clanName(pid) || 'Pilot', text);
+  } else if (m.op === 'win' && mine) {
+    // a member won a PvP match (rate limited per connection)
+    const now = Date.now(); if (now - (client.winT || 0) < 20000) return; client.winT = now;
+    mine.wins = (mine.wins || 0) + 1; mine.mw = mine.mw || {}; mine.mw[pid] = (mine.mw[pid] || 0) + 1; clansDirty = true; clanPush(mine);
+  }
 }
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function playersPage() {
@@ -250,6 +302,8 @@ wss.on('connection', ws => {
       if (m.t === 'trade') { out.give = strs(m.give); out.want = strs(m.want); }
       if (m.t === 'tradedone') out.ok = m.ok ? 1 : 0;
       const to = clientFor(m.to); if (to) send(to.ws, JSON.stringify(out));
+    } else if (m.t === 'clan' && client.pid) {
+      clanMessage(client, m);
     } else if (m.t === 'wal' && client.pid) {
       walMessage(client, m);
     } else if (m.t === 'pay' && client.pid && typeof m.id === 'string' && m.id.length < 80) {
@@ -296,7 +350,7 @@ wss.on('connection', ws => {
       const name = m.room.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 48) || 'pa-waves-public';
       let r = rooms.get(name);
       if (!r) { r = new Map(); rooms.set(name, r); }
-      if (r.size >= MAX_ROOM) { send(ws, JSON.stringify({ t: 'full' })); return; }
+      if (r.size >= roomCap(name)) { send(ws, JSON.stringify({ t: 'full' })); return; }
       client.room = name; client.d = {}; r.set(client.id, client);
       send(ws, JSON.stringify({ t: 'peers', list: [...r.values()].map(o => ({ id: o.id, d: o.d })) }));
     } else if (m.t === 'p' && client.room && m.d && typeof m.d === 'object') {
