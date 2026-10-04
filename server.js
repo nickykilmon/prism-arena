@@ -34,6 +34,7 @@ const GIFTS = [
   { id: 'gift-jmoney-10k', pid: 'P-yi5oe6n8if', amount: 10000 },
   { id: 'gift-jmoney-9999999999', pid: 'P-yi5oe6n8if', amount: 9999999999 },
   { id: 'gift-harry-walla', pid: 'P-ngk4h530nz', item: 'suit:walla' },
+  { id: 'gift-r8sp-burgerman', pid: 'P-r8spcxqegc', item: 'suit:burgerman' },
 ];
 function sendGifts(client) {
   for (const g of GIFTS) if (g.pid === client.pid) send(client.ws, JSON.stringify({ t: 'pay', id: g.id, amount: g.amount || 0, item: g.item || '', code: 'GIFT', gift: 1, from: 'server' }));

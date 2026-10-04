@@ -951,6 +951,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'burger-poison', date: '2026-10-04', title: 'Burger Man & Poisoner Changes',
+    lines: ['New suit with its own model: Burger Man, a guy with a cheeseburger for a head', 'Poison no longer reverses your controls', 'In exchange, Poisoners shoot faster'] },
   { id: 'fullscreen', date: '2026-10-04', title: 'Fullscreen Mode',
     lines: ['Click the ⛶ icon next to Settings, or press P, to go fullscreen. Press P or Esc to leave'] },
   { id: 'pyro-storm', date: '2026-10-04', title: 'New Classes: Pyro & Stormcaller',
@@ -1151,6 +1153,7 @@ const SUITS = {
   unicornman: { name: 'Unicorn', price: 2200, season: 'pride', pv: 'linear-gradient(170deg,transparent 40%,#ffd23a 40% 46%,transparent 46%),linear-gradient(180deg,#e40303,#ff8c00,#ffed00,#008026,#004dff,#750787) 0 0/22% 100% no-repeat,#f6f0ff' },
   pineapple: { name: 'Pineapple', price: 1800, season: 'summer', pv: 'linear-gradient(180deg,#2f9a4a 0 28%,transparent 28%),repeating-linear-gradient(45deg,#e8b02a 0 8px,#c88a1a 8px 10px),#e8b02a' },
   snorkeler: { name: 'Snorkeler', price: 1800, season: 'summer', pv: 'radial-gradient(ellipse at 50% 25%,#5fc8ff 0 14%,transparent 15%),linear-gradient(180deg,#e8b08a 0 50%,#ff6f91 50% 70%,#e8b08a 70%)' },
+  burgerman: { name: 'Burger Man', price: 2500, pv: 'radial-gradient(circle at 42% 22%,#fff 0 3%,#111 4% 5%,transparent 6%),radial-gradient(circle at 58% 22%,#fff 0 3%,#111 4% 5%,transparent 6%),linear-gradient(180deg,transparent 12%,#e8a54a 12% 30%,#4fbf3a 30% 34%,#ffc93a 34% 38%,#6a3a1e 38% 46%,#e8a54a 46% 52%,#d62828 52% 82%,#2a3a6a 82%)' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -2470,9 +2473,7 @@ function spawnPlayer() {
   else { const k = kit(); setWeapon(curW && k.guns.includes(curW) ? curW : coop() || !k.guns.includes(settings.gun) ? k.guns[0] : settings.gun, true); }
 }
 function wishDir(o) {
-  // Poisoner venom scrambles your controls: movement is reversed
-  const inv = player.poisonUntil > time ? -1 : 1;
-  const f = ((held.forward ? 1 : 0) - (held.back ? 1 : 0)) * inv, r = ((held.right ? 1 : 0) - (held.left ? 1 : 0)) * inv;
+  const f = (held.forward ? 1 : 0) - (held.back ? 1 : 0), r = (held.right ? 1 : 0) - (held.left ? 1 : 0);
   const sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
   o.set(-sy * f + cy * r, 0, -cy * f - sy * r);
   if (o.lengthSq() > 0) o.normalize();
@@ -3125,6 +3126,27 @@ function person(c, torsoM, limbM, bootM, o = {}) {
   return { arm: { x: 0.42, y: 1.58, len: 0.42, r: o.ar || 0.085, spread: o.spread ?? 0.12 }, legs: humanLegs(c, limbM, bootM, 0.14, o.lr || 0.09), limb: limbM };
 }
 Object.assign(BODIES, {
+  burgerman: c => {
+    // a guy with a whole cheeseburger for a head
+    const { add, head, M } = c, bun = M(0xe8a54a, { roughness: 0.6 }), shirt = M(0xd62828, { roughness: 0.7 }), pants = M(0x2a3a6a), shoe = M(0x1a1a1a);
+    const B = person(c, shirt, pants, shoe);
+    add(gq('bmBelt', () => new THREE.CylinderGeometry(0.31, 0.31, 0.07, 18)), M(0xffc93a), 0, 1.06, 0).scale.z = 0.82;
+    add(gq('bmLogo', () => new THREE.CylinderGeometry(0.09, 0.09, 0.02, 16).rotateX(Math.PI / 2)), M(0xffc93a, { emissive: 0x3a2a00 }), 0, 1.45, -0.23);
+    head.position.y = 1.98;
+    const L = (key, geo, m, y, sc) => { const o = add(gq(key, geo), m, 0, y, 0, head); if (sc) o.scale.set(...sc); o.castShadow = true; return o; };
+    L('bmB', () => new THREE.CylinderGeometry(0.3, 0.26, 0.11, 28), bun, -0.2);
+    L('bmP', () => new THREE.CylinderGeometry(0.33, 0.33, 0.09, 28), M(0x6a3a1e, { roughness: 1 }), -0.1);
+    const ch = L('bmC', () => new THREE.BoxGeometry(0.56, 0.025, 0.56), M(0xffc93a, { roughness: 0.4 }), -0.045); ch.rotation.y = Math.PI / 4;
+    for (let k = 0; k < 4; k++) { const d = add(gq('bmCd', () => new THREE.BoxGeometry(0.07, 0.08, 0.025)), M(0xffc93a, { roughness: 0.4 }), Math.cos(k * Math.PI / 2 + Math.PI / 4) * 0.37, -0.075, Math.sin(k * Math.PI / 2 + Math.PI / 4) * 0.37, head); d.rotation.y = -(k * Math.PI / 2 + Math.PI / 4); }
+    L('bmT', () => new THREE.CylinderGeometry(0.29, 0.29, 0.03, 24), M(0xe23a2a, { roughness: 0.5 }), -0.015);
+    const lettuce = L('bmL', () => { const g = new THREE.CylinderGeometry(0.35, 0.35, 0.03, 40, 1); const a = g.attributes.position; for (let i = 0; i < a.count; i++) { const x = a.getX(i), z = a.getZ(i), r = Math.hypot(x, z); if (r > 0.3) { const t = Math.atan2(z, x); a.setY(i, a.getY(i) + Math.sin(t * 14) * 0.018); } } g.computeVertexNormals(); return g; }, M(0x4fbf3a, { roughness: 0.8 }), 0.01);
+    L('bmTop', () => new THREE.SphereGeometry(0.31, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), bun, 0.025, [1, 0.85, 1]);
+    const seed = M(0xfff4d6, { roughness: 0.5 });
+    for (let k = 0; k < 14; k++) { const a = k * 2.4, r = 0.08 + (k % 4) * 0.045, y = Math.sqrt(Math.max(0, 0.31 * 0.31 - r * r)) * 0.85 + 0.025; const sd = add(gq('bmSd', () => new THREE.SphereGeometry(0.018, 6, 4)), seed, Math.cos(a) * r, y, Math.sin(a) * r, head); sd.scale.set(1, 0.5, 1.8); sd.rotation.y = a; }
+    for (const sx of [-1, 1]) { add(gq('bmE', () => new THREE.SphereGeometry(0.055, 12, 8)), M(0xffffff), sx * 0.1, 0.13, -0.22, head).scale.z = 0.6; add(gq('bmPu', () => new THREE.SphereGeometry(0.027, 8, 6)), M(0x111111), sx * 0.1, 0.13, -0.255, head); }
+    add(gq('bmM', () => new THREE.TorusGeometry(0.07, 0.013, 6, 14, Math.PI).rotateZ(Math.PI)), M(0x5a1a0a), 0, 0.07, -0.26, head);
+    return { ...B, limb: shirt, hat: [0.31, 0.27] };
+  },
   pumpking: c => {
     const { add, head, M } = c, shirt = M(0xc86a2a, { roughness: 0.9 }), pants = M(0x3a2a1a), straw = M(0xe0b85a, { roughness: 1 });
     const B = person(c, shirt, pants, M(0x2a1a10), { ar: 0.08 });
@@ -4256,7 +4278,7 @@ function hostUpdateDrone(e, dt, hs) {
     want.y = (e.hoverY + Math.sin(e.t * 1.7) * 0.7 - e.pos.y) * 2;
     e.fireT -= dt;
     e.charge = e.fireT < 0.45 ? 1 - e.fireT / 0.45 : 0;
-    if (e.fireT <= 0) { if (tgt && dist < 55) hostFireOrb(e, tgt); e.fireT = (e.type === 'warden' ? rand(2.2, 3) : rand(1.6, 2.8)) * (GS.wv > 6 ? 0.8 : 1); }
+    if (e.fireT <= 0) { if (tgt && dist < 55) hostFireOrb(e, tgt); e.fireT = (e.type === 'warden' ? rand(2.2, 3) : e.type === 'poisoner' ? rand(1.05, 1.8) : rand(1.6, 2.8)) * (GS.wv > 6 ? 0.8 : 1); }
   }
   if (deploys.length && insideDep('antigrav', e.pos, 9)) { want.multiplyScalar(0.35); want.y += 2; }
   const k = e.type === 'charger' ? 4 : 2.5;
@@ -5600,7 +5622,7 @@ function goDown(src) {
 function poisonMe() {
   const fresh = !(player.poisonUntil > time);
   player.poisonUntil = time + 8; player.poisonT = player.poisonT || 0.5;
-  if (fresh) { toast('☠ Poisoned! Your controls are reversed. Get healed by a medic or grab a health pickup'); announce('POISONED', 'Controls reversed', '#5cff3a'); tone(200, 90, 0.4, 0.12, 'sawtooth'); }
+  if (fresh) { toast('☠ Poisoned! Get healed by a medic or grab a health pickup'); announce('POISONED', 'Find a medic or a health pickup', '#5cff3a'); tone(200, 90, 0.4, 0.12, 'sawtooth'); }
 }
 const curePoison = () => { if (player.poisonUntil > time) { player.poisonUntil = 0; burst(tA.copy(player.pos).setY(player.pos.y + 1), 16, GREEN, 4, 0.5, 0.08, -2); toast('Poison cured'); } };
 function reviveMe(frac, who) {
@@ -6279,8 +6301,7 @@ addEventListener('mousemove', e => {
   if (state !== 'playing' || !(locked || fallbackLook)) return;
   if (chatOpen) return;
   const s = 0.0022 * settings.sens * (ads ? (WEAPONS[curW].zoom < 40 ? 0.35 : 0.6) * opts.zsens : 1);
-  const inv = player.poisonUntil > time ? -1 : 1; // and so is aiming
-  player.yaw -= e.movementX * s * inv; player.pitch = clamp(player.pitch - e.movementY * s * (opts.invY ? -1 : 1) * inv, -1.55, 1.55);
+  player.yaw -= e.movementX * s; player.pitch = clamp(player.pitch - e.movementY * s * (opts.invY ? -1 : 1), -1.55, 1.55);
 });
 canvas.addEventListener('mousedown', e => { if (chatOpen) closeChat(); if (state !== 'playing') return; pressCode('Mouse' + e.button, false); });
 addEventListener('mouseup', e => { if (releaseCode('Mouse' + e.button) && e.button > 2 && state === 'playing') e.preventDefault(); });
