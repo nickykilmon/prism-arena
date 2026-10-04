@@ -554,7 +554,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     </div>
     <div class="pane" id="shopPane" hidden>
       <div class="shoptop">
-        <div class="shophead"><span class="coin" id="coinBig">0</span></div>
+        <div class="shophead"><span class="coin" id="coinBig">0</span><span id="shopTimer" style="font-family:var(--display);font-size:12px;letter-spacing:.16em;color:var(--amber);margin-left:14px">NEW ITEMS SOON</span></div>
         <div class="creator">
           <div class="crow"><input id="ccode" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Creator code"><button class="ghost" id="capply">APPLY</button></div>
           <small id="cmsg">Creators get 10% of the coins you spend, on top of your purchase.</small>
@@ -1113,6 +1113,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'shop-rotation', date: '2026-10-04', title: 'Hourly Item Shop & Island Legends', lines: ['The shop now changes every hour: 12 suits (half with their own model), 5 pets, 5 emotes and 2 sprays. Hats, finishes and seasonal items are always there, and anything you own stays in Customize', 'New Island Legends skins, all in the shop this hour: Peelo, Fishstik, Cuddle Squad Leader, Tomatoface, The Dark Knight, Skul Trooper and Meowsclez', 'Battle Royale bots now wait in the sky lobby with you, then drop and glide down when the match starts', 'Battle Royale bots no longer stand around: they keep moving while they loot'] },
   { id: 'royale2', date: '2026-10-04', title: 'Bigger Battle Royale', lines: ['Every Battle Royale match now has 50 players: bots fill whatever spots real people don\'t', 'The island is far bigger, with four new places: New Town, The Ruins, Sunny Ranch and Dusty Camp, plus lots more huts, trees, chests and loot', 'The storm takes much longer to close in (7 rings, about 13 minutes)', 'No pulse ability in Battle Royale', 'Fixed the purple tint over the Rail Lance scope'] },
   { id: 'royale', date: '2026-10-04', title: 'Battle Royale, Clans & Kill Cam', lines: ['New mode: Battle Royale. Up to 50 players (bots fill the empty spots) wait in a sky lobby, then drop onto a big island and glide down', 'Loot guns (Common, Rare, Epic and Legendary hit harder), ammo for each kind of gun, and heals you use when you want: 5 Bandage, 6 Medkit, 7 Shield Cell', 'Gold chests hold better loot. Press E to open them and to pick up guns. The storm closes in, so keep to the white circle on your map', 'Clans: start or join one in the Friends tab. Your tag shows on your name, wins count for your clan, and /c in chat talks to your clan', 'Kill cam: see how you went down, from the eyes of whoever got you (turn it off in Settings)', 'Prop Hunt: your pet no longer gives away where you are hiding, and bot hunters now sometimes take a shot at props that stand still', 'Engineer turrets have less range and fire a little slower', 'Battle Royale: you no longer drop in with grenades'] },
   { id: 'boss-skins', date: '2026-10-04', title: 'Boss Skins', lines: ['Five new suits in the shop, each with its own model based on a Boss Raid boss', 'Titan Warlord: armoured giant with one burning eye, a molten core and a pod orbiting him', 'Mirror Queen: crystal gown, shard wings and crown, with mirrors circling her', 'Clockwork Reaper: tattered cloak, skull in a hood, a ticking chest clock and a scythe on his back', 'Frost Wyrm: an ice dragon warrior with horns, wings and a swishing tail', 'The Overmind: a chrome body with a brain in a glass dome and hex shields orbiting it', '3,000 coins each'] },
@@ -1342,6 +1343,13 @@ const SUITS = {
   clockreaper: { name: 'Clockwork Reaper', price: 3000, pv: 'radial-gradient(circle at 50% 50%,#f2e6c4 0 9%,#c9a24a 10% 12%,transparent 13%),radial-gradient(circle at 50% 22%,#e8e0c8 0 7%,#030206 8% 13%,#16101e 14% 17%,transparent 18%),linear-gradient(160deg,transparent 40%,#cfd6e2 40% 43%,transparent 43%),#16101e' },
   wyrmkin: { name: 'Frost Wyrm', price: 3000, pv: 'radial-gradient(circle at 44% 22%,#bff4ff 0 3%,transparent 4%),radial-gradient(circle at 56% 22%,#bff4ff 0 3%,transparent 4%),conic-gradient(from 200deg at 50% 40%,#2a6aa8 0 90deg,transparent 90deg),linear-gradient(90deg,transparent 30%,#4f8fc8 30% 70%,transparent 70%),#cfe8f8' },
   overmind: { name: 'The Overmind', price: 3000, pv: 'radial-gradient(circle at 50% 22%,#ff9fc8 0 10%,#d8f0ff55 11% 15%,transparent 16%),linear-gradient(90deg,#4a1a60 0 20%,transparent 20% 80%,#4a1a60 80%),linear-gradient(180deg,transparent 35%,#8a86a0 35%),#2a2236' },
+  peelo: { name: 'Peelo', price: 1800, pv: 'radial-gradient(circle at 44% 30%,#fff 0 4%,#111 5% 7%,transparent 8%),radial-gradient(circle at 56% 30%,#fff 0 4%,#111 5% 7%,transparent 8%),radial-gradient(ellipse at 50% 50%,#f6d33a 0 30%,transparent 31%),#ffe9a8' },
+  fishstik: { name: 'Fishstik', price: 1800, pv: 'radial-gradient(circle at 30% 28%,#fff 0 7%,#111 8% 10%,transparent 11%),radial-gradient(circle at 70% 28%,#fff 0 7%,#111 8% 10%,transparent 11%),radial-gradient(ellipse at 50% 30%,#ff8a2a 0 26%,transparent 27%),linear-gradient(180deg,transparent 55%,#fff 55% 75%,#2a4a8a 75%)' },
+  cuddle: { name: 'Cuddle Squad Leader', price: 2000, pv: 'radial-gradient(circle at 50% 66%,#ff2f6e 0 8%,transparent 9%),radial-gradient(circle at 35% 14%,#ff8fc4 0 8%,transparent 9%),radial-gradient(circle at 65% 14%,#ff8fc4 0 8%,transparent 9%),radial-gradient(circle at 50% 30%,#ff8fc4 0 18%,transparent 19%),#ffd6e6' },
+  tomatoface: { name: 'Tomatoface', price: 1600, pv: 'radial-gradient(circle at 50% 12%,#3f9a3a 0 6%,transparent 7%),radial-gradient(circle at 50% 28%,#e23a2a 0 20%,transparent 21%),linear-gradient(180deg,transparent 48%,#1a1a1a 48%)' },
+  darkknight: { name: 'The Dark Knight', price: 2400, pv: 'linear-gradient(90deg,transparent 40%,#ff2a2a 40% 60%,transparent 60%) 0 22%/100% 4% no-repeat,radial-gradient(circle at 50% 8%,#c41e1e 0 7%,transparent 8%),linear-gradient(180deg,#2a2a32,#101014)' },
+  skultrooper: { name: 'Skul Trooper', price: 2200, pv: 'radial-gradient(circle at 42% 24%,#111 0 4%,transparent 5%),radial-gradient(circle at 58% 24%,#111 0 4%,transparent 5%),radial-gradient(circle at 50% 26%,#f2f0e6 0 16%,transparent 17%),repeating-linear-gradient(0deg,#111 0 8px,#e8e6dc 8px 11px)' },
+  meowsclez: { name: 'Meowsclez', price: 2200, pv: 'radial-gradient(circle at 40% 24%,#ffd23a 0 3%,transparent 4%),radial-gradient(circle at 60% 24%,#ffd23a 0 3%,transparent 4%),radial-gradient(circle at 50% 26%,#c8c8d2 0 16%,transparent 17%),linear-gradient(180deg,transparent 45%,#c8c8d2 45% 75%,#2a4a9a 75%)' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -1743,6 +1751,10 @@ function suitMaterial(id, col, glowCol) {
     case 'zebra': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: zebraTex(), metalness: 0.05, roughness: 0.55 });
     case 'tiger': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: tigerTex(), metalness: 0.05, roughness: 0.55 });
     case 'matrix': return new THREE.MeshStandardMaterial({ color: 0x020a05, roughness: 0.35, metalness: 0.4, emissive: 0x2bff6a, emissiveMap: matrixTex(), emissiveIntensity: 2.2 });
+    case 'cuddle': return new THREE.MeshStandardMaterial({ color: 0xff8fc4, roughness: 0.95 });
+    case 'darkknight': return new THREE.MeshStandardMaterial({ color: 0x1c1c24, metalness: 0.85, roughness: 0.35, flatShading: true });
+    case 'skultrooper': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: skeletonTex(), roughness: 0.6, emissive: 0xffffff, emissiveMap: skeletonTex(), emissiveIntensity: 0.25 });
+    case 'meowsclez': return new THREE.MeshStandardMaterial({ color: 0xc8c8d2, roughness: 0.8 });
     case 'titanlord': return new THREE.MeshStandardMaterial({ color: 0x1f1a28, metalness: 0.9, roughness: 0.3, flatShading: true });
     case 'mirrorqueen': return new THREE.MeshPhysicalMaterial({ color: 0xbfe0ff, metalness: 0.75, roughness: 0.05, iridescence: 1, iridescenceIOR: 1.7, clearcoat: 1, flatShading: true });
     case 'clockreaper': return new THREE.MeshStandardMaterial({ color: 0x16101e, roughness: 0.95, side: THREE.DoubleSide, flatShading: true });
@@ -4558,6 +4570,110 @@ Object.assign(BODIES, {
     } };
   },
 });
+// ---------- island-legend skins (inspired by some famous battle royale outfits) ----------
+const UPY = new V3(0, 1, 0);
+const aimUp = (o, x, y, z) => { o.quaternion.setFromUnitVectors(UPY, tA.set(x, y, z).normalize()); return o; };
+Object.assign(BODIES, {
+  peelo: c => {
+    // a walking banana
+    const { add, head, M, rig } = c, yel = M(0xf6d33a, { roughness: 0.6 }), dark = M(0x5a3a1a), black = M(0x111111), white = M(0xffffff, { roughness: 0.3 });
+    const bn = add(gq('peB', () => new THREE.CapsuleGeometry(0.33, 1.05, 8, 18)), yel, 0, 1.28, 0); bn.rotation.z = 0.12; bn.scale.set(1, 1, 0.9); bn.castShadow = true;
+    for (let k = 0; k < 3; k++) add(gq('peLn', () => new THREE.BoxGeometry(0.02, 1.1, 0.02)), M(0xd8b02a), Math.cos(k * 2.1) * 0.31, 1.28, Math.sin(k * 2.1) * 0.29).rotation.z = 0.12;
+    const tip = add(gq('peTip', () => new THREE.CylinderGeometry(0.05, 0.09, 0.24, 8)), dark, -0.1, 2.08, 0); tip.rotation.z = 0.35;
+    for (let k = 0; k < 4; k++) { const a = k / 4 * Math.PI * 2 + 0.4, f = add(gq('peFlap', () => new THREE.ConeGeometry(0.15, 0.55, 4)), yel, Math.cos(a) * 0.3, 0.7, Math.sin(a) * 0.3); aimUp(f, Math.cos(a) * 0.5, -1, Math.sin(a) * 0.5); f.scale.z = 0.35; }
+    head.position.y = 1.72;
+    for (const sx of [-1, 1]) { add(gq('peE', () => new THREE.SphereGeometry(0.07, 12, 10)), white, sx * 0.1, 0.02, -0.28, head).scale.z = 0.5; add(gq('pePu', () => new THREE.SphereGeometry(0.033, 8, 6)), black, sx * 0.1, 0.02, -0.315, head); }
+    add(gq('peM', () => new THREE.TorusGeometry(0.07, 0.014, 6, 14, Math.PI).rotateZ(Math.PI)), black, 0, -0.1, -0.3, head);
+    return { arm: { x: 0.36, y: 1.45, len: 0.4, r: 0.065, spread: 0.2 }, hat: [0.27, 0.42], legs: humanLegs(c, yel, dark, 0.13, 0.075, 0.82), limb: yel };
+  },
+  fishstik: c => {
+    // a fish head on a sailor
+    const { add, head, M } = c, scale = M(0xff8a2a, { roughness: 0.4 }), belly = M(0xffd9a0), white = M(0xffffff, { roughness: 0.25 }), black = M(0x111111), lip = M(0xffb070);
+    const B = person(c, M(0xf4f4f8), M(0x2a4a8a), M(0x222222));
+    add(gq('fsCol', () => new THREE.BoxGeometry(0.5, 0.12, 0.05)), M(0x2a4a8a), 0, 1.62, -0.22);
+    head.position.y = 2.0;
+    const h = add(gq('fsH', () => new THREE.SphereGeometry(0.3, 24, 16)), scale, 0, 0, 0.02, head); h.scale.set(0.95, 1.05, 1.35); h.castShadow = true;
+    add(gq('fsBe', () => new THREE.SphereGeometry(0.22, 16, 12)), belly, 0, -0.11, -0.13, head).scale.set(0.9, 0.7, 1.3);
+    for (const sx of [-1, 1]) { add(gq('fsE', () => new THREE.SphereGeometry(0.09, 14, 10)), white, sx * 0.21, 0.08, -0.2, head); add(gq('fsPu', () => new THREE.SphereGeometry(0.045, 10, 8)), black, sx * 0.27, 0.08, -0.24, head); const fin = add(gq('fsSf', () => new THREE.ConeGeometry(0.08, 0.22, 4)), scale, sx * 0.3, -0.12, 0.08, head); aimUp(fin, sx, -0.3, 0.6); fin.scale.z = 0.3; }
+    add(gq('fsL', () => new THREE.TorusGeometry(0.08, 0.035, 8, 16)), lip, 0, -0.07, -0.41, head);
+    const dorsal = add(gq('fsD', () => new THREE.ConeGeometry(0.17, 0.34, 4)), scale, 0, 0.33, 0.08, head); dorsal.scale.z = 0.25; dorsal.rotation.x = -0.35;
+    return { ...B, limb: M(0xf4f4f8), hat: [0.31, 0.32] };
+  },
+  cuddle: c => {
+    // a pink teddy onesie
+    const { add, head, mat, M } = c, white = M(0xfff0f6), black = M(0x111111), red = M(0xff2f6e, { roughness: 0.4 });
+    const B = person(c, mat, mat, mat, { tw: 1.16 });
+    for (const sx of [-1, 1]) add(gq('cuHs', () => new THREE.SphereGeometry(0.075, 12, 10)), red, sx * 0.052, 1.46, -0.22);
+    const hp = add(gq('cuHp', () => new THREE.ConeGeometry(0.105, 0.14, 4)), red, 0, 1.38, -0.22); hp.rotation.z = Math.PI; hp.rotation.y = Math.PI / 4; hp.scale.z = 0.6;
+    head.position.y = 1.96;
+    add(gq('cuH', () => new THREE.SphereGeometry(0.3, 22, 16)), mat, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) { add(gq('cuEar', () => new THREE.SphereGeometry(0.11, 14, 10)), mat, sx * 0.22, 0.24, 0.03, head).scale.z = 0.6; add(gq('cuEarI', () => new THREE.SphereGeometry(0.065, 12, 8)), white, sx * 0.22, 0.24, -0.02, head).scale.z = 0.4; add(gq('cuEy', () => new THREE.SphereGeometry(0.04, 10, 8)), black, sx * 0.1, 0.07, -0.27, head); }
+    add(gq('cuMz', () => new THREE.SphereGeometry(0.13, 16, 12)), white, 0, -0.07, -0.24, head).scale.set(1.1, 0.8, 0.6);
+    add(gq('cuNo', () => new THREE.SphereGeometry(0.045, 10, 8)), black, 0, -0.03, -0.32, head).scale.set(1.2, 0.8, 0.8);
+    return { ...B, hat: [0.31, 0.27] };
+  },
+  tomatoface: c => {
+    // a grumpy tomato in a suit
+    const { add, head, M } = c, red = M(0xe23a2a, { roughness: 0.35 }), green = M(0x3f9a3a, { flatShading: true }), black = M(0x111111), white = M(0xffffff);
+    const B = person(c, M(0x1c1c22), M(0x1c1c22), M(0x0e0e10));
+    add(gq('tfTie', () => new THREE.BoxGeometry(0.07, 0.3, 0.03)), red, 0, 1.45, -0.23);
+    add(gq('tfSh', () => new THREE.BoxGeometry(0.2, 0.36, 0.02)), white, 0, 1.47, -0.22);
+    head.position.y = 2.0;
+    const t = add(gq('tfH', () => new THREE.SphereGeometry(0.33, 24, 16)), red, 0, 0, 0, head); t.scale.y = 0.8; t.castShadow = true;
+    add(gq('tfSt', () => new THREE.CylinderGeometry(0.025, 0.035, 0.12, 6)), green, 0, 0.3, 0, head);
+    for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2, l = add(gq('tfLf', () => new THREE.ConeGeometry(0.06, 0.24, 4)), green, Math.cos(a) * 0.09, 0.25, Math.sin(a) * 0.09, head); aimUp(l, Math.cos(a), 0.15, Math.sin(a)); l.scale.z = 0.3; }
+    for (const sx of [-1, 1]) { const b = add(gq('tfBr', () => new THREE.BoxGeometry(0.12, 0.03, 0.02)), black, sx * 0.11, 0.1, -0.29, head); b.rotation.z = sx * 0.4; add(gq('tfEy', () => new THREE.SphereGeometry(0.035, 10, 8)), black, sx * 0.11, 0.04, -0.3, head); }
+    add(gq('tfGr', () => new THREE.BoxGeometry(0.22, 0.06, 0.03)), white, 0, -0.1, -0.3, head);
+    add(gq('tfGl', () => new THREE.BoxGeometry(0.23, 0.01, 0.031)), black, 0, -0.1, -0.3, head);
+    return { ...B, limb: M(0x1c1c22), hat: [0.33, 0.24] };
+  },
+  darkknight: c => {
+    // black armour, a red plume and a glowing visor
+    const { add, head, mat, M, rig } = c, red = M(0xa01a1a, { roughness: 0.6, side: THREE.DoubleSide }), gold = M(0xc9a24a, { metalness: 0.9, roughness: 0.3 });
+    const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.3, 0.2) }); c.extra.push(glow);
+    const B = person(c, mat, mat, mat, { tw: 1.22, tr: 0.28, ar: 0.095, lr: 0.1 });
+    for (const sx of [-1, 1]) { const p = add(gq('dkP', () => new THREE.SphereGeometry(0.17, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2)), mat, sx * 0.4, 1.66, 0); p.scale.set(1.1, 0.75, 1.1); add(gq('dkPt', () => new THREE.TorusGeometry(0.17, 0.015, 6, 20).rotateX(Math.PI / 2)), gold, sx * 0.4, 1.66, 0); }
+    add(gq('dkBelt', () => new THREE.TorusGeometry(0.33, 0.04, 6, 20).rotateX(Math.PI / 2)), gold, 0, 1.08, 0).scale.z = 0.82;
+    const cape = add(gq('dkCape', () => new THREE.PlaneGeometry(0.7, 1.2, 1, 4)), red, 0, 1.15, 0.27); cape.rotation.x = 0.12;
+    head.position.y = 1.95;
+    add(gq('dkHm', () => new THREE.CylinderGeometry(0.23, 0.25, 0.42, 16)), mat, 0, -0.02, 0, head).castShadow = true;
+    add(gq('dkHt', () => new THREE.SphereGeometry(0.23, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2)), mat, 0, 0.19, 0, head);
+    add(gq('dkV', () => new THREE.BoxGeometry(0.3, 0.04, 0.02)), glow, 0, 0.02, -0.245, head);
+    add(gq('dkVb', () => new THREE.BoxGeometry(0.03, 0.26, 0.02)), gold, 0, -0.06, -0.25, head);
+    for (let k = 0; k < 4; k++) { const p = add(gq('dkPl', () => new THREE.ConeGeometry(0.05, 0.36, 6)), red, 0, 0.42 - k * 0.02, 0.02 + k * 0.08, head); p.rotation.x = 0.5 + k * 0.25; }
+    return { ...B, arm: { x: 0.46, y: 1.6, len: 0.42, r: 0.095, spread: 0.12 }, hat: [0.25, 0.4] };
+  },
+  skultrooper: c => {
+    // a skeleton suit and a skull
+    const { add, head, mat, M } = c, bone = M(0xf2f0e6, { roughness: 0.5 }), black = M(0x111111);
+    const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 3, 0.6) }); c.extra.push(glow);
+    const B = person(c, mat, mat, M(0x111111));
+    head.position.y = 1.92;
+    const sk = add(gq('stH', () => new THREE.SphereGeometry(0.24, 20, 14)), bone, 0, 0.02, 0, head); sk.scale.set(0.92, 1, 1); sk.castShadow = true;
+    add(gq('stJ', () => new THREE.BoxGeometry(0.2, 0.09, 0.16)), bone, 0, -0.18, -0.06, head);
+    for (const sx of [-1, 1]) { add(gq('stS', () => new THREE.SphereGeometry(0.065, 10, 8)), black, sx * 0.085, 0.04, -0.19, head); add(gq('stG', () => new THREE.SphereGeometry(0.022, 8, 6)), glow, sx * 0.085, 0.04, -0.245, head); }
+    add(gq('stN', () => new THREE.ConeGeometry(0.03, 0.06, 3).rotateX(Math.PI)), black, 0, -0.06, -0.225, head);
+    for (let k = 0; k < 5; k++) add(gq('stT', () => new THREE.BoxGeometry(0.022, 0.035, 0.01)), black, (k - 2) * 0.034, -0.14, -0.142, head);
+    return { ...B, hat: [0.24, 0.2] };
+  },
+  meowsclez: c => {
+    // a very buff cat
+    const { add, head, mat, M } = c, pink = M(0xff9ab8), black = M(0x111111), yel = M(0xffd23a, { emissive: 0x3a2a00 }), dark = M(0x8a8a96);
+    const B = person(c, mat, M(0x2a4a9a), M(0xf4f4f8), { tw: 1.38, tr: 0.32, ar: 0.13, lr: 0.115 });
+    for (const sx of [-1, 1]) add(gq('mcPec', () => new THREE.SphereGeometry(0.15, 14, 10)), mat, sx * 0.13, 1.5, -0.2).scale.set(1, 0.75, 0.55);
+    for (let k = 0; k < 6; k++) add(gq('mcAb', () => new THREE.BoxGeometry(0.1, 0.07, 0.04)), mat, (k % 2 ? 1 : -1) * 0.06, 1.3 - Math.floor(k / 2) * 0.09, -0.24);
+    for (let k = 0; k < 3; k++) add(gq('mcSt', () => new THREE.BoxGeometry(0.5, 0.04, 0.3)), dark, 0, 1.62 - k * 0.2, 0.06).scale.x = 1.15;
+    head.position.y = 1.98;
+    add(gq('mcH', () => new THREE.SphereGeometry(0.26, 20, 14)), mat, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) {
+      const ear = add(gq('mcEar', () => new THREE.ConeGeometry(0.09, 0.18, 4)), mat, sx * 0.16, 0.22, 0, head); ear.rotation.z = -sx * 0.35; ear.scale.z = 0.5;
+      add(gq('mcEy', () => new THREE.SphereGeometry(0.045, 10, 8)), yel, sx * 0.09, 0.05, -0.22, head); add(gq('mcPu', () => new THREE.BoxGeometry(0.012, 0.06, 0.01)), black, sx * 0.09, 0.05, -0.263, head);
+      for (let k = 0; k < 2; k++) { const w = add(gq('mcWh', () => new THREE.BoxGeometry(0.2, 0.008, 0.008)), black, sx * 0.17, -0.05 - k * 0.03, -0.2, head); w.rotation.z = sx * (0.1 - k * 0.2); }
+    }
+    add(gq('mcNo', () => new THREE.SphereGeometry(0.035, 8, 6)), pink, 0, -0.03, -0.255, head).scale.set(1.3, 0.8, 0.8);
+    return { ...B, limb: mat, arm: { x: 0.54, y: 1.6, len: 0.42, r: 0.13, spread: 0.22 }, hat: [0.27, 0.22] };
+  },
+});
 function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none', pet = '') {
   const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
@@ -4854,6 +4970,7 @@ function equip(kind, id) {
 function shopClick(kind, id, def) {
   if (owns(kind, id)) return equip(kind, id);
   if (def.bundle) { toast(`${def.name} come free with the ${SUITS[def.bundle].name} suit.`); return; }
+  if (!def.season && !inShop(kind, id)) { toast(`${def.name} isn't in the shop right now. The shop changes every hour.`); return; }
   if (def.season && !seasonActive(def.season)) { toast(`${def.name} is a ${SEASONS[def.season].name} item. It comes back next ${SEASONS[def.season].name}.`); return; }
   if (wallet.coins < def.price) { toast(`You need ${(def.price - wallet.coins).toLocaleString()} more coins. Earn them in Squad Waves.`); return; }
   wallet.coins -= def.price; wallet.owned.push(kind + ':' + id); saveWallet(); queueCreatorCut(def.price);
@@ -4910,7 +5027,32 @@ function renderShop() {
   renderCardPick();
   for (const el of document.querySelectorAll('.hrow')) if (el.id && keep[el.id]) { el.style.scrollBehavior = 'auto'; el.scrollLeft = keep[el.id]; el.style.scrollBehavior = ''; }
 }
+// The item shop shows a new selection every hour: 12 suits (half with their own model), 5 pets, 5 emotes and 2 sprays.
+// Hats, gun finishes and this season's items are always there. Featured items join every rotation until FEATURED.until.
+const ROT_N = { suit: 12, pet: 5, emote: 5, spray: 2 };
+const FEATURED = { until: 1791144000000, suit: ['peelo', 'fishstik', 'cuddle', 'tomatoface', 'darkknight', 'skultrooper', 'meowsclez'] };
+const shopHour = () => Math.floor(Date.now() / 3600000);
+let rotCache = null;
+function shopRotation() {
+  const h = shopHour(); if (rotCache && rotCache.h === h) return rotCache;
+  const out = { h };
+  for (const [kind, n] of Object.entries(ROT_N)) {
+    const defs = KIND_DEFS[kind](), r = mulberry(h * 7919 + kind.charCodeAt(0) * 131);
+    const pool = Object.keys(defs).filter(id => defs[id].price > 0 && !defs[id].season && !defs[id].bundle).sort();
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const feat = Date.now() < FEATURED.until ? (FEATURED[kind] || []).filter(id => defs[id]) : [];
+    let rest = pool.filter(id => !feat.includes(id));
+    // suits alternate between ones with their own model and plain suits
+    if (kind === 'suit') { const model = rest.filter(id => BODIES[id] || id === 'walla' || id === 'austen'), plain = rest.filter(id => !model.includes(id)); rest = []; for (let i = 0; i < Math.max(model.length, plain.length); i++) { if (plain[i]) rest.push(plain[i]); if (model[i]) rest.push(model[i]); } }
+    out[kind] = new Set([...feat, ...rest].slice(0, Math.max(n, feat.length)));
+  }
+  return (rotCache = out);
+}
+const inShop = (kind, id) => !ROT_N[kind] || shopRotation()[kind].has(id);
+let shopHourSeen = shopHour();
+setInterval(() => { if (shopHour() !== shopHourSeen) { shopHourSeen = shopHour(); rotCache = null; if (menuTab === 'shop') renderShop(); } if (menuTab === 'shop') { const m = 60 - new Date().getMinutes(); setText('shopTimer', `NEW ITEMS IN ${m} MIN`); } }, 20000);
 function renderShopInner() {
+  { const m = 60 - new Date().getMinutes(); setText('shopTimer', `NEW ITEMS IN ${m} MIN`); }
   $('coinBig').textContent = wallet.coins.toLocaleString();
   // this season's limited items sit in their own box at the top; owned seasonal items also show in the normal lists
   const boxes = $('seasonBoxes'); boxes.textContent = '';
@@ -4926,7 +5068,7 @@ function renderShopInner() {
     const el = $(box), cel = $(cbox); el.textContent = ''; cel.textContent = '';
     for (const [id, def] of Object.entries(defs)) {
       if (owns(kind, id)) shopItem(kind, id, def, cur, cel);
-      else if (!def.season && !def.bundle) shopItem(kind, id, def, cur, el);
+      else if (!def.season && !def.bundle && inShop(kind, id)) shopItem(kind, id, def, cur, el);
     }
   }
   // emote slots: click one, then click an emote to put it there
@@ -6250,6 +6392,7 @@ function hostManageBots(dt) {
     const want = Math.max(0, 50 - hs.length);
     for (let n = bots.length; n < want; n++) { hostAddBot(-1); const b = [...ents.values()].filter(e => e.kind === 'bot').pop(); if (b) { b.respawnT = 1e9; b.alive = false; } }
     for (let n = bots.length; n > want; n--) { const b = [...ents.values()].filter(e => e.kind === 'bot').pop(); if (b) removeEnt(b, false); }
+    for (const b of ents.values()) if (b.kind === 'bot' && !b.alive) { b.alive = true; b.hp = 100; b.invuln = 1e9; b.pos.copy(royaleSpawn()); b.tpos.copy(b.pos); b.vel.set(0, 0, 0); b.yaw = rand(0, 6.283); b.wp = 'pick'; b.glide = false; b.target = null; }
     return;
   }
   if (mode === 'duel' || mode === 'prophunt') {
@@ -6289,9 +6432,9 @@ function botGoal(e, acts) {
     if (e.target) return e.target.pos;
     // looting: short trips around where they are, with a pause at each stop; drift toward the next circle when it's far
     if (!e.patrol || Math.hypot(e.patrol.x - zt[0], e.patrol.z - zt[1]) > zt[2]) e.patrol = null;
-    if (e.patrol && e.pos.distanceTo(e.patrol) < 3) { e.patrol = null; e.idleUntil = time + rand(4, 14); }
+    if (e.patrol && (e.pos.distanceTo(e.patrol) < 3 || time - (e.patrolT || 0) > 9)) { if (e.pos.distanceTo(e.patrol) < 3 && Math.random() < 0.5) e.idleUntil = time + rand(1, 4); e.patrol = null; }
     if (time < (e.idleUntil || 0)) return e.pos;
-    if (!e.patrol) { const toC = Math.hypot(e.pos.x - zt[0], e.pos.z - zt[1]), k = toC > zt[2] * 0.7 ? 0.35 : 0, a = rand(0, 6.283), r = rand(6, 22); e.patrol = new V3(e.pos.x + (zt[0] - e.pos.x) * k + Math.cos(a) * r, 0, e.pos.z + (zt[1] - e.pos.z) * k + Math.sin(a) * r); }
+    if (!e.patrol) { e.patrolT = time; const toC = Math.hypot(e.pos.x - zt[0], e.pos.z - zt[1]), k = toC > zt[2] * 0.7 ? 0.35 : 0, a = rand(0, 6.283), r = rand(6, 22); e.patrol = new V3(e.pos.x + (zt[0] - e.pos.x) * k + Math.cos(a) * r, 0, e.pos.z + (zt[1] - e.pos.z) * k + Math.sin(a) * r); }
     return e.patrol;
   }
   if (e.target) return e.target.pos;
@@ -6318,6 +6461,13 @@ function hostUpdateBot(e, dt, acts) {
   }
   e.invuln = Math.max(0, e.invuln - dt);
   if ((mode === 'duel' && GS.drs !== 1) || (mode === 'prophunt' && GS.pph !== 2) || (mode === 'royale' && GS.rph !== 1)) { e.vel.set(0, 0, 0); return; }
+  if (e.glide) {
+    // Battle Royale: gliding down after the drop
+    e.vel.x = damp(e.vel.x, e.gdx * 6, 2, dt); e.vel.z = damp(e.vel.z, e.gdz * 6, 2, dt); if (e.vel.y < -11) e.vel.y = -11;
+    e.yaw = Math.atan2(-e.gdx, -e.gdz); stepBody(e, dt);
+    if (e.onGround || e.pos.y < 0.3) { e.glide = false; e.invuln = 1.5; }
+    return;
+  }
   const bMax = mode === 'infect' && e.team === 1 ? INFECTED_HP : 100;
   if (mode !== 'royale' && time - e.lastDmgT > 4 && e.hp < bMax) e.hp = Math.min(bMax, e.hp + 15 * dt);
   if (mode === 'royale' && e.wp === 'pick' && time > (e.lootT || 0)) e.wp = pick(BR_GUNS);
@@ -8462,7 +8612,7 @@ function updateHUD() {
     setText('hint', GS.ph === 1 ? '' : GS.pph === 0 ? 'WAITING FOR PLAYERS' : GS.pph === 1 ? (amHunter() ? '' : `HIDE! HUNTERS RELEASED IN ${GS.ptm}`) : amHunter() ? 'FIND THE PROPS · WRONG SHOTS HURT YOU' : `CLICK A PROP TO BECOME IT · ${bindLabel('reload').toUpperCase()} LOCKS ROTATION · ${bindLabel('use').toUpperCase()} TAUNTS (+10)`);
   } else if (mode === 'royale') {
     const fmt = v => `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`, out = GS.rph === 1 && player.alive && Math.hypot(player.pos.x - GS.zc[0], player.pos.z - GS.zc[1]) > GS.zc[2];
-    setText('hAl', String(GS.rph === 1 ? GS.ral || allActors().filter(a => a.alive).length : humans().length)); setText('hZn', GS.rph === 1 ? (GS.zk === 1 ? 'MOVING' : fmt(GS.ztm || 0)) : '—'); setText('hK', String(frags));
+    setText('hAl', String(GS.rph === 1 ? GS.ral || allActors().filter(a => a.alive).length : allActors().length)); setText('hZn', GS.rph === 1 ? (GS.zk === 1 ? 'MOVING' : fmt(GS.ztm || 0)) : '—'); setText('hK', String(frags));
     setText('hint', GS.ph === 1 ? '' : GS.rph === 0 ? (GS.rtm ? `THE DROP STARTS IN ${GS.rtm}` : 'WAITING FOR PLAYERS') : out ? '⚠ YOU ARE IN THE STORM · GET TO THE CIRCLE' : RY.glide ? 'GLIDING · STEER WITH WASD' : GS.zk === 1 ? 'THE CIRCLE IS SHRINKING' : `THE CIRCLE SHRINKS IN ${GS.ztm}s`);
     $('hint').style.color = out ? '#c07dff' : '';
   } else if (mode === 'hub') {
@@ -9082,7 +9232,7 @@ function renderGift() {
   $('giftHead').innerHTML = `Gift to <b>${esc(giftView.name || giftView.pid)}</b> · you have <span class="coin">${wallet.coins.toLocaleString()}</span>`;
   const el = $('giftItems'); el.textContent = '';
   for (const [k, D] of Object.entries(KIND_DEFS)) for (const [id, d] of Object.entries(D())) {
-    const it = k + ':' + id; if (!d.price || d.bundle || (d.season && !seasonActive(d.season))) continue;
+    const it = k + ':' + id; if (!d.price || d.bundle || (d.season && !seasonActive(d.season)) || (!d.season && !inShop(k, id))) continue;
     const b = document.createElement('button'), has = theirs.has(it);
     b.className = 'gitem' + (giftView.pick === it ? ' sel' : '') + (has ? ' poor' : ''); b.style.setProperty('--pv', d.pv || 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))');
     b.innerHTML = `<i>${d.icon || ''}</i><b>${esc(d.name)}</b><small>${has ? 'THEY OWN IT' : d.price.toLocaleString()}</small>`;
@@ -9739,7 +9889,7 @@ function royaleStart(R) {
   GS.rsd = 1 + Math.floor(Math.random() * 1e9); GS.rph = 1; GS.zs = 0; GS.zk = 0; GS.zc = [0, 0, ARENA_R];
   const nr = RZ[0][2], off = (ARENA_R - nr) * 0.6 * Math.random(), a = Math.random() * 6.283; GS.zt = [r1(Math.cos(a) * off), r1(Math.sin(a) * off), nr];
   R.timer = RZ[0][0]; R.from = GS.zc.slice(); R.t0 = time; R.lobbyT = null; GS.ztm = RZ[0][0];
-  for (const e of ents.values()) if (e.kind === 'bot') { e.pos.copy(royaleGroundSpot(Math.random)); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.hp = 100; e.alive = true; e.invuln = 3; e.target = null; e.patrol = null; e.wp = 'pick'; e.lootT = time + rand(35, 140); e.f = 0; e.d = 0; e.respawnT = 1e9; }
+  for (const e of ents.values()) if (e.kind === 'bot') { const g = royaleGroundSpot(Math.random), cl = Math.hypot(g.x, g.z) || 1; e.pos.set(g.x, rand(92, 104), g.z); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.glide = true; e.gdx = -g.x / cl * 0.6 + rand(-0.5, 0.5); e.gdz = -g.z / cl * 0.6 + rand(-0.5, 0.5); e.hp = 100; e.alive = true; e.invuln = 1e9; e.target = null; e.patrol = null; e.wp = 'pick'; e.lootT = time + rand(35, 140); e.f = 0; e.d = 0; e.respawnT = 1e9; }
   GS.ral = allActors().filter(a => a.alive).length;
   hostEvent('The match has started');
 }
