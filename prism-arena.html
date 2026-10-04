@@ -1038,7 +1038,9 @@ function switchMap(id) {
   setTimeout(() => location.reload(), 120);
 }
 // room names: the original map keeps the old naming so existing rooms still match
-const roomFor = (m = mode, map = settings.map, room = settings.room) => map === 'prism' ? `pa-${m}-${room}` : `pa-${m}-${map}-${room}`;
+// Battle Royale in the public room has numbered copies (BR1, BR2, ...): if a match is already going you're sent to the next one
+let brInst = 1;
+const roomFor = (m = mode, map = settings.map, room = settings.room) => { if (m === 'royale' && room === 'public' && brInst > 1) room = `public-br${brInst}`; return map === 'prism' ? `pa-${m}-${room}` : `pa-${m}-${map}-${room}`; };
 
 // ================= player stats (shown on your profile) =================
 const stats = Object.assign({ k: 0, d: 0, w: 0, bk: 0, inf: 0, gp: 0, pt: 0, ch: 0, since: Date.now() }, store.get('stats', {}));
@@ -1113,6 +1115,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'br-lobbies', date: '2026-10-04', title: 'Battle Royale Lobbies', lines: ["In the public room, if a Battle Royale match has already started you're sent to the next lobby (BR2, BR3 and so on) instead of joining halfway", 'Getting knocked out and pressing Play again puts you in a fresh lobby. You can no longer sneak back into the match you were knocked out of', 'In a private room you still watch until the next match starts'] },
   { id: 'shop-rotation', date: '2026-10-04', title: 'Hourly Item Shop & Island Legends', lines: ['The shop now changes every hour: 12 suits (half with their own model), 6 hats, 4 gun finishes, 5 pets, 5 emotes and 2 sprays. Seasonal items are always there, and anything you own stays in Customize', 'New Island Legends skins, all in the shop this hour: Peelo, Fishstik, Cuddle Squad Leader, Tomatoface, The Dark Knight, Skul Trooper and Meowsclez', 'Battle Royale bots now wait in the sky lobby with you, then drop and glide down when the match starts', 'Battle Royale bots no longer stand around: they keep moving while they loot'] },
   { id: 'royale2', date: '2026-10-04', title: 'Bigger Battle Royale', lines: ['Every Battle Royale match now has 50 players: bots fill whatever spots real people don\'t', 'The island is far bigger, with four new places: New Town, The Ruins, Sunny Ranch and Dusty Camp, plus lots more huts, trees, chests and loot', 'The storm takes much longer to close in (7 rings, about 13 minutes)', 'No pulse ability in Battle Royale', 'Fixed the purple tint over the Rail Lance scope'] },
   { id: 'royale', date: '2026-10-04', title: 'Battle Royale, Clans & Kill Cam', lines: ['New mode: Battle Royale. Up to 50 players (bots fill the empty spots) wait in a sky lobby, then drop onto a big island and glide down', 'Loot guns (Common, Rare, Epic and Legendary hit harder), ammo for each kind of gun, and heals you use when you want: 5 Bandage, 6 Medkit, 7 Shield Cell', 'Gold chests hold better loot. Press E to open them and to pick up guns. The storm closes in, so keep to the white circle on your map', 'Clans: start or join one in the Friends tab. Your tag shows on your name, wins count for your clan, and /c in chat talks to your clan', 'Kill cam: see how you went down, from the eyes of whoever got you (turn it off in Settings)', 'Prop Hunt: your pet no longer gives away where you are hiding, and bot hunters now sometimes take a shot at props that stand still', 'Engineer turrets have less range and fire a little slower', 'Battle Royale: you no longer drop in with grenades'] },
@@ -3703,7 +3706,7 @@ function updateNetLabel() {
   const on = conn && conn.connected();
   $('netdot').classList.toggle('on', !!on);
   const mname = { waves: 'Waves', boss: 'Boss Raid', ffa: 'FFA', gungame: 'Gun Game', ctf: 'CTF', infect: 'Infection', duel: '1v1 Duel', mission: 'Missions', prophunt: 'Prop Hunt', hub: 'Hub Plaza', royale: 'Battle Royale' }[mode];
-  $('nettxt').textContent = on ? `${mname} · room ${settings.room} · ${others + 1} online` : `${mname} · solo`;
+  $('nettxt').textContent = on ? `${mname} · room ${settings.room}${mode === 'royale' && settings.room === 'public' ? ` · BR${brInst}` : ''} · ${others + 1} online` : `${mname} · solo`;
   $('menuNet').textContent = on ? `Room ${settings.room}: ${others + 1} online` : (netKind === 'off' ? 'Multiplayer unavailable here' : 'Multiplayer: connecting…');
 }
 
@@ -8897,6 +8900,8 @@ function chooseTeam() {
   return cnt[0] === cnt[1] ? (Math.random() < 0.5 ? 0 : 1) : cnt[0] < cnt[1] ? 0 : 1;
 }
 function startGame() {
+  // Battle Royale: you're only in a match if you dropped into it, so a fresh start looks for a lobby again from BR1
+  if (settings.mode === 'royale') { brInst = 1; RY.inMatch = false; }
   initAudio(); endKillCam();
   mode = settings.mode; joinRoom();
   for (const o of ctfObjs) o.visible = mode === 'ctf';
@@ -9845,6 +9850,11 @@ function royaleLobby() {
   $('dead').hidden = true; spawnPlayer(); if (state === 'dead') { state = 'playing'; requestLock(); }
   announce('SKY LOBBY', 'The next match starts soon', '#ffbf6b');
 }
+// the public match you joined is already going: try the next numbered copy (BR2, BR3, ...)
+function royaleNextLobby() {
+  brInst++; RY.inMatch = false; joinRoom(); spawnPlayer();
+  toast(`That match already started · joining BR${brInst}`); updateNetLabel();
+}
 // joined while a match was running: watch until the next one
 function royaleWait() {
   RY.inMatch = true; player.alive = false; state = 'dead'; firing = false; clearAds();
@@ -9941,7 +9951,7 @@ function updateRoyale(dt) {
   // this match's loot
   const want = GS.rph === 1 ? GS.rsd : 0;
   if (RL.seed !== want) royaleLoot(want);
-  if (GS.rph === 1 && state === 'playing' && !RY.inMatch) royaleWait();
+  if (GS.rph === 1 && state === 'playing' && !RY.inMatch) { if (settings.room === 'public' && brInst < 40) royaleNextLobby(); else royaleWait(); }
   royaleZoneFx(dt);
   const ui = royaleUI(), inGame = state !== 'menu' && state !== 'editor';
   ui.map.style.display = ui.heals.style.display = inGame ? '' : 'none';
