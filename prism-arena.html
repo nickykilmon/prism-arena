@@ -140,6 +140,8 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,68px);lin
 .tabs{display:flex;flex-wrap:wrap;gap:2px;border-bottom:1px solid var(--line)}
 .tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 7px 9px;margin-bottom:-1px;cursor:pointer;font-family:var(--display);font-weight:700;letter-spacing:.08em;font-size:12px;color:var(--dim);display:flex;gap:8px;align-items:center}
 .tabs .badge{font-size:10px;letter-spacing:.08em;color:var(--good);border:1px solid currentColor;border-radius:8px;padding:0 6px}
+.tabs .fsbtn{margin-left:auto;color:var(--cyan);font-size:17px;padding:4px 6px 6px}
+.tabs .fsbtn:hover{color:var(--fg)}
 .tabs button.sel{color:var(--fg);border-bottom-color:var(--cyan)}
 .coin{display:inline-flex;align-items:center;gap:5px;font-family:var(--display);font-weight:700;color:var(--amber);font-variant-numeric:tabular-nums;letter-spacing:.04em}
 .coin::before{content:"";width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3c4,#ffbf3b 55%,#b56d00);box-shadow:0 0 6px rgba(255,191,107,.6)}
@@ -411,7 +413,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
   <div class="slab">
     <div class="eyebrow" id="menuEyebrow">Live sky arena · up to 8 players</div>
     <h1>PRISM<br>ARENA</h1>
-    <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="custom">CUSTOMIZE</button><button data-tab="lb">LEADERBOARD</button><button data-tab="friends">FRIENDS <span class="badge" id="frBadge" hidden></span></button><button data-tab="set">SETTINGS</button></div>
+    <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="custom">CUSTOMIZE</button><button data-tab="lb">LEADERBOARD</button><button data-tab="friends">FRIENDS <span class="badge" id="frBadge" hidden></span></button><button data-tab="set">SETTINGS</button><button id="fsBtn" class="fsbtn" title="Fullscreen (P)" aria-label="Fullscreen">⛶</button></div>
     <div class="pane" id="playPane">
     <div class="news" id="news"></div>
     <div class="sect">Game mode</div>
@@ -949,6 +951,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'fullscreen', date: '2026-10-04', title: 'Fullscreen Mode',
+    lines: ['Click the ⛶ icon next to Settings, or press P, to go fullscreen. Press P or Esc to leave'] },
   { id: 'pyro-storm', date: '2026-10-04', title: 'New Classes: Pyro & Stormcaller',
     lines: ['Pyro (160 HP): the Inferno flamethrower sets drones on fire, Ring of Fire (Q) circles you with a burning wall, Heatwave (G) blasts drones back in flames. Scatter as backup', 'Stormcaller (115 HP): the Arc Thrower\'s lightning jumps to 3 more drones, Thunderstrike (Q) drops 5 bolts where you aim, Tesla Coil (G) zaps anything that comes close. Hand Cannon as backup', 'Both are in Squad Waves and Boss Raid'] },
   { id: 'season-bodies', date: '2026-10-04', title: 'Seasonal Skins Get Their Own Bodies',
@@ -2282,7 +2286,7 @@ const ACTIONS = [
   ['left', 'Move left', ['KeyA', 'ArrowLeft']], ['right', 'Move right', ['KeyD', 'ArrowRight']],
   ['jump', 'Jump / double jump', ['Space', null]], ['dash', 'Dash', ['ShiftLeft', 'ShiftRight']],
   ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Ability (pulse / class)', ['KeyQ', null]], ['nade', 'Grenade / gadget', ['KeyG', null]],
-  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]],
+  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]],
   ['panic', 'Panic screen', ['Backquote', null]],
   ...[1, 2, 3, 4, 5, 6, 7].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
 ];
@@ -3807,7 +3811,7 @@ function renderShopInner() {
 }
 function setMenuTab(t) {
   menuTab = t;
-  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('sel', b.dataset.tab === t));
+  document.querySelectorAll('#tabs button[data-tab]').forEach(b => b.classList.toggle('sel', b.dataset.tab === t));
   const was = menuTab;
   $('playPane').hidden = t !== 'play'; $('shopPane').hidden = t !== 'shop'; $('custPane').hidden = t !== 'custom';
   document.querySelector('#menu .slab').classList.toggle('wide', t === 'shop' || t === 'custom'); $('setPane').hidden = t !== 'set'; $('lbPane').hidden = t !== 'lb'; $('frPane').hidden = t !== 'friends'; $('profPane').hidden = t !== 'prof';
@@ -3818,7 +3822,18 @@ function setMenuTab(t) {
   else if (bindCapture) { bindCapture = null; }
   if (t === 'shop' || t === 'custom') { renderShop(); buildShowcase(); }
 }
-document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => setMenuTab(b.dataset.tab)));
+document.querySelectorAll('#tabs button[data-tab]').forEach(b => b.addEventListener('click', () => setMenuTab(b.dataset.tab)));
+// fullscreen: the button in the menu or the P key (Esc or P again to leave)
+function toggleFullscreen() {
+  const el = document.documentElement;
+  if (document.fullscreenElement || document.webkitFullscreenElement) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req) { toast('Fullscreen is not available here. Try F11'); return; }
+  Promise.resolve(req.call(el, { navigationUI: 'hide' })).then(() => { if (state === 'playing' && !locked) requestLock(); }).catch(() => toast('Fullscreen was blocked here. Try F11, or open the game in its own tab'));
+}
+const syncFs = () => { $('fsBtn').title = document.fullscreenElement || document.webkitFullscreenElement ? 'Exit fullscreen (P)' : 'Fullscreen (P)'; };
+document.addEventListener('fullscreenchange', syncFs); document.addEventListener('webkitfullscreenchange', syncFs);
+$('fsBtn').addEventListener('click', toggleFullscreen);
 function renderCreator() {
   $('ccode').value = creatorCode;
   const m = $('cmsg');
@@ -6335,6 +6350,7 @@ function pressCode(code, repeat) {
   const acts = codeMap.get(code); if (!acts) return false;
   if (acts.includes('panic')) { if (!repeat) toggleStudy(); return true; }
   if (studyOn || chatOpen) return false;
+  if (acts.includes('fullscreen') && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) { if (!repeat) toggleFullscreen(); return true; }
   if (acts.includes('chat') && (state === 'playing' || state === 'dead') && !$('hud').hidden) { openChat(); return true; }
   if (state !== 'playing') return false;
   if (repeat) return true;
