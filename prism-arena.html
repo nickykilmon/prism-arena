@@ -496,6 +496,12 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="custom">CUSTOMIZE</button><button data-tab="lb">LEADERBOARD</button><button data-tab="friends">FRIENDS <span class="badge" id="frBadge" hidden></span></button><button data-tab="set">SETTINGS</button><button id="fsBtn" class="fsbtn" title="Fullscreen (P)" aria-label="Fullscreen">⛶</button></div>
     <div class="pane" id="playPane">
     <div class="news" id="news"></div>
+    <div class="fields">
+      <div class="field"><label for="name">Callsign</label><input type="text" id="name" maxlength="14" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label for="roomcode">Room code</label><input type="text" id="roomcode" maxlength="20" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <button id="play" disabled>Loading…</button>
+    <div class="meta"><span id="bestLine"><span id="bestLbl">Best wave</span> <b id="bestWave">0</b> · score <b id="bestScore">0</b></span><span id="menuNet">Multiplayer: checking…</span></div>
     <div class="sect">Game mode</div>
     <div class="modes" id="modes">
       <button class="mode" data-mode="waves"><b>Squad Waves</b><span>Survive drone waves together. Earns coins.</span></button>
@@ -526,17 +532,11 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
       <div class="sect" style="margin-bottom:8px">Gun ladder <span style="letter-spacing:.08em;text-transform:none">· one kill per gun · a Blade kill knocks the victim down a level</span></div>
       <div class="ladder" id="ladder"></div>
     </div>
-    <div class="fields">
-      <div class="field"><label for="name">Callsign</label><input type="text" id="name" maxlength="14" autocomplete="off" spellcheck="false"></div>
-      <div class="field"><label for="roomcode">Room code</label><input type="text" id="roomcode" maxlength="20" autocomplete="off" spellcheck="false"></div>
-    </div>
     <div class="party">
       <div class="dhead"><b>PARTY · ROOM <span id="ptRoom"></span></b><span id="ptCount"></span></div>
       <div id="ptList"></div>
       <div class="btnrow"><button class="ghost" id="ptPrivate">NEW PRIVATE ROOM</button><button class="ghost" id="ptCopy">COPY ROOM CODE</button><button class="ghost" id="ptInvite">INVITE FRIENDS</button></div>
     </div>
-    <button id="play" disabled>Loading…</button>
-    <div class="meta"><span id="bestLine"><span id="bestLbl">Best wave</span> <b id="bestWave">0</b> · score <b id="bestScore">0</b></span><span id="menuNet">Multiplayer: checking…</span></div>
     <div class="daily"><div class="dhead"><b>DAILY CHALLENGES</b><span id="dreset"></span></div><div id="dlist"></div></div>
     <div class="mp"><b>Multiplayer:</b> friends who pick the same mode and room code join your match. Bots fill the empty slots, so every mode works solo too.</div>
     </div>
