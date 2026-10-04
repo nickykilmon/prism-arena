@@ -646,11 +646,11 @@ const CLASSES = {
   engineer: { name: 'Engineer', hp: 130, css: '#ffd23a', guns: ['rifle', 'scatter'], q: 'turret', g: 'repair', blurb: 'Builds defenses that hold the line.', qText: 'Auto-turret that shoots drones (25s)', gText: 'Repair beacon: heals and refills ammo' },
   summoner: { name: 'Summoner', hp: 110, css: '#6fb8ff', guns: ['cannon', 'smg'], q: 'drones', g: 'decoy', blurb: 'Fights alongside a pair of attack drones.', qText: 'Two attack drones follow you (20s)', gText: 'Hologram decoy that drones chase' },
   gravity: { name: 'Gravity Mage', hp: 115, css: '#e07dff', guns: ['smg', 'nova'], q: 'hole', g: 'antigrav', blurb: 'Bends gravity around the fight.', qText: 'Black hole: pulls in and crushes drones', gText: 'Anti-grav field: float and jump higher' },
-  tank: { name: 'Tank', hp: 250, css: '#a8b8cc', guns: ['lmg', 'scatter'], q: 'barrier', g: 'slam', blurb: 'Soaks damage and shields the squad. A bit slower.', qText: 'Shield box around you: no drones or shots get in (10s)', gText: 'Ground slam: damages and stuns drones' },
+  tank: { name: 'Tank', hp: 250, css: '#a8b8cc', guns: ['lmg', 'scatter'], q: 'barrier', g: 'taunt', blurb: 'Soaks damage and shields the squad. A bit slower.', qText: 'Shield box around you: no drones or shots get in (10s)', gText: 'Iron Roar: every drone within 35 m targets you for 6s, and you take half damage' },
   jetpack: { name: 'Jetpack', hp: 125, css: '#5ff2ff', guns: ['scatter', 'nova'],  q: null,    g: 'pad',    blurb: 'Hold jump in the air to fly (4s fuel).', qText: 'Jetpack: hold jump', gText: 'Jump pad (3 uses)' },
 };
 const QDEF = { turret: { name: 'TURRET', cd: 30 }, drones: { name: 'DRONE PAIR', cd: 30 }, hole: { name: 'BLACK HOLE', cd: 20 }, barrier: { name: 'BARRIER', cd: 20 }, pounce: { name: 'POUNCE', cd: 5 }, pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 }, rift: { name: 'RIFT DASH', cd: 8 } };
-const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name: 'DECOY', max: 2, re: 16 }, antigrav: { name: 'ANTI-GRAV', max: 1, re: 22 }, slam: { name: 'GROUND SLAM', max: 2, re: 12 }, none: { name: 'NO GADGET', max: 0, re: 1 }, nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 }, hook: { name: 'CHAIN HOOK', max: 2, re: 10 } };
+const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name: 'DECOY', max: 2, re: 16 }, antigrav: { name: 'ANTI-GRAV', max: 1, re: 22 }, slam: { name: 'GROUND SLAM', max: 2, re: 12 }, taunt: { name: 'IRON ROAR', max: 1, re: 18 }, none: { name: 'NO GADGET', max: 0, re: 1 }, nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 }, hook: { name: 'CHAIN HOOK', max: 2, re: 10 } };
 const JET_MAX = 4;
 const isCoopMode = m => m === 'waves' || m === 'boss';
 const coop = () => isCoopMode(mode);
@@ -945,6 +945,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'new-bodies', date: '2026-10-04', title: 'Five New Skins, New Emotes & The Iron Roar',
+    lines: ['New skins with their own body shapes: Astronaut, Ninja, Slime, Mecha and Shark', 'New emotes: Shrug, Robot Dance, Facepalm, Celebrate (with confetti) and Nap Time', 'The Tank\'s G is now Iron Roar: every drone within 35 m locks onto you for 6 seconds while you take half damage'] },
   { id: 'big-grenades', date: '2026-10-03', title: 'Grenades Hit Way Harder',
     lines: ['Cybernades now explode in a 12 m sphere that reaches drones flying above you, and one grenade takes out a Poisoner anywhere in the blast', 'Poppers got the same treatment with a smaller blast', 'Bigger, louder explosions you can see expand in every direction'] },
   { id: 'poison-scramble', date: '2026-10-03', title: 'Poisoners Now Scramble Your Controls',
@@ -1119,6 +1121,11 @@ const SUITS = {
   pride: { name: 'Pride', price: 450, season: 'pride', pv: 'linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
   progress: { name: 'Progress', price: 550, season: 'pride', pv: 'linear-gradient(120deg,#fff 0 10%,#f5a9b8 10% 16%,#5bcefa 16% 22%,#613915 22% 28%,#000 28% 34%,transparent 34%),linear-gradient(180deg,#e40303 0 17%,#ff8c00 17% 33%,#ffed00 33% 50%,#008026 50% 67%,#004dff 67% 83%,#750787 83%)' },
   walla: { name: 'The Walla', price: 2500, pv: 'radial-gradient(ellipse at 50% 34%,#111 0 4%,transparent 5%),radial-gradient(circle at 44% 25%,#fff 0 3%,transparent 4%),radial-gradient(circle at 56% 25%,#fff 0 3%,transparent 4%),radial-gradient(circle at 50% 28%,#ff2a1a 0 17%,transparent 18%),linear-gradient(90deg,transparent 40%,#e8201e 40% 60%,transparent 60%) 0 100%/100% 62% no-repeat,#ffe4e0' },
+  astro: { name: 'Astronaut', price: 1800, pv: 'radial-gradient(ellipse at 50% 32%,#ffc54a 0 14%,#f4f6fa 15% 26%,transparent 27%),linear-gradient(180deg,#e8ecf4,#b8c0cc)' },
+  ninja: { name: 'Ninja', price: 1600, pv: 'linear-gradient(180deg,#16161c 0 26%,#e2313f 26% 32%,#16161c 32% 36%,#f2c7a0 36% 42%,#16161c 42%)' },
+  slime: { name: 'Slime', price: 1500, pv: 'radial-gradient(circle at 38% 45%,#fff 0 6%,#111 7% 10%,transparent 11%),radial-gradient(circle at 62% 45%,#fff 0 6%,#111 7% 10%,transparent 11%),radial-gradient(ellipse at 50% 70%,#7dff6a,#2fbf3a 60%,#1a6a1a)' },
+  mecha: { name: 'Mecha', price: 2400, pv: 'linear-gradient(180deg,#3a3f4a 0 30%,#5ff2ff 30% 36%,#3a3f4a 36% 60%,#ff8a1f 60% 66%,#3a3f4a 66%)' },
+  shark: { name: 'Shark', price: 2000, pv: 'linear-gradient(160deg,#6f8fa8 0 55%,#f4f6fa 55%),linear-gradient(#000,#000)' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -1199,6 +1206,11 @@ const EMOTES = {
   dab: { name: 'Dab', icon: '😎', say: '', price: 450 },
   taunt: { name: 'Taunt', icon: '🤡', say: 'Ez', price: 450 },
   hotdog: { name: 'Hot Dog Spin', icon: '🌭', say: '', price: 600 },
+  shrug: { name: 'Shrug', icon: '🤷', say: '¯\\_(ツ)_/¯', price: 300 },
+  robot: { name: 'Robot Dance', icon: '🤖', say: 'Beep boop', price: 400 },
+  facepalm: { name: 'Facepalm', icon: '🤦', say: 'Bruh', price: 300 },
+  celebrate: { name: 'Celebrate', icon: '🎉', say: 'LET\'S GO!', price: 500, prop: true },
+  nap: { name: 'Nap Time', icon: '😴', say: 'Zzz', price: 350, dur: 4.5 },
   trickortreat: { name: 'Trick or Treat', icon: '🎃', say: 'Trick or treat!', price: 450, season: 'halloween', dur: 4.5 },
   feast: { name: 'Feast', icon: '🍗', say: 'Dinner time', price: 450, season: 'thanksgiving', dur: 4.5 },
   unwrap: { name: 'Unwrap', icon: '🎁', say: 'For me?!', price: 450, season: 'christmas', dur: 4.5 },
@@ -1452,6 +1464,11 @@ function suitMaterial(id, col, glowCol) {
     case 'leopard': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: leopardTex(), roughness: 0.7 });
     case 'infected': return new THREE.MeshStandardMaterial({ color: 0x18210f, roughness: 0.55, metalness: 0.25, emissive: BLIGHT.clone(), emissiveMap: veinTex(), emissiveIntensity: 1.4 });
     case 'pastel': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pastelTex(), metalness: 0.05, roughness: 0.4 });
+    case 'astro': return new THREE.MeshStandardMaterial({ color: 0xf2f4f8, roughness: 0.5 });
+    case 'ninja': return new THREE.MeshStandardMaterial({ color: 0x18181e, roughness: 0.75 });
+    case 'slime': return new THREE.MeshStandardMaterial({ color: 0x5cff5a, roughness: 0.12, metalness: 0.05, emissive: 0x0a5a14, transparent: true, opacity: 0.78 });
+    case 'mecha': return new THREE.MeshStandardMaterial({ color: 0x3a3f4a, metalness: 0.75, roughness: 0.32 });
+    case 'shark': return new THREE.MeshStandardMaterial({ color: 0x6f8fa8, roughness: 0.45 });
     case 'walla': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: wallaTex(), roughness: 0.65 });
     case 'pilgrim': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: pilgrimTex(), roughness: 0.7 });
     case 'gobbler': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: gobblerTex(), roughness: 0.8 });
@@ -2759,8 +2776,8 @@ function flowerHat(put, M, R) { const p = M(0xffffff); for (let k = 0; k < 5; k+
 function addHat(parent, id, hotdog, mats, av) {
   if (!id || id === 'none' || !HATS[id]) return;
   // droid: wide dome head; hot dog: narrow sausage tip, so hats sit higher with narrower brims
-  const wl = av && av.userData.walla, R = wl ? 0.32 : hotdog ? 0.24 : 0.44, bk = hotdog ? 0.85 : 1;
-  const hat = new THREE.Group(); hat.position.y = wl ? 0.22 : hotdog ? 0.2 : 0.26; parent.add(hat);
+  const wl = av && av.userData.walla, cR = av && av.userData.hatR, R = cR || (wl ? 0.32 : hotdog ? 0.24 : 0.44), bk = hotdog ? 0.85 : 1;
+  const hat = new THREE.Group(); hat.position.y = cR ? av.userData.hatY : wl ? 0.22 : hotdog ? 0.2 : 0.26; parent.add(hat);
   const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.05, ...o }); mats.push(m); return m; };
   const put = (geo, m, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; hat.add(o); return o; };
   const cyl = (rt, rb, h, open = false) => new THREE.CylinderGeometry(rt, rb, h, 28, 1, open);
@@ -2918,6 +2935,80 @@ function addHat(parent, id, hotdog, mats, av) {
     }
   }
 }
+// ---------- skins with their own body shape ----------
+const GC = {}, gq = (k, f) => GC[k] || (GC[k] = f());
+function humanLegs(c, m, boot, w = 0.14, r = 0.09, hip = 0.98) {
+  const len = hip - r - 0.17;
+  return [-1, 1].map(sx => {
+    const g = new THREE.Group(); g.position.set(sx * w, hip, 0); c.rig.add(g);
+    c.add(gq('leg' + r + len, () => new THREE.CapsuleGeometry(r, len, 4, 10)), m, 0, -len / 2 - 0.05, 0, g).castShadow = true;
+    c.add(gq('boot' + r, () => new THREE.BoxGeometry(r * 2.3, 0.11, r * 3.6)), boot || m, 0, -hip + 0.055, -0.05, g).castShadow = true;
+    return g;
+  });
+}
+const BODIES = {
+  astro: c => {
+    const { add, head, mat, M } = c, grey = M(0x9aa0aa, { metalness: 0.5, roughness: 0.4 }), gold = M(0xffc54a, { metalness: 1, roughness: 0.06, emissive: 0x3a2a00 });
+    add(gq('aT', () => new THREE.CapsuleGeometry(0.3, 0.42, 6, 16)), mat, 0, 1.32, 0).scale.set(1.15, 1, 0.85);
+    add(gq('aP', () => new THREE.BoxGeometry(0.5, 0.56, 0.26)), grey, 0, 1.36, 0.3).castShadow = true;
+    [[-0.12, M(0xe2313f, { emissive: 0x5a0a10 })], [0, M(0x2f7dff, { emissive: 0x0a1a5a })], [0.12, M(0x3dff8a, { emissive: 0x0a4a1a })]].forEach(([x, m]) => add(gq('aL', () => new THREE.BoxGeometry(0.06, 0.06, 0.02)), m, x, 1.52, 0.44));
+    add(gq('aF', () => new THREE.BoxGeometry(0.12, 0.08, 0.02)), M(0x2f5ad6), -0.18, 1.52, -0.27);
+    head.position.y = 1.95;
+    add(gq('aH', () => new THREE.SphereGeometry(0.3, 24, 18)), mat, 0, 0, 0, head).castShadow = true;
+    add(gq('aV', () => new THREE.SphereGeometry(0.262, 24, 16, Math.PI * 1.1, Math.PI * 0.8, Math.PI * 0.28, Math.PI * 0.46)), gold, 0, 0, -0.05, head);
+    add(gq('aN', () => new THREE.TorusGeometry(0.2, 0.04, 8, 20).rotateX(Math.PI / 2)), grey, 0, -0.24, 0, head);
+    return { arm: { x: 0.43, y: 1.6, len: 0.42, r: 0.09, spread: 0.12 }, hat: [0.31, 0.26], legs: humanLegs(c, mat, grey, 0.15, 0.1) };
+  },
+  ninja: c => {
+    const { add, head, mat, M } = c, red = M(0xe2313f), skin = M(0xf2c7a0), steel = M(0xd8dce8, { metalness: 0.9, roughness: 0.15 });
+    add(gq('nT', () => new THREE.CapsuleGeometry(0.24, 0.42, 6, 14)), mat, 0, 1.33, 0).scale.set(1.1, 1, 0.8);
+    add(gq('nB', () => new THREE.TorusGeometry(0.255, 0.04, 6, 24).rotateX(Math.PI / 2)), red, 0, 1.08, 0);
+    head.position.y = 1.86;
+    add(gq('nH', () => new THREE.SphereGeometry(0.21, 20, 14)), mat, 0, 0, 0, head).castShadow = true;
+    add(gq('nE', () => new THREE.BoxGeometry(0.3, 0.07, 0.04)), skin, 0, 0.02, -0.185, head);
+    for (const sx of [-1, 1]) add(gq('nEy', () => new THREE.BoxGeometry(0.06, 0.025, 0.02)), M(0x111111), sx * 0.07, 0.025, -0.21, head);
+    add(gq('nHB', () => new THREE.TorusGeometry(0.212, 0.025, 6, 24).rotateX(Math.PI / 2)), red, 0, 0.09, 0, head);
+    for (const sx of [-1, 1]) { const t = add(gq('nTl', () => new THREE.BoxGeometry(0.04, 0.24, 0.015)), red, sx * 0.04, -0.02, 0.24, head); t.rotation.set(0.5, 0, sx * 0.3); }
+    const sw = new THREE.Group(); sw.position.set(0, 1.4, 0.24); sw.rotation.z = 0.7; c.rig.add(sw);
+    add(gq('nBl', () => new THREE.BoxGeometry(0.035, 0.85, 0.012)), steel, 0, 0.2, 0, sw); add(gq('nHd', () => new THREE.CylinderGeometry(0.025, 0.025, 0.22, 8)), red, 0, -0.33, 0, sw); add(gq('nGd', () => new THREE.BoxGeometry(0.12, 0.02, 0.06)), M(0xffd23a, { metalness: 0.8 }), 0, -0.21, 0, sw);
+    return { arm: { x: 0.37, y: 1.55, len: 0.4, r: 0.07, spread: 0.1 }, hat: [0.22, 0.17], legs: humanLegs(c, mat, null, 0.12, 0.08) };
+  },
+  slime: c => {
+    const { add, head, mat, M } = c, white = M(0xffffff, { roughness: 0.2 }), black = M(0x111111);
+    const blob = add(gq('sB', () => new THREE.SphereGeometry(0.62, 28, 20)), mat, 0, 0.56, 0); blob.scale.y = 0.85; blob.castShadow = true;
+    add(gq('sC', () => new THREE.SphereGeometry(0.22, 16, 12)), M(0x1f8a2a, { emissive: 0x0a3a0a }), 0.05, 0.5, 0.1);
+    for (const sx of [-1, 1]) { add(gq('sE', () => new THREE.SphereGeometry(0.11, 14, 10)), white, sx * 0.18, 0.8, -0.49).scale.z = 0.6; add(gq('sPu', () => new THREE.SphereGeometry(0.05, 10, 8)), black, sx * 0.18, 0.8, -0.56); }
+    add(gq('sM', () => new THREE.TorusGeometry(0.1, 0.018, 6, 16, Math.PI).rotateZ(Math.PI)), black, 0, 0.64, -0.55);
+    head.position.y = 1.02;
+    return { arm: { x: 0.66, y: 0.72, len: 0.06, r: 0.1, spread: 0.6 }, hat: [0.48, 0.02], jiggle: blob };
+  },
+  mecha: c => {
+    const { add, head, mat, M } = c, orange = M(0xff8a1f, { metalness: 0.4, roughness: 0.4 }), glowC = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.4, 2.9) }); c.extra.push(glowC);
+    add(gq('mT', () => new THREE.BoxGeometry(0.72, 0.62, 0.46)), mat, 0, 1.32, 0).castShadow = true;
+    add(gq('mS', () => new THREE.BoxGeometry(0.74, 0.07, 0.48)), orange, 0, 1.5, 0); add(gq('mCore', () => new THREE.CylinderGeometry(0.09, 0.09, 0.03, 16).rotateX(Math.PI / 2)), glowC, 0, 1.32, -0.24);
+    for (const sx of [-1, 1]) add(gq('mSh', () => new THREE.BoxGeometry(0.28, 0.2, 0.42)), orange, sx * 0.5, 1.62, 0).castShadow = true;
+    add(gq('mHip', () => new THREE.BoxGeometry(0.5, 0.18, 0.34)), mat, 0, 0.98, 0);
+    head.position.y = 1.86;
+    add(gq('mH', () => new THREE.BoxGeometry(0.36, 0.3, 0.34)), mat, 0, 0, 0, head).castShadow = true;
+    add(gq('mV', () => new THREE.BoxGeometry(0.28, 0.06, 0.02)), glowC, 0, 0.02, -0.175, head);
+    add(gq('mA', () => new THREE.CylinderGeometry(0.01, 0.01, 0.25, 6)), M(0xcccccc, { metalness: 0.8 }), 0.12, 0.27, 0.05, head); add(gq('mAt', () => new THREE.SphereGeometry(0.03, 8, 6)), glowC, 0.12, 0.4, 0.05, head);
+    const legs = [-1, 1].map(sx => { const g = new THREE.Group(); g.position.set(sx * 0.16, 0.92, 0); c.rig.add(g); add(gq('mL', () => new THREE.BoxGeometry(0.2, 0.78, 0.24)), mat, 0, -0.43, 0, g).castShadow = true; add(gq('mK', () => new THREE.BoxGeometry(0.22, 0.12, 0.26)), orange, 0, -0.42, -0.01, g); add(gq('mF', () => new THREE.BoxGeometry(0.24, 0.1, 0.36)), orange, 0, -0.87, -0.05, g); return g; });
+    return { arm: { x: 0.5, y: 1.52, len: 0.44, r: 0.1, spread: 0.12 }, hat: [0.28, 0.17], legs };
+  },
+  shark: c => {
+    const { add, head, mat, M } = c, belly = M(0xf4f6fa, { roughness: 0.5 }), black = M(0x111111), teeth = M(0xffffff, { roughness: 0.2 });
+    add(gq('kT', () => new THREE.CapsuleGeometry(0.28, 0.42, 6, 16)), mat, 0, 1.32, 0).scale.set(1.1, 1, 0.85);
+    add(gq('kBe', () => new THREE.SphereGeometry(0.24, 14, 10)), belly, 0, 1.28, -0.12).scale.set(0.9, 1.25, 0.55);
+    const tail = add(gq('kTl', () => new THREE.ConeGeometry(0.16, 0.5, 4)), mat, 0, 1.0, 0.36); tail.rotation.x = 1.8; tail.scale.x = 0.25;
+    head.position.y = 1.9;
+    const hood = add(gq('kH', () => new THREE.SphereGeometry(0.3, 22, 16)), mat, 0, 0, 0.02, head); hood.scale.set(0.9, 0.85, 1.3); hood.castShadow = true;
+    const fin = add(gq('kF', () => new THREE.ConeGeometry(0.15, 0.36, 4)), mat, 0, 0.33, 0.1, head); fin.scale.z = 0.25; fin.rotation.x = -0.35;
+    add(gq('kMo', () => new THREE.SphereGeometry(0.17, 16, 10)), M(0x5a1020, { roughness: 0.6 }), 0, -0.05, -0.31, head).scale.set(1.1, 0.75, 0.4);
+    for (let i = 0; i < 7; i++) { const a = (i / 6 - 0.5) * 2.4; for (const vy of [1, -1]) { const t = add(gq('kTo', () => new THREE.ConeGeometry(0.022, 0.06, 4)), teeth, Math.sin(a) * 0.15, -0.05 + vy * (0.09 - Math.abs(Math.sin(a)) * 0.03), -0.36 + (1 - Math.cos(a)) * 0.05, head); t.rotation.x = vy > 0 ? Math.PI : 0; } }
+    for (const sx of [-1, 1]) add(gq('kE', () => new THREE.SphereGeometry(0.04, 10, 8)), black, sx * 0.23, 0.08, -0.18, head);
+    return { arm: { x: 0.43, y: 1.58, len: 0.42, r: 0.085, spread: 0.12 }, hat: [0.3, 0.26], legs: humanLegs(c, mat, belly, 0.14, 0.09) };
+  },
+};
 // ---------- pets: small companions built from simple shapes ----------
 function makePet(id, mats) {
   const g = new THREE.Group(), M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.75, ...o }); mats.push(m); return m; };
@@ -3065,7 +3156,12 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   let limbMat = mat, legs = null;
   const head = new THREE.Group(); rig.add(head);
   av.userData.walla = walla;
-  if (walla) {
+  let bodyCfg = null;
+  if (BODIES[skin]) {
+    const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, ...o }); extraMats.push(m); return m; };
+    bodyCfg = BODIES[skin]({ add, head, mat, rig, M, extra: extraMats, eyeMat });
+    legs = bodyCfg.legs || null; av.userData.hatR = bodyCfg.hat[0]; av.userData.hatY = bodyCfg.hat[1];
+  } else if (walla) {
     const red = new THREE.MeshStandardMaterial({ color: 0xe8201e, roughness: 0.6 }), fuzz = new THREE.MeshStandardMaterial({ color: 0xe82a1e, roughness: 1, flatShading: true });
     const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), black = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.4 });
     extraMats.push(red, fuzz, white, black); limbMat = red;
@@ -3098,7 +3194,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     for (const sx of [-1, 1]) { const e = add(PG.eye, eyeMat, sx * 0.13, 0.19, -0.375, head); e.scale.set(1, 1.5, 0.55); }
   }
   const blight = skin === 'infected';
-  if (!blight) addHat(head, hat, hotdog || walla, extraMats, av);
+  if (!blight) addHat(head, hat, hotdog || walla || !!bodyCfg, extraMats, av);
   av.userData.extraMats = extraMats;
   let blightRing = null, petG = null;
   if (pet && PETS[pet] && pet !== 'none' && skin !== 'infected') { petG = makePet(pet, extraMats); petG.position.set(0.95, 0, 0.35); av.add(petG); }
@@ -3117,7 +3213,15 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   }
   const arms = [-1, 1].map(sx => {
     const g = new THREE.Group(); g.position.set(sx * 0.68, 1.12, -0.04); rig.add(g);
+    if (bodyCfg) {
+      const A = bodyCfg.arm; g.position.set(sx * A.x, A.y, 0);
+      const hold = new THREE.Group(); hold.rotation.z = sx * A.spread; g.add(hold); g.userData.hold = hold; g.userData.handY = -(A.len + A.r + 0.08);
+      if (A.len > 0.1) add(gq('arm' + A.r + A.len, () => new THREE.CapsuleGeometry(A.r, A.len, 4, 10)), limbMat, 0, -A.len / 2 - 0.04, 0, hold).castShadow = true;
+      add(PG.hand, limbMat, 0, g.userData.handY + 0.02, 0, hold).scale.setScalar(A.r / 0.11);
+      return g;
+    }
     if (walla) {
+      g.userData.handY = -0.72;
       // long arms held out wide, like the drawing; the gun hand sits at the end
       g.position.set(sx * 0.38, 1.66, 0);
       const spread = new THREE.Group(); spread.rotation.z = sx * 0.75; g.add(spread); g.userData.hold = spread;
@@ -3132,7 +3236,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     return g;
   });
   const gm = new THREE.MeshStandardMaterial(); applyFinish(gm, null, finish);
-  const gun = walla ? add(avGunGeo, gm, 0, -0.72, -0.3, arms[1].userData.hold) : add(avGunGeo, gm, 0, -0.16, -0.38, arms[1]);
+  const gun = arms[1].userData.hold ? add(avGunGeo, gm, 0, arms[1].userData.handY, -0.3, arms[1].userData.hold) : add(avGunGeo, gm, 0, -0.16, -0.38, arms[1]);
   gun.userData.isGun = true;
   const foot = add(footGeo, vis, 0, 0.06, 0, av); foot.rotation.x = Math.PI / 2; foot.scale.setScalar(0.62);
   const body = add(PG.hit, hitMat, 0, 1.25, 0, av);
@@ -3153,7 +3257,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     av.userData.gearMat = gl;
   }
   scene.add(av);
-  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing, pet: petG, legs, armY: walla ? 1.66 : 1.12 };
+  return { av, rig, arms, body, mat, gun, gunMat: gm, glow: look.gl, label: lab, flash: 0, baseEm: mat.emissive.clone(), cycle: skin === 'glitch', gunCycle: finish === 'rainbow', phase: Math.random(), eyeMat, vis, blight, blightRing, pet: petG, legs, armY: bodyCfg ? bodyCfg.arm.y : walla ? 1.66 : 1.12, jiggle: bodyCfg?.jiggle };
 }
 function bubbleSprite(text) {
   const c = document.createElement('canvas'); c.width = 320; c.height = 96; const x = c.getContext('2d');
@@ -3173,7 +3277,7 @@ function emoteProp(id, a) {
   const mats = [], geos = [], g = new THREE.Group();
   const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, ...o }); mats.push(m); return m; };
   const mesh = (geo, m, x, y, z, par = g) => { geos.push(geo); const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; par.add(o); return o; };
-  const hold = a.arms[1].userData.hold, hand = hold || a.arms[1], hy = hold ? -0.72 : -0.24;
+  const hold = a.arms[1].userData.hold, hand = hold || a.arms[1], hy = hold ? a.arms[1].userData.handY : -0.24;
   let parent = a.rig, tick = () => {};
   const worldAt = o => o.getWorldPosition(tmpEm);
   if (id === 'trickortreat' || id === 'egghunt') {
@@ -3218,6 +3322,8 @@ function emoteProp(id, a) {
     const flag = new THREE.Mesh(fg, M(0xffffff, { map: prideTex(), side: THREE.DoubleSide, roughness: 0.7 })); flag.position.set(0, hy - 1.0, -0.02); flag.rotation.z = Math.PI; g.add(flag);
     const base = fg.attributes.position.array.slice();
     tick = et => { const pp = fg.attributes.position; for (let i = 0; i < pp.count; i++) { const u = base[i * 3]; pp.setZ(i, Math.sin(u * 9 - et * 9) * u * 0.18); } pp.needsUpdate = true; };
+  } else if (id === 'celebrate') {
+    tick = et => { if (Math.random() < 0.35) { const w = a.av.localToWorld(tmpEm.set(rand(-0.3, 0.3), 2.6, rand(-0.3, 0.3))); burst(w, 6, new THREE.Color().setHSL(Math.random(), 1, 0.6).multiplyScalar(2.2), 4, 1.2, 0.08, 6); } };
   } else if (id === 'icecream') {
     parent = hand;
     mesh(new THREE.ConeGeometry(0.07, 0.24, 14), M(0xd9a05a, { roughness: 0.9 }), 0, hy - 0.16, -0.03);
@@ -3235,7 +3341,7 @@ function dropEmoteProp(a) { const p = a.emProp; if (!p) return; p.parent.remove(
 function startEmote(a, id) {
   const E = EMOTES[id]; if (!E || !a) return;
   a.emote = { id, start: time, until: time + (E.dur || 3.2) };
-  dropEmoteProp(a); if (E.season) a.emProp = emoteProp(id, a);
+  dropEmoteProp(a); if (E.season || E.prop) a.emProp = emoteProp(id, a);
   dropBubble(a); a.bubble = bubbleSprite(`${E.icon} ${E.say}`.trim()); a.av.add(a.bubble);
 }
 const wrapA = v => Math.atan2(Math.sin(v), Math.cos(v));
@@ -3255,6 +3361,11 @@ function emotePose(a) {
     case 'flex': P.l = [0.3 + s(et * 6) * 0.15, -2.1]; P.r = [0.3 + s(et * 6) * 0.15, 2.1]; P.hop = Math.abs(s(et * 3)) * 0.08; break;
     case 'dab': P.r = [0.6, 2.3]; P.l = [1.3, 0.9]; P.nod = 0.35; P.tilt = 0.2; break;
     case 'taunt': P.l = [1.4 + s(et * 14) * 0.3, 0]; P.r = [1.4 + s(et * 14 + 1) * 0.3, 0]; P.hop = Math.abs(s(et * 7)) * 0.25; break;
+    case 'shrug': P.l = [0.35, -1.25]; P.r = [0.35, 1.25]; P.hop = Math.abs(s(et * 3)) * 0.05; P.tilt = s(et * 2) * 0.1; break;
+    case 'robot': { const q = v => Math.round(v * 2) / 2; P.l = [q(1.2 + s(et * 4) * 1.2), q(-0.6 + s(et * 4 + 1) * 0.6)]; P.r = [q(1.2 + s(et * 4 + 2) * 1.2), q(0.6 + s(et * 4 + 3) * 0.6)]; P.spin = q(s(et * 2) * 1.2); break; }
+    case 'facepalm': P.r = [2.55, -0.5]; P.nod = 0.35 + s(et * 6) * 0.04; break;
+    case 'celebrate': P.l = [0.2, -2.6]; P.r = [0.2, 2.6]; P.hop = Math.abs(s(et * 6)) * 0.45; break;
+    case 'nap': P.tilt = 1.35; P.hop = 0.42; P.l = [0, -0.3]; P.r = [0, 0.3]; break;
     case 'trickortreat': case 'egghunt': case 'feast': case 'unwrap': P.l = [1.15, -0.32]; P.r = [1.15, 0.32]; P.hop = Math.abs(s(et * 4)) * 0.05; break;
     case 'heartthrow': P.l = [2.3 + s(et * 6) * 0.4, -0.3]; P.r = [2.3 + s(et * 6 + 2) * 0.4, 0.3]; P.hop = Math.abs(s(et * 3)) * 0.08; break;
     case 'solidarity': P.r = [0.15, 2.95]; P.nod = -0.08; break;
@@ -3279,6 +3390,7 @@ function avatarFX(a) {
     a.rig.rotation.x = damp(a.rig.rotation.x, P.nod, 8, 0.016);
     a.rig.rotation.y = P.spin != null ? wrapA(P.spin) : damp(wrapA(a.rig.rotation.y), 0, 8, 0.016);
     a.arms[0].position.y = a.armY + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = a.armY + Math.sin(t + 2.1) * 0.04;
+    if (a.jiggle) { const j = Math.sin(time * 5 + a.phase * 6) * 0.05; a.jiggle.scale.set(1 - j * 0.5, 0.85 + j, 1 - j * 0.5); }
     if (a.legs) { const mv = a.vel && Math.hypot(a.vel.x, a.vel.z) > 1.5; a.legs.forEach((l, i) => { l.rotation.x = mv ? Math.sin(time * 10 + i * Math.PI) * 0.55 : damp(l.rotation.x, 0, 8, 0.016); }); }
     a.arms[0].rotation.x = damp(a.arms[0].rotation.x, P.l[0], 10, 0.016); a.arms[0].rotation.z = damp(a.arms[0].rotation.z, P.l[1], 10, 0.016);
     a.arms[1].rotation.x = damp(a.arms[1].rotation.x, P.r[0], 10, 0.016); a.arms[1].rotation.z = damp(a.arms[1].rotation.z, P.r[1], 10, 0.016);
@@ -3308,7 +3420,7 @@ function buildShowcase() {
   else showcase = makeAvatar(look, settings.name, false, preview.suit || settings.skin, preview.finish || settings.finish, isCoopMode(settings.mode) ? settings.cls : '', preview.hat || settings.hat, preview.pet || settings.pet);
   showcase.av.position.copy(SHOW); showcase.label.visible = false; showcase.gun.visible = false;
   const sgun = pv ? (CLASSES[pv.cl] ? CLASSES[pv.cl].guns[0] : 'rifle') : isCoopMode(settings.mode) ? CLASSES[settings.cls].guns[0] : settings.gun;
-  const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.userData.isGun = true; g.scale.setScalar(1.35); const hold = showcase.arms[1].userData.hold; g.position.set(0, hold ? -0.74 : -0.16, hold ? -0.28 : -0.32); (hold || showcase.arms[1]).add(g);
+  const g = guns[preview.addon ? 'lmgcam' : gunKey(sgun)].g.clone(true); g.visible = true; g.userData.isGun = true; g.scale.setScalar(1.35); const hold = showcase.arms[1].userData.hold; g.position.set(0, hold ? showcase.arms[1].userData.handY - 0.02 : -0.16, hold ? -0.28 : -0.32); (hold || showcase.arms[1]).add(g);
   showcase.av.rotation.y = showYaw;
 }
 function refreshPreview() { applyFinish(vmMat, vmMat2, preview.finish || settings.finish); buildShowcase(); }
@@ -3720,7 +3832,7 @@ function hostUpdateTitan(e, dt, hs) {
   const frac = e.hp / (GS.bhp || e.hp), ph = frac > 0.66 ? 1 : frac > 0.33 ? 2 : 3;
   if (ph > GS.bp) { GS.bp = ph; hostEvent(ph === 3 ? 'The Titan is enraged' : 'The Titan calls in drones'); }
   if (e.stunT > 0) { e.stunT -= dt; e.charge = 0; e.vel.multiplyScalar(0.9); return; }
-  let tgt = nearestDecoy(e.pos, 50), bd = 1e9;
+  let tgt = tauntTarget(e.pos, hs) || nearestDecoy(e.pos, 50), bd = 1e9;
   if (!tgt) for (const a of hs) if (a.alive && !inSmoke(a.pos)) { const d = a.pos.distanceToSquared(e.pos); if (d < bd) { bd = d; tgt = a; } }
   const sp = ph === 3 ? 5.5 : 3.5, want = dWant.set(0, 0, 0);
   e.strafeT -= dt; if (e.strafeT <= 0) { e.strafe *= -1; e.strafeT = rand(3, 6); }
@@ -3775,6 +3887,11 @@ function hostOrb(e, from, vel, dmg, ring) {
 const timers = [];
 function later(sec, fn) { timers.push({ t: time + sec, fn }); }
 function runTimers() { for (let i = timers.length - 1; i >= 0; i--) if (time >= timers[i].t) { const f = timers[i].fn; timers.splice(i, 1); f(); } }
+// Iron Roar: a taunting tank pulls every drone within 35 m onto itself
+function tauntTarget(p, hs) {
+  for (const d of deploys) if (d.kind === 'taunt') { const a = hs.find(h => h.id === d.owner && h.alive); if (a && a.pos.distanceTo(p) < 35) return a; }
+  return null;
+}
 const nearestDecoy = (p, range) => { let best = null, bd = range; for (const d of deploys) if (d.kind === 'decoy') { const dist = d.pos.distanceTo(p); if (dist < bd) { bd = dist; best = d; } } return best ? { pos: best.pos, vel: new V3(), alive: true, decoy: true } : null; };
 
 // ---------- host: Infection ----------
@@ -3824,7 +3941,7 @@ function hostUpdateDrone(e, dt, hs) {
   const T = TYPES[e.type]; e.t += dt;
   if (e.stunT > 0) { e.stunT -= dt; e.charge = 0; e.fireT = Math.max(e.fireT, 0.6); e.vel.multiplyScalar(0.9); e.pos.y += Math.sin(time * 40) * 0.01; return; }
   if (e.pullT > 0) { e.pullT -= dt; e.vel.set(0, 0, 0); e.fireT = Math.max(e.fireT, 1); e.pos.lerp(e.pullTo, 1 - Math.exp(-7 * dt)); collideSphere(e.pos, 0.95 * T.scale); return; }
-  let tgt = nearestDecoy(e.pos, 45), bd = 1e9;
+  let tgt = tauntTarget(e.pos, hs) || nearestDecoy(e.pos, 45), bd = 1e9;
   if (!tgt) for (const a of hs) if (a.alive && !inSmoke(a.pos)) { const d = a.pos.distanceToSquared(e.pos); if (d < bd) { bd = d; tgt = a; } }
   const pc = tgt ? tC.copy(tgt.pos).setY(tgt.pos.y + 1.1) : tC.set(0, 6, 0);
   const to = dTo.subVectors(pc, e.pos), dist = to.length();
@@ -4438,6 +4555,11 @@ function throwNade() {
   if (!player.alive || nadeCount <= 0) return;
   if (k.g === 'hook') { if (chainHook()) { nadeCount--; if (nadeT <= 0) nadeT = gd.re; } return; }
   if (k.g === 'slam') { nadeCount--; if (nadeT <= 0) nadeT = gd.re; groundSlam(); return; }
+  if (k.g === 'taunt') {
+    nadeCount--; if (nadeT <= 0) nadeT = gd.re;
+    pushAb('taunt', player.pos, myId); applyAb('taunt', player.pos.x, player.pos.y, player.pos.z, myId, settings.name);
+    announce('IRON ROAR', 'Drones are coming for you · half damage for 6s', '#ff8a3d'); return;
+  }
   nadeCount--; if (nadeT <= 0) nadeT = gd.re;
   const { from, vel } = throwThing(k.g, k.g === 'nade' || k.g === 'popper' ? 21 : 16);
   if (k.g === 'nade' || k.g === 'popper') { nadeSeq++; lastNade = [nadeSeq, r2(from.x), r2(from.y), r2(from.z), r2(vel.x), r2(vel.y), r2(vel.z), k.g === 'popper' ? 1 : 0]; }
@@ -4488,7 +4610,7 @@ function deploy(kind, p) {
   pushAb(kind, p, extra); applyAb(kind, p.x, p.y, p.z, extra, settings.name);
 }
 const DEP = { heal: { dur: 8, r: 4 }, shield: { dur: 20, r: 4.5 }, smoke: { dur: 12, r: 6 }, pad: { dur: 45, r: 1.2 },
-  turret: { dur: 25, r: 0.9 }, repair: { dur: 15, r: 4 }, decoy: { dur: 9, r: 1 }, hole: { dur: 4.5, r: 13 }, antigrav: { dur: 12, r: 5 }, barrier: { dur: 10, r: 2.7 }, drones: { dur: 20, r: 0 }, sentry: { dur: 30, r: 0 } };
+  taunt: { dur: 6, r: 0 }, turret: { dur: 25, r: 0.9 }, repair: { dur: 15, r: 4 }, decoy: { dur: 9, r: 1 }, hole: { dur: 4.5, r: 13 }, antigrav: { dur: 12, r: 5 }, barrier: { dur: 10, r: 2.7 }, drones: { dur: 20, r: 0 }, sentry: { dur: 30, r: 0 } };
 // ally guns: turret, Summoner drones and the FFA sentry
 const MINIS = { drones: { n: 2, rate: 0.4, dmg: 11, range: 30, col: new THREE.Color(0.6, 1.8, 3.0), s: 1 }, sentry: { n: 1, rate: 0.28, dmg: 8, range: 36, col: new THREE.Color(3.0, 0.9, 0.4), s: 1.5 } };
 const softTex = () => canvasTex('soft', x => {
@@ -4630,6 +4752,15 @@ function addDeploy(kind, pos, extra) {
     for (const [sx, sz, rx] of [[W2, 0.07, 0], [0.07, W2, 0]]) for (const o of [-1, 1]) { const e = new THREE.Mesh(depGeo.edge, edgeM); e.scale.set(sx, 0.07, sz); e.position.set(sz > 1 ? o * W2 / 2 : 0, H2, sx > 1 ? o * W2 / 2 : 0); g.add(e); }
     d.block = new THREE.Mesh(depGeo.edge, new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })); d.block.scale.set(W2, H2, W2); d.block.position.y = H2 / 2; d.block.material.userData.op = 0; mats.push(d.block.material);
     g.add(pane, tint, d.block);
+  } else if (kind === 'taunt') {
+    // a roaring red aura that follows the tank around
+    d.owner = String(extra); d.follow = true; const col = new THREE.Color(2.9, 0.7, 0.3);
+    const aura = new THREE.Mesh(depGeo.bubble, M(col.clone().multiplyScalar(0.25), 0.35, true, { side: THREE.DoubleSide })); aura.scale.set(1.3, 1.6, 1.3); aura.position.y = 1.1;
+    const wire = new THREE.Mesh(depGeo.wire, M(col, 0.4, true, { wireframe: true })); wire.scale.set(1.35, 1.65, 1.35); wire.position.y = 1.1;
+    d.rings = [0, 1].map(() => { const r = new THREE.Mesh(depGeo.ring, M(col, 0.9)); r.scale.setScalar(1.6); g.add(r); return r; });
+    g.add(aura, wire); d.spin = wire;
+    const pf = panFor(pos); tone(110, 55, 0.7, 0.35 * Math.max(0.3, pf.v), 'sawtooth', pf.pan); noise(0.6, 0.3 * Math.max(0.3, pf.v), 400, 'lowpass', 1, pf.pan, 0, 120);
+    shockRing(pos.clone().setY(pos.y + 0.2), col, 70, 0.9); shockRing(pos.clone().setY(pos.y + 1.5), col, 40, 0.7);
   } else if (kind === 'drones' || kind === 'sentry') {
     d.owner = String(extra); d.fireT = 0.8; d.shot = 0; d.cfg = MINIS[kind];
     d.minis = Array.from({ length: d.cfg.n }, () => {
@@ -4656,6 +4787,7 @@ function updateDeploys(dt) {
     if (d.rings) d.rings.forEach((r, k) => { const t = (time * 0.9 + k / 2) % 1; r.position.y = 0.2 + t * 2.2; r.scale.setScalar(1.1 - t * 0.4); r.material.opacity = (1 - t) * 0.8 * fade; });
     if (d.kind === 'turret') updTurret(d, dt);
     else if (d.minis) { if (!updMinis(d, dt)) { removeDeploy(i); continue; } }
+    else if (d.follow) { const op = d.owner === myId ? player.pos : peers.get(d.owner)?.pos; if (!op) { removeDeploy(i); continue; } d.g.position.copy(op); d.pos.copy(op); }
     else if (d.kind === 'hole') updHole(d, dt);
     else if (d.beacon) { d.beacon.rotation.y += dt * 2.2; d.beacon.position.y = 1.7 + Math.sin(time * 2.5) * 0.12; if (Math.random() < dt * 8) burst(tA.copy(d.pos).setY(d.pos.y + 0.3), 1, new THREE.Color(2.9, 2, 0.4), 1, 1, 0.08, -2.5); }
     else if (d.holo) d.holo.visible = Math.random() > 0.05;
@@ -4957,6 +5089,7 @@ function updateWeapon(dt) {
 function hurt(dmg, src) {
   if (!player.alive || player.invuln > 0 || !inMatch() || GS.ph === 1) return;
   if (coop() && inShield(player.pos)) { shockRing(player.pos.clone().setY(player.pos.y + 1), new THREE.Color(0.6, 2.2, 3), 1.5, 0.25); return; }
+  if (coop() && deploys.some(d => d.kind === 'taunt' && d.owner === myId)) dmg *= 0.5;
   player.hp -= dmg; player.lastDmgT = time;
   if (src.poison) tone(160, 120, 0.08, 0.05, 'sine');
   else { dmgFlash = Math.min(1, dmgFlash + 0.5 + dmg / 40); shake = Math.max(shake, 0.18); sfx.hurt(); }
@@ -5398,6 +5531,7 @@ function updateHUD() {
     if (time < teamFx.frenzyUntil) fx.push(`FRENZY ${Math.ceil(teamFx.frenzyUntil - time)}s`);
     if (time < teamFx.wallUntil) fx.push(`WALLHACK ${Math.ceil(teamFx.wallUntil - time)}s`);
     if (inShield(player.pos)) fx.push('SHIELDED');
+    const roar = deploys.find(d => d.kind === 'taunt' && d.owner === myId); if (roar) fx.push(`IRON ROAR ${Math.ceil(roar.until - time)}s · HALF DAMAGE`);
     if (player.poisonUntil > time) fx.push(`☠ POISONED ${Math.ceil(player.poisonUntil - time)}s`);
     if (fx.length) setText('hint', fx.join(' · '));
   }
