@@ -945,6 +945,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'season-bodies', date: '2026-10-04', title: 'Seasonal Skins Get Their Own Bodies',
+    lines: ['13 new seasonal skins with brand-new models: Pumpkin King and Mummy (Halloween), Turkey Mascot (Thanksgiving), Frosty and Reindeer (Christmas), Teddy Bear and Heartthrob (Valentine\'s), Kente Royal (Black History Month), Easter Bunny and Hatchling (Easter), Unicorn (Pride), Pineapple and Snorkeler (Summer)', 'The Slime now has a full see-through jelly body with arms and legs', 'Pumpkin King and Mummy are in the Halloween shop right now'] },
   { id: 'new-bodies', date: '2026-10-04', title: 'Five New Skins, New Emotes & The Iron Roar',
     lines: ['New skins with their own body shapes: Astronaut, Ninja, Slime, Mecha and Shark', 'New emotes: Shrug, Robot Dance, Facepalm, Celebrate (with confetti) and Nap Time', 'The Tank\'s G is now Iron Roar: every drone within 35 m locks onto you for 6 seconds while you take half damage'] },
   { id: 'big-grenades', date: '2026-10-03', title: 'Grenades Hit Way Harder',
@@ -1123,9 +1125,22 @@ const SUITS = {
   walla: { name: 'The Walla', price: 2500, pv: 'radial-gradient(ellipse at 50% 34%,#111 0 4%,transparent 5%),radial-gradient(circle at 44% 25%,#fff 0 3%,transparent 4%),radial-gradient(circle at 56% 25%,#fff 0 3%,transparent 4%),radial-gradient(circle at 50% 28%,#ff2a1a 0 17%,transparent 18%),linear-gradient(90deg,transparent 40%,#e8201e 40% 60%,transparent 60%) 0 100%/100% 62% no-repeat,#ffe4e0' },
   astro: { name: 'Astronaut', price: 1800, pv: 'radial-gradient(ellipse at 50% 32%,#ffc54a 0 14%,#f4f6fa 15% 26%,transparent 27%),linear-gradient(180deg,#e8ecf4,#b8c0cc)' },
   ninja: { name: 'Ninja', price: 1600, pv: 'linear-gradient(180deg,#16161c 0 26%,#e2313f 26% 32%,#16161c 32% 36%,#f2c7a0 36% 42%,#16161c 42%)' },
-  slime: { name: 'Slime', price: 1500, pv: 'radial-gradient(circle at 38% 45%,#fff 0 6%,#111 7% 10%,transparent 11%),radial-gradient(circle at 62% 45%,#fff 0 6%,#111 7% 10%,transparent 11%),radial-gradient(ellipse at 50% 70%,#7dff6a,#2fbf3a 60%,#1a6a1a)' },
+  slime: { name: 'Slime', price: 1500, pv: 'radial-gradient(circle at 44% 22%,#fff 0 4%,#111 5% 7%,transparent 8%),radial-gradient(circle at 56% 22%,#fff 0 4%,#111 5% 7%,transparent 8%),radial-gradient(circle at 50% 24%,#7dff6a 0 15%,transparent 16%),radial-gradient(ellipse at 50% 62%,#7dff6a 0 22%,transparent 23%),linear-gradient(90deg,transparent 36%,#5cdf4a 36% 44%,transparent 44% 56%,#5cdf4a 56% 64%,transparent 64%) 0 100%/100% 30% no-repeat,#163a1a' },
   mecha: { name: 'Mecha', price: 2400, pv: 'linear-gradient(180deg,#3a3f4a 0 30%,#5ff2ff 30% 36%,#3a3f4a 36% 60%,#ff8a1f 60% 66%,#3a3f4a 66%)' },
   shark: { name: 'Shark', price: 2000, pv: 'linear-gradient(160deg,#6f8fa8 0 55%,#f4f6fa 55%),linear-gradient(#000,#000)' },
+  pumpking: { name: 'Pumpkin King', price: 2000, season: 'halloween', pv: 'radial-gradient(circle at 50% 28%,#ffd25a 0 4%,transparent 5%),radial-gradient(circle at 50% 30%,#ff8a1f 0 20%,transparent 21%),linear-gradient(180deg,#2a1a10 0 45%,#c86a2a 45% 70%,#3a2a1a 70%)' },
+  mummy: { name: 'Mummy', price: 1800, season: 'halloween', pv: 'radial-gradient(circle at 42% 26%,#7dff4a 0 4%,transparent 5%),radial-gradient(circle at 58% 26%,#7dff4a 0 4%,transparent 5%),repeating-linear-gradient(170deg,#e8e0c8 0 7px,#b8ae94 7px 9px)' },
+  turkeyman: { name: 'Turkey Mascot', price: 1800, season: 'thanksgiving', pv: 'radial-gradient(ellipse at 50% 60%,#7a4a26 0 26%,transparent 27%),conic-gradient(from 270deg at 50% 70%,#d94a1f,#e8a33a,#ffd23a,#8a5a2a,#d94a1f 50%,transparent 50%),#f6e8d0' },
+  frosty: { name: 'Frosty', price: 1800, season: 'christmas', pv: 'radial-gradient(circle at 50% 22%,#fff 0 12%,transparent 13%),radial-gradient(circle at 50% 48%,#fff 0 16%,transparent 17%),radial-gradient(circle at 50% 80%,#fff 0 22%,transparent 23%),linear-gradient(180deg,#24305a,#7a8ac8)' },
+  reindeer: { name: 'Reindeer', price: 2000, season: 'christmas', pv: 'radial-gradient(circle at 50% 36%,#ff2a2a 0 5%,transparent 6%),radial-gradient(circle at 50% 30%,#8a5a34 0 16%,transparent 17%),linear-gradient(180deg,#e8d8c0 0 20%,#7a4a26 20%)' },
+  teddy: { name: 'Teddy Bear', price: 1800, season: 'valentine', pv: 'radial-gradient(circle at 50% 62%,#ff2f6e 0 8%,transparent 9%),radial-gradient(circle at 50% 30%,#a86a3a 0 17%,transparent 18%),radial-gradient(ellipse at 50% 70%,#a86a3a 0 30%,transparent 31%),#ffd6e6' },
+  heartthrob: { name: 'Heartthrob', price: 2000, season: 'valentine', pv: 'radial-gradient(circle at 40% 30%,#ff2f6e 0 15%,transparent 16%),radial-gradient(circle at 60% 30%,#ff2f6e 0 15%,transparent 16%),linear-gradient(180deg,#ffd6e6 0 45%,#ff8fc4 45%)' },
+  kenteroyal: { name: 'Kente Royal', price: 2200, season: 'blackhistory', pv: 'radial-gradient(circle at 50% 18%,#ffc83a 0 8%,transparent 9%),repeating-linear-gradient(90deg,#ffc83a 0 6px,#1f8a3a 6px 9px,#c41e1e 9px 12px,#111 12px 15px)' },
+  bunnyman: { name: 'Easter Bunny', price: 1800, season: 'easter', pv: 'linear-gradient(90deg,transparent 30%,#fff 30% 40%,transparent 40% 60%,#fff 60% 70%,transparent 70%) 0 0/100% 35% no-repeat,radial-gradient(circle at 50% 45%,#fff 0 18%,transparent 19%),#ffd6ec' },
+  hatchling: { name: 'Hatchling', price: 1800, season: 'easter', pv: 'radial-gradient(circle at 50% 30%,#ffd23a 0 18%,transparent 19%),linear-gradient(180deg,transparent 55%,#fffdf4 55%),radial-gradient(ellipse at 50% 60%,#ffd23a 0 30%,transparent 31%),#d6f0ff' },
+  unicornman: { name: 'Unicorn', price: 2200, season: 'pride', pv: 'linear-gradient(170deg,transparent 40%,#ffd23a 40% 46%,transparent 46%),linear-gradient(180deg,#e40303,#ff8c00,#ffed00,#008026,#004dff,#750787) 0 0/22% 100% no-repeat,#f6f0ff' },
+  pineapple: { name: 'Pineapple', price: 1800, season: 'summer', pv: 'linear-gradient(180deg,#2f9a4a 0 28%,transparent 28%),repeating-linear-gradient(45deg,#e8b02a 0 8px,#c88a1a 8px 10px),#e8b02a' },
+  snorkeler: { name: 'Snorkeler', price: 1800, season: 'summer', pv: 'radial-gradient(ellipse at 50% 25%,#5fc8ff 0 14%,transparent 15%),linear-gradient(180deg,#e8b08a 0 50%,#ff6f91 50% 70%,#e8b08a 70%)' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -2974,13 +2989,18 @@ const BODIES = {
     return { arm: { x: 0.37, y: 1.55, len: 0.4, r: 0.07, spread: 0.1 }, hat: [0.22, 0.17], legs: humanLegs(c, mat, null, 0.12, 0.08) };
   },
   slime: c => {
-    const { add, head, mat, M } = c, white = M(0xffffff, { roughness: 0.2 }), black = M(0x111111);
-    const blob = add(gq('sB', () => new THREE.SphereGeometry(0.62, 28, 20)), mat, 0, 0.56, 0); blob.scale.y = 0.85; blob.castShadow = true;
-    add(gq('sC', () => new THREE.SphereGeometry(0.22, 16, 12)), M(0x1f8a2a, { emissive: 0x0a3a0a }), 0.05, 0.5, 0.1);
-    for (const sx of [-1, 1]) { add(gq('sE', () => new THREE.SphereGeometry(0.11, 14, 10)), white, sx * 0.18, 0.8, -0.49).scale.z = 0.6; add(gq('sPu', () => new THREE.SphereGeometry(0.05, 10, 8)), black, sx * 0.18, 0.8, -0.56); }
-    add(gq('sM', () => new THREE.TorusGeometry(0.1, 0.018, 6, 16, Math.PI).rotateZ(Math.PI)), black, 0, 0.64, -0.55);
-    head.position.y = 1.02;
-    return { arm: { x: 0.66, y: 0.72, len: 0.06, r: 0.1, spread: 0.6 }, hat: [0.48, 0.02], jiggle: blob };
+    // a clear green jelly person: wobbly torso, round head, stubby blob arms and legs
+    const { add, head, mat, M } = c, white = M(0xffffff, { roughness: 0.2 }), black = M(0x111111), core = M(0x1f8a2a, { emissive: 0x0a3a0a, transparent: true, opacity: 0.85 });
+    const torso = add(gq('slT', () => new THREE.SphereGeometry(0.36, 24, 18)), mat, 0, 1.22, 0); torso.scale.set(1, 1.25, 0.85); torso.castShadow = true;
+    add(gq('slC', () => new THREE.SphereGeometry(0.14, 14, 10)), core, 0.04, 1.2, 0.04);
+    for (let i = 0; i < 4; i++) add(gq('slBub', () => new THREE.SphereGeometry(0.04, 8, 6)), M(0xd6ffd6, { transparent: true, opacity: 0.6 }), Math.sin(i * 2) * 0.18, 1.0 + i * 0.13, Math.cos(i * 2) * 0.12);
+    head.position.y = 1.84;
+    const hd = add(gq('slH', () => new THREE.SphereGeometry(0.29, 22, 16)), mat, 0, 0, 0, head); hd.scale.y = 0.92; hd.castShadow = true;
+    for (const sx of [-1, 1]) { add(gq('slE', () => new THREE.SphereGeometry(0.075, 14, 10)), white, sx * 0.11, 0.05, -0.24, head).scale.z = 0.6; add(gq('slPu', () => new THREE.SphereGeometry(0.035, 10, 8)), black, sx * 0.11, 0.05, -0.285, head); }
+    add(gq('slM', () => new THREE.TorusGeometry(0.075, 0.014, 6, 16, Math.PI).rotateZ(Math.PI)), black, 0, -0.07, -0.26, head);
+    add(gq('slDrip', () => new THREE.SphereGeometry(0.07, 10, 8)), mat, 0.12, 0.27, -0.12, head).scale.y = 1.6;
+    const legs = [-1, 1].map(sx => { const g = new THREE.Group(); g.position.set(sx * 0.15, 0.9, 0); c.rig.add(g); add(gq('slL', () => new THREE.CapsuleGeometry(0.12, 0.6, 6, 12)), mat, 0, -0.42, 0, g).castShadow = true; const f = add(gq('slF', () => new THREE.SphereGeometry(0.15, 14, 10)), mat, 0, -0.84, -0.05, g); f.scale.set(1, 0.5, 1.3); return g; });
+    return { arm: { x: 0.42, y: 1.5, len: 0.36, r: 0.11, spread: 0.18 }, hat: [0.3, 0.22], legs, jiggle: torso };
   },
   mecha: c => {
     const { add, head, mat, M } = c, orange = M(0xff8a1f, { metalness: 0.4, roughness: 0.4 }), glowC = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.4, 2.9) }); c.extra.push(glowC);
@@ -3009,6 +3029,178 @@ const BODIES = {
     return { arm: { x: 0.43, y: 1.58, len: 0.42, r: 0.085, spread: 0.12 }, hat: [0.3, 0.26], legs: humanLegs(c, mat, belly, 0.14, 0.09) };
   },
 };
+const wrapTex = () => canvasTex('wrap', x => { x.fillStyle = '#e8e0c8'; x.fillRect(0, 0, 256, 256); for (let y = 0; y < 256; y += 9) { x.fillStyle = Math.random() < 0.5 ? '#b8ae94' : '#d4caae'; x.save(); x.translate(0, y); x.rotate(rand(-0.08, 0.08)); x.fillRect(-20, 0, 300, rand(1.5, 3)); x.restore(); } for (let i = 0; i < 40; i++) { x.fillStyle = 'rgba(120,100,70,.25)'; x.fillRect(Math.random() * 256, Math.random() * 256, rand(2, 6), rand(2, 6)); } }, 1);
+const pineTex = () => canvasTex('pine', x => { x.fillStyle = '#e8b02a'; x.fillRect(0, 0, 256, 256); x.strokeStyle = '#a8701a'; x.lineWidth = 3; for (let i = -256; i < 512; i += 26) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i + 256, 256); x.moveTo(i + 256, 0); x.lineTo(i, 256); x.stroke(); } x.fillStyle = '#7a4a10'; for (let i = 0; i < 10; i++) for (let j = 0; j < 10; j++) { x.beginPath(); x.arc(i * 26 + 13, j * 26, 2.5, 0, 7); x.fill(); } });
+// a quick person: torso, legs and arm settings shared by many of the seasonal bodies
+function person(c, torsoM, limbM, bootM, o = {}) {
+  const { add } = c, tw = o.tw || 1.12;
+  add(gq('pT' + (o.tr || 0.27), () => new THREE.CapsuleGeometry(o.tr || 0.27, 0.42, 6, 16)), torsoM, 0, 1.32, 0).scale.set(tw, 1, 0.82);
+  return { arm: { x: 0.42, y: 1.58, len: 0.42, r: o.ar || 0.085, spread: o.spread ?? 0.12 }, legs: humanLegs(c, limbM, bootM, 0.14, o.lr || 0.09), limb: limbM };
+}
+Object.assign(BODIES, {
+  pumpking: c => {
+    const { add, head, M } = c, shirt = M(0xc86a2a, { roughness: 0.9 }), pants = M(0x3a2a1a), straw = M(0xe0b85a, { roughness: 1 });
+    const B = person(c, shirt, pants, M(0x2a1a10), { ar: 0.08 });
+    for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { const t = add(gq('pkS', () => new THREE.ConeGeometry(0.03, 0.14, 5)), straw, sx * 0.3 + (k - 1) * 0.05, 1.05, -0.2 + k * 0.02); t.rotation.x = Math.PI; }
+    head.position.y = 1.95;
+    const pk = add(gq('pkH', () => new THREE.SphereGeometry(0.3, 22, 16)), M(0xffffff, { map: pumpkinTex(), roughness: 0.6, emissive: 0xffa21f, emissiveMap: pumpkinFace(), emissiveIntensity: 2.2 }), 0, 0, 0, head); pk.scale.y = 0.85; pk.rotation.y = -Math.PI / 2; pk.castShadow = true;
+    add(gq('pkSt', () => new THREE.CylinderGeometry(0.03, 0.05, 0.12, 6)), M(0x3a6a2a), 0, 0.29, 0, head);
+    return { ...B, hat: [0.31, 0.24] };
+  },
+  mummy: c => {
+    const { add, head, M } = c, wrap = M(0xffffff, { map: wrapTex(), roughness: 1 }), glowE = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.8, 0.4) }); c.extra.push(glowE);
+    const B = person(c, wrap, wrap, wrap, { tw: 1.0, tr: 0.24, ar: 0.08 });
+    head.position.y = 1.86;
+    add(gq('muH', () => new THREE.SphereGeometry(0.22, 18, 14)), wrap, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) add(gq('muE', () => new THREE.SphereGeometry(0.03, 8, 6)), glowE, sx * 0.08, 0.03, -0.2, head);
+    const strip = add(gq('muSt', () => new THREE.BoxGeometry(0.08, 0.5, 0.01)), wrap, 0.1, 1.1, 0.25); strip.rotation.set(0.3, 0, 0.2);
+    return { ...B, hat: [0.23, 0.18] };
+  },
+  turkeyman: c => {
+    const { add, head, M } = c, brown = M(0x7a4a26, { roughness: 0.85 }), orange = M(0xffa31f), red = M(0xd61f2c);
+    add(gq('tkB', () => new THREE.SphereGeometry(0.42, 22, 16)), brown, 0, 1.15, 0).scale.set(1, 1.1, 0.95);
+    add(gq('tkBe', () => new THREE.SphereGeometry(0.3, 16, 12)), M(0xc89a6a), 0, 1.1, -0.18).scale.set(0.9, 1.1, 0.6);
+    const fan = [0x5a3418, 0xe8a33a, 0xd94a1f, 0x8a5a2a, 0xffd23a];
+    for (let k = 0; k < 11; k++) { const a = (k / 10 - 0.5) * 2.6, f = add(gq('tkF', () => new THREE.SphereGeometry(0.16, 10, 8)), M(fan[k % 5]), Math.sin(a) * 0.55, 1.35 + Math.cos(a) * 0.5, 0.42); f.scale.set(0.45, 1.6, 0.15); f.rotation.z = -a; }
+    head.position.y = 1.86;
+    add(gq('tkNk', () => new THREE.CylinderGeometry(0.07, 0.1, 0.32, 10)), M(0x9a7a6a), 0, -0.2, 0, head);
+    add(gq('tkH', () => new THREE.SphereGeometry(0.15, 16, 12)), M(0x9a7a6a), 0, 0, 0, head);
+    add(gq('tkBk', () => new THREE.ConeGeometry(0.05, 0.14, 8).rotateX(-Math.PI / 2)), orange, 0, -0.01, -0.18, head);
+    add(gq('tkW', () => new THREE.CapsuleGeometry(0.035, 0.1, 4, 8)), red, 0.03, -0.1, -0.14, head);
+    for (const sx of [-1, 1]) add(gq('tkE', () => new THREE.SphereGeometry(0.025, 8, 6)), M(0x111111), sx * 0.07, 0.04, -0.12, head);
+    const legs = [-1, 1].map(sx => { const g = new THREE.Group(); g.position.set(sx * 0.16, 0.78, 0); c.rig.add(g); add(gq('tkL', () => new THREE.CylinderGeometry(0.035, 0.035, 0.72, 8)), orange, 0, -0.38, 0, g); add(gq('tkFt', () => new THREE.BoxGeometry(0.2, 0.04, 0.2)), orange, 0, -0.75, -0.04, g); return g; });
+    return { arm: { x: 0.44, y: 1.4, len: 0.32, r: 0.08, spread: 0.5 }, hat: [0.16, 0.12], legs, limb: brown };
+  },
+  frosty: c => {
+    const { add, head, M } = c, snow = M(0xf6f9ff, { roughness: 0.95, emissive: 0x1a2440 }), coal = M(0x111111), twig = M(0x5a3a20, { roughness: 1 });
+    add(gq('fr1', () => new THREE.SphereGeometry(0.44, 22, 16)), snow, 0, 0.44, 0).castShadow = true;
+    add(gq('fr2', () => new THREE.SphereGeometry(0.33, 20, 14)), snow, 0, 1.08, 0).castShadow = true;
+    for (let i = 0; i < 3; i++) add(gq('frB', () => new THREE.SphereGeometry(0.035, 8, 6)), coal, 0, 0.92 + i * 0.13, -0.32 + Math.abs(i - 1) * 0.02);
+    add(gq('frSc', () => new THREE.TorusGeometry(0.24, 0.06, 8, 20).rotateX(Math.PI / 2)), M(0xd61f2c), 0, 1.38, 0);
+    const tail = add(gq('frSt', () => new THREE.BoxGeometry(0.1, 0.32, 0.03)), M(0xd61f2c), 0.12, 1.22, -0.24); tail.rotation.z = 0.2;
+    head.position.y = 1.62;
+    add(gq('frH', () => new THREE.SphereGeometry(0.25, 20, 14)), snow, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) add(gq('frE', () => new THREE.SphereGeometry(0.03, 8, 6)), coal, sx * 0.08, 0.06, -0.22, head);
+    add(gq('frN', () => new THREE.ConeGeometry(0.035, 0.24, 8).rotateX(-Math.PI / 2)), M(0xff8a1f), 0, 0, -0.33, head);
+    for (let i = 0; i < 5; i++) { const a = (i / 4 - 0.5) * 1.6; add(gq('frM', () => new THREE.SphereGeometry(0.02, 6, 4)), coal, Math.sin(a) * 0.11, -0.09 + Math.abs(Math.sin(a)) * 0.03, -0.22); }
+    return { arm: { x: 0.3, y: 1.18, len: 0.5, r: 0.025, spread: 0.95 }, hat: [0.26, 0.18], limb: twig };
+  },
+  reindeer: c => {
+    const { add, head, M } = c, fur = M(0x7a4a26, { roughness: 0.9 }), cream = M(0xe8d8c0), hoof = M(0x2a1a10), antler = M(0xc8a87a);
+    const B = person(c, fur, fur, hoof);
+    add(gq('rdBe', () => new THREE.SphereGeometry(0.22, 14, 10)), cream, 0, 1.3, -0.14).scale.set(0.9, 1.2, 0.5);
+    head.position.y = 1.9;
+    add(gq('rdH', () => new THREE.SphereGeometry(0.22, 18, 14)), fur, 0, 0, 0, head).castShadow = true;
+    add(gq('rdSn', () => new THREE.SphereGeometry(0.12, 14, 10)), cream, 0, -0.06, -0.2, head).scale.set(1, 0.8, 1.1);
+    const nose = add(gq('rdN', () => new THREE.SphereGeometry(0.055, 12, 8)), new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 0.15, 0.15) }), 0, -0.03, -0.32, head); c.extra.push(nose.material);
+    for (const sx of [-1, 1]) {
+      add(gq('rdE', () => new THREE.SphereGeometry(0.03, 8, 6)), M(0x111111), sx * 0.08, 0.06, -0.18, head);
+      const ear = add(gq('rdEa', () => new THREE.SphereGeometry(0.06, 10, 8)), fur, sx * 0.2, 0.08, 0.02, head); ear.scale.set(1.6, 0.6, 0.4);
+      const an = new THREE.Group(); an.position.set(sx * 0.1, 0.18, 0); an.rotation.z = -sx * 0.35; head.add(an);
+      add(gq('rdA', () => new THREE.CylinderGeometry(0.02, 0.025, 0.36, 6)), antler, 0, 0.18, 0, an);
+      for (const [y, r] of [[0.14, 0.7], [0.26, -0.6], [0.34, 0.5]]) { const t = add(gq('rdT', () => new THREE.CylinderGeometry(0.015, 0.018, 0.16, 5)), antler, 0, y, 0, an); t.rotation.z = sx * r; t.position.x = sx * 0.05; }
+    }
+    return { ...B, hat: [0.23, 0.2] };
+  },
+  teddy: c => {
+    const { add, head, M } = c, fur = M(0xa86a3a, { roughness: 1 }), light = M(0xe8c49a, { roughness: 1 });
+    add(gq('tdB', () => new THREE.SphereGeometry(0.38, 22, 16)), fur, 0, 1.12, 0).scale.set(1, 1.15, 0.9);
+    add(gq('tdBe', () => new THREE.SphereGeometry(0.24, 16, 12)), light, 0, 1.08, -0.18).scale.set(1, 1.2, 0.5);
+    const h = heartMesh(0.1, M(0xff2f6e, { roughness: 0.4 })); h.position.set(0, 1.25, -0.32); c.rig.add(h); c.extra.push(h.geometry);
+    head.position.y = 1.8;
+    add(gq('tdH', () => new THREE.SphereGeometry(0.27, 20, 16)), fur, 0, 0, 0, head).castShadow = true;
+    add(gq('tdSn', () => new THREE.SphereGeometry(0.11, 14, 10)), light, 0, -0.06, -0.22, head).scale.set(1.1, 0.8, 0.8);
+    add(gq('tdN', () => new THREE.SphereGeometry(0.035, 8, 6)), M(0x2a1a10), 0, -0.02, -0.31, head);
+    for (const sx of [-1, 1]) { add(gq('tdE', () => new THREE.SphereGeometry(0.03, 8, 6)), M(0x111111), sx * 0.09, 0.06, -0.23, head); const e = add(gq('tdEa', () => new THREE.SphereGeometry(0.09, 12, 10)), fur, sx * 0.2, 0.2, 0, head); e.scale.z = 0.5; }
+    const legs = [-1, 1].map(sx => { const g = new THREE.Group(); g.position.set(sx * 0.16, 0.72, 0); c.rig.add(g); add(gq('tdL', () => new THREE.CapsuleGeometry(0.12, 0.4, 6, 10)), fur, 0, -0.3, 0, g).castShadow = true; add(gq('tdF', () => new THREE.SphereGeometry(0.13, 12, 8)), light, 0, -0.6, -0.06, g).scale.set(1, 0.6, 1.3); return g; });
+    return { arm: { x: 0.42, y: 1.38, len: 0.3, r: 0.1, spread: 0.3 }, hat: [0.28, 0.22], legs, limb: fur };
+  },
+  heartthrob: c => {
+    const { add, head, M } = c, pink = M(0xff8fc4, { roughness: 0.4 }), red = M(0xe8205a, { roughness: 0.3, emissive: 0x3a0010 });
+    const B = person(c, pink, pink, red, { tw: 1.0 });
+    head.position.y = 1.95;
+    const h = heartMesh(0.3, red); h.position.y = -0.02; head.add(h); c.extra.push(h.geometry); h.castShadow = true;
+    for (const sx of [-1, 1]) { add(gq('htE', () => new THREE.SphereGeometry(0.05, 10, 8)), M(0xffffff), sx * 0.1, 0.03, -0.1, head); add(gq('htP', () => new THREE.SphereGeometry(0.025, 8, 6)), M(0x111111), sx * 0.1, 0.03, -0.14, head); }
+    add(gq('htM', () => new THREE.TorusGeometry(0.06, 0.012, 6, 14, Math.PI).rotateZ(Math.PI)), M(0x111111), 0, -0.08, -0.11, head);
+    return { ...B, hat: [0.3, 0.22] };
+  },
+  kenteroyal: c => {
+    const { add, head, M } = c, kente = M(0xffffff, { map: kenteTex(), roughness: 0.8, side: THREE.DoubleSide }), gold = M(0xffc83a, { metalness: 0.9, roughness: 0.25 }), skin = M(0x5a3420, { roughness: 0.6 });
+    add(gq('krR', () => new THREE.CylinderGeometry(0.26, 0.5, 1.3, 20, 1, true)), kente, 0, 0.66, 0).castShadow = true;
+    add(gq('krT', () => new THREE.CapsuleGeometry(0.26, 0.3, 6, 14)), kente, 0, 1.42, 0).scale.set(1.12, 1, 0.82);
+    add(gq('krC', () => new THREE.TorusGeometry(0.2, 0.04, 8, 20).rotateX(Math.PI / 2)), gold, 0, 1.7, 0);
+    const sash = add(gq('krS', () => new THREE.BoxGeometry(0.1, 0.9, 0.02)), gold, 0, 1.3, -0.26); sash.rotation.z = 0.5;
+    head.position.y = 1.9;
+    add(gq('krH', () => new THREE.SphereGeometry(0.2, 18, 14)), skin, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) add(gq('krE', () => new THREE.SphereGeometry(0.025, 8, 6)), M(0x111111), sx * 0.07, 0.03, -0.18, head);
+    add(gq('krCr', () => new THREE.CylinderGeometry(0.19, 0.2, 0.08, 18, 1, true)), gold, 0, 0.17, 0, head);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; add(gq('krSp', () => new THREE.ConeGeometry(0.025, 0.09, 5)), gold, Math.sin(a) * 0.19, 0.25, Math.cos(a) * 0.19, head); }
+    return { arm: { x: 0.42, y: 1.6, len: 0.42, r: 0.09, spread: 0.18 }, hat: [0.2, 0.2], limb: kente };
+  },
+  bunnyman: c => {
+    const { add, head, M } = c, fur = M(0xd8d0cc, { roughness: 1 }), pink = M(0xf2a6b8);
+    const B = person(c, fur, fur, pink);
+    add(gq('bnT', () => new THREE.SphereGeometry(0.1, 12, 10)), fur, 0, 1.0, 0.28);
+    add(gq('bnBe', () => new THREE.SphereGeometry(0.2, 14, 10)), M(0xffeef4), 0, 1.3, -0.15).scale.set(0.9, 1.2, 0.5);
+    head.position.y = 1.86;
+    add(gq('bnH', () => new THREE.SphereGeometry(0.22, 18, 14)), fur, 0, 0, 0, head).castShadow = true;
+    add(gq('bnN', () => new THREE.SphereGeometry(0.03, 8, 6)), pink, 0, -0.03, -0.21, head);
+    add(gq('bnTo', () => new THREE.BoxGeometry(0.06, 0.05, 0.02)), M(0xffffff), 0, -0.09, -0.2, head);
+    for (const sx of [-1, 1]) {
+      add(gq('bnE', () => new THREE.SphereGeometry(0.03, 8, 6)), M(0x111111), sx * 0.08, 0.05, -0.19, head);
+      const ear = add(gq('bnEa', () => new THREE.CapsuleGeometry(0.05, 0.32, 6, 10)), fur, sx * 0.08, 0.36, 0, head); ear.rotation.z = -sx * 0.15; ear.scale.z = 0.5;
+      const inn = add(gq('bnEi', () => new THREE.CapsuleGeometry(0.025, 0.26, 6, 10)), pink, sx * 0.08, 0.36, -0.02, head); inn.rotation.z = -sx * 0.15; inn.scale.z = 0.4;
+    }
+    return { ...B, hat: [0.23, 0.18] };
+  },
+  hatchling: c => {
+    const { add, head, M } = c, yellow = M(0xffd23a, { roughness: 0.95 }), shell = M(0xfffdf4, { roughness: 0.5, side: THREE.DoubleSide }), orange = M(0xffa31f);
+    add(gq('hcB', () => new THREE.SphereGeometry(0.42, 22, 16)), yellow, 0, 0.95, 0).scale.y = 1.05;
+    add(gq('hcS', () => new THREE.SphereGeometry(0.5, 22, 14, 0, Math.PI * 2, Math.PI * 0.45, Math.PI * 0.55)), shell, 0, 0.82, 0).castShadow = true;
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; add(gq('hcZ', () => new THREE.ConeGeometry(0.07, 0.14, 4)), shell, Math.sin(a) * 0.49, 0.93, Math.cos(a) * 0.49); }
+    head.position.y = 1.6;
+    add(gq('hcH', () => new THREE.SphereGeometry(0.25, 20, 14)), yellow, 0, 0, 0, head).castShadow = true;
+    add(gq('hcBk', () => new THREE.ConeGeometry(0.06, 0.12, 8).rotateX(-Math.PI / 2)), orange, 0, -0.03, -0.27, head);
+    for (const sx of [-1, 1]) add(gq('hcE', () => new THREE.SphereGeometry(0.035, 8, 6)), M(0x111111), sx * 0.09, 0.06, -0.21, head);
+    add(gq('hcTf', () => new THREE.ConeGeometry(0.04, 0.12, 6)), yellow, 0.02, 0.27, 0, head);
+    return { arm: { x: 0.44, y: 1.1, len: 0.14, r: 0.09, spread: 0.7 }, hat: [0.26, 0.2], limb: yellow };
+  },
+  unicornman: c => {
+    const { add, head, M } = c, white = M(0xd6cce8, { roughness: 0.6 }), hoof = M(0xb48cff, { metalness: 0.4 }), gold = M(0xffd23a, { metalness: 0.9, roughness: 0.2 });
+    const B = person(c, white, white, hoof);
+    PRIDE6.forEach((col, k) => { const t = add(gq('ucT', () => new THREE.CapsuleGeometry(0.03, 0.4, 4, 8)), M(col), (k - 2.5) * 0.03, 0.95, 0.3); t.rotation.x = -0.5; });
+    head.position.y = 1.9;
+    add(gq('ucH', () => new THREE.SphereGeometry(0.22, 18, 14)), white, 0, 0, 0, head).castShadow = true;
+    add(gq('ucSn', () => new THREE.SphereGeometry(0.12, 14, 10)), white, 0, -0.06, -0.18, head).scale.set(0.9, 0.8, 1.2);
+    const horn = add(gq('ucHo', () => new THREE.ConeGeometry(0.04, 0.3, 10)), gold, 0, 0.25, -0.1, head); horn.rotation.x = -0.4;
+    for (const sx of [-1, 1]) { add(gq('ucE', () => new THREE.SphereGeometry(0.03, 8, 6)), M(0x111111), sx * 0.08, 0.06, -0.18, head); const ear = add(gq('ucEa', () => new THREE.ConeGeometry(0.05, 0.12, 6)), white, sx * 0.13, 0.2, 0.02, head); ear.rotation.z = -sx * 0.3; }
+    PRIDE6.forEach((col, k) => add(gq('ucM', () => new THREE.SphereGeometry(0.06, 10, 8)), M(col), 0, 0.17 - k * 0.07, 0.17 + k * 0.012, head));
+    return { ...B, hat: [0.23, 0.2] };
+  },
+  pineapple: c => {
+    const { add, head, M } = c, pine = M(0xffffff, { map: pineTex(), roughness: 0.7 }), leaf = M(0x2f9a4a, { roughness: 0.8, side: THREE.DoubleSide }), limb = M(0xe8b02a, { roughness: 0.7 });
+    add(gq('paB', () => new THREE.SphereGeometry(0.42, 22, 16)), pine, 0, 1.25, 0).scale.set(1, 1.45, 0.95);
+    head.position.y = 1.86;
+    add(gq('paG', () => new THREE.BoxGeometry(0.38, 0.09, 0.04)), M(0x111111, { roughness: 0.1, metalness: 0.5 }), 0, -0.12, -0.38);
+    for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2, l = add(gq('paL', () => new THREE.ConeGeometry(0.07, 0.6, 4)), leaf, Math.sin(a) * 0.06, 0.12, Math.cos(a) * 0.06, head); l.rotation.set(Math.cos(a) * 0.45, 0, -Math.sin(a) * 0.45); l.scale.z = 0.3; }
+    add(gq('paM', () => new THREE.TorusGeometry(0.07, 0.014, 6, 14, Math.PI).rotateZ(Math.PI)), M(0x5a2a0a), 0, -0.3, -0.39);
+    return { arm: { x: 0.42, y: 1.35, len: 0.4, r: 0.06, spread: 0.2 }, hat: [0.2, 0.32], legs: humanLegs(c, limb, M(0xff6f91), 0.14, 0.07, 0.72), limb };
+  },
+  snorkeler: c => {
+    const { add, head, M } = c, skin = M(0xe8b08a, { roughness: 0.6 }), trunks = M(0xff6f91), fin = M(0x19c7d0, { roughness: 0.4 });
+    const B = person(c, skin, skin, fin);
+    add(gq('snTr', () => new THREE.CylinderGeometry(0.31, 0.3, 0.22, 18)), trunks, 0, 1.03, 0).scale.z = 0.85;
+    add(gq('snRing', () => new THREE.TorusGeometry(0.4, 0.11, 10, 24).rotateX(Math.PI / 2)), M(0xffd23a, { roughness: 0.3 }), 0, 1.15, 0);
+    for (const l of B.legs) { const f = add(gq('snFl', () => new THREE.BoxGeometry(0.18, 0.03, 0.4)), fin, 0, -0.95, -0.15, l); f.rotation.x = -0.1; }
+    head.position.y = 1.86;
+    add(gq('snH', () => new THREE.SphereGeometry(0.21, 18, 14)), skin, 0, 0, 0, head).castShadow = true;
+    add(gq('snHa', () => new THREE.SphereGeometry(0.215, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.4)), M(0x6a3a1a), 0, 0.01, 0, head);
+    add(gq('snMk', () => new THREE.BoxGeometry(0.3, 0.13, 0.08)), M(0x5fc8ff, { transparent: true, opacity: 0.55, roughness: 0.05 }), 0, 0.04, -0.2, head);
+    add(gq('snSt', () => new THREE.TorusGeometry(0.22, 0.02, 6, 20, Math.PI * 1.1)), M(0x111111), 0, 0.02, -0.03, head).rotation.y = Math.PI / 2;
+    const tube = add(gq('snTb', () => new THREE.CylinderGeometry(0.022, 0.022, 0.4, 8)), M(0xff8a1f), 0.2, 0.18, -0.06, head);
+    return { ...B, hat: [0.23, 0.18] };
+  },
+});
 // ---------- pets: small companions built from simple shapes ----------
 function makePet(id, mats) {
   const g = new THREE.Group(), M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.75, ...o }); mats.push(m); return m; };
@@ -3160,7 +3352,7 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
   if (BODIES[skin]) {
     const M = (c, o = {}) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, ...o }); extraMats.push(m); return m; };
     bodyCfg = BODIES[skin]({ add, head, mat, rig, M, extra: extraMats, eyeMat });
-    legs = bodyCfg.legs || null; av.userData.hatR = bodyCfg.hat[0]; av.userData.hatY = bodyCfg.hat[1];
+    legs = bodyCfg.legs || null; av.userData.hatR = bodyCfg.hat[0]; av.userData.hatY = bodyCfg.hat[1]; if (bodyCfg.limb) limbMat = bodyCfg.limb;
   } else if (walla) {
     const red = new THREE.MeshStandardMaterial({ color: 0xe8201e, roughness: 0.6 }), fuzz = new THREE.MeshStandardMaterial({ color: 0xe82a1e, roughness: 1, flatShading: true });
     const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), black = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.4 });
@@ -3390,7 +3582,7 @@ function avatarFX(a) {
     a.rig.rotation.x = damp(a.rig.rotation.x, P.nod, 8, 0.016);
     a.rig.rotation.y = P.spin != null ? wrapA(P.spin) : damp(wrapA(a.rig.rotation.y), 0, 8, 0.016);
     a.arms[0].position.y = a.armY + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = a.armY + Math.sin(t + 2.1) * 0.04;
-    if (a.jiggle) { const j = Math.sin(time * 5 + a.phase * 6) * 0.05; a.jiggle.scale.set(1 - j * 0.5, 0.85 + j, 1 - j * 0.5); }
+    if (a.jiggle) { const j = Math.sin(time * 5 + a.phase * 6) * 0.05; a.jiggle.scale.set(1 - j * 0.5, 1.25 + j * 1.5, 0.85 - j * 0.4); }
     if (a.legs) { const mv = a.vel && Math.hypot(a.vel.x, a.vel.z) > 1.5; a.legs.forEach((l, i) => { l.rotation.x = mv ? Math.sin(time * 10 + i * Math.PI) * 0.55 : damp(l.rotation.x, 0, 8, 0.016); }); }
     a.arms[0].rotation.x = damp(a.arms[0].rotation.x, P.l[0], 10, 0.016); a.arms[0].rotation.z = damp(a.arms[0].rotation.z, P.l[1], 10, 0.016);
     a.arms[1].rotation.x = damp(a.arms[1].rotation.x, P.r[0], 10, 0.016); a.arms[1].rotation.z = damp(a.arms[1].rotation.z, P.r[1], 10, 0.016);
