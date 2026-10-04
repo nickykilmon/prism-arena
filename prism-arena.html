@@ -254,7 +254,7 @@ table.lb .you{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6
 .gun .st i{display:block;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
 .gun .st i u{display:block;height:100%;background:var(--gc)}
 .gun.sel{border-color:var(--gc);box-shadow:inset 0 0 0 1px var(--gc);background:rgba(255,255,255,.09)}
-.clsgrid{grid-template-columns:repeat(5,1fr);gap:6px}
+.clsgrid{grid-template-columns:repeat(6,1fr);gap:6px}
 .clsgrid .gun{padding:7px 8px;gap:2px}
 .clsgrid .gun b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ladder{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--display);font-size:12px}
@@ -627,9 +627,11 @@ const WEAPONS = {
   lmg:     { name: 'Havoc LMG',     auto: true,  rate: 0.082, dmg: 15,  mag: 80, reload: 5,  spread: 0.018, ads: 0.006, pellets: 1, range: 350, zoom: 58, recoil: 0.85, color: [1.4, 2.9, 0.5], css: '#b6ff5c', blurb: '80 rounds · slow reload' },
   dual:    { name: 'Twin Blades',   melee: true, rate: 0.28, dmg: 70, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [3.0, 0.4, 2.2], css: '#ff3d6e', blurb: 'Berserker only' },
   claw:    { name: 'Infected Claws', melee: true, rate: 0.38, dmg: 100, mag: 0, reload: 0, spread: 0, ads: 0, pellets: 1, range: 3.6, zoom: 80, recoil: 0, color: [0.6, 3.0, 0.5], css: '#7dff4a', blurb: 'Infected only' },
+  inferno: { name: 'Inferno',       auto: true,  rate: 0.06,  dmg: 6,   mag: 100, reload: 2.2, spread: 0, ads: 0, pellets: 1, range: 11, zoom: 72, recoil: 0.15, color: [3.0, 1.1, 0.2], css: '#ff7a1f', blurb: 'Flamethrower · sets drones on fire', flame: true },
+  arc:     { name: 'Arc Thrower',   auto: true,  rate: 0.16,  dmg: 16,  mag: 30, reload: 1.6,  spread: 0.01,  ads: 0.004, pellets: 1, range: 45, zoom: 60, recoil: 0.6, color: [1.8, 2.6, 3.0], css: '#c8e8ff', blurb: 'Lightning that jumps to 3 more targets', chain: 3 },
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
 };
-const WIDS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'dual', 'blade', 'claw'];
+const WIDS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'dual', 'blade', 'claw', 'inferno', 'arc'];
 const LOADOUT = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg'];
 const LADDER = ['smg', 'rifle', 'lmg', 'scatter', 'cannon', 'rail', 'nova', 'blade'];
 const FFA_GOAL = 20;
@@ -647,10 +649,12 @@ const CLASSES = {
   summoner: { name: 'Summoner', hp: 110, css: '#6fb8ff', guns: ['cannon', 'smg'], q: 'drones', g: 'decoy', blurb: 'Fights alongside a pair of attack drones.', qText: 'Two attack drones follow you (20s)', gText: 'Hologram decoy that drones chase' },
   gravity: { name: 'Gravity Mage', hp: 115, css: '#e07dff', guns: ['smg', 'nova'], q: 'hole', g: 'antigrav', blurb: 'Bends gravity around the fight.', qText: 'Black hole: pulls in and crushes drones', gText: 'Anti-grav field: float and jump higher' },
   tank: { name: 'Tank', hp: 250, css: '#a8b8cc', guns: ['lmg', 'scatter'], q: 'barrier', g: 'taunt', blurb: 'Soaks damage and shields the squad. A bit slower.', qText: 'Shield box around you: no drones or shots get in (10s)', gText: 'Iron Roar: every drone within 35 m targets you for 6s, and you take half damage' },
+  pyro: { name: 'Pyro', hp: 160, css: '#ff7a1f', guns: ['inferno', 'scatter'], q: 'firering', g: 'heatwave', blurb: 'Burns everything up close. Burning drones keep taking damage.', qText: 'Ring of Fire: a flame wall circles you and burns drones (8s)', gText: 'Heatwave: a blast of heat that knocks drones back and sets them on fire' },
+  storm: { name: 'Stormcaller', hp: 115, css: '#c8e8ff', guns: ['arc', 'cannon'], q: 'thunder', g: 'tesla', blurb: 'Chain lightning that tears through swarms.', qText: 'Thunderstrike: 5 lightning bolts where you aim', gText: 'Tesla Coil: zaps drones that come close (15s)' },
   jetpack: { name: 'Jetpack', hp: 125, css: '#5ff2ff', guns: ['scatter', 'nova'],  q: null,    g: 'pad',    blurb: 'Hold jump in the air to fly (4s fuel).', qText: 'Jetpack: hold jump', gText: 'Jump pad (3 uses)' },
 };
-const QDEF = { turret: { name: 'TURRET', cd: 30 }, drones: { name: 'DRONE PAIR', cd: 30 }, hole: { name: 'BLACK HOLE', cd: 20 }, barrier: { name: 'BARRIER', cd: 20 }, pounce: { name: 'POUNCE', cd: 5 }, pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 }, rift: { name: 'RIFT DASH', cd: 8 } };
-const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name: 'DECOY', max: 2, re: 16 }, antigrav: { name: 'ANTI-GRAV', max: 1, re: 22 }, slam: { name: 'GROUND SLAM', max: 2, re: 12 }, taunt: { name: 'IRON ROAR', max: 1, re: 18 }, none: { name: 'NO GADGET', max: 0, re: 1 }, nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 }, hook: { name: 'CHAIN HOOK', max: 2, re: 10 } };
+const QDEF = { turret: { name: 'TURRET', cd: 30 }, drones: { name: 'DRONE PAIR', cd: 30 }, hole: { name: 'BLACK HOLE', cd: 20 }, barrier: { name: 'BARRIER', cd: 20 }, pounce: { name: 'POUNCE', cd: 5 }, pulse: { name: 'PULSE', cd: 8 }, heal: { name: 'HEAL ZONE', cd: 16 }, rally: { name: 'RALLY', cd: 40 }, wall: { name: 'WALLHACK', cd: 60 }, frenzy: { name: 'FRENZY', cd: 40 }, rift: { name: 'RIFT DASH', cd: 8 }, firering: { name: 'RING OF FIRE', cd: 20 }, thunder: { name: 'THUNDERSTRIKE', cd: 22 } };
+const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name: 'DECOY', max: 2, re: 16 }, antigrav: { name: 'ANTI-GRAV', max: 1, re: 22 }, slam: { name: 'GROUND SLAM', max: 2, re: 12 }, taunt: { name: 'IRON ROAR', max: 1, re: 18 }, none: { name: 'NO GADGET', max: 0, re: 1 }, nade: { name: 'CYBERNADE', max: 2, re: 7 }, shield: { name: 'SHIELD', max: 1, re: 35 }, smoke: { name: 'SMOKE', max: 2, re: 18 }, pad: { name: 'JUMP PAD', max: 1, re: 20 }, popper: { name: 'POPPER', max: 3, re: 9 }, hook: { name: 'CHAIN HOOK', max: 2, re: 10 }, heatwave: { name: 'HEATWAVE', max: 2, re: 12 }, tesla: { name: 'TESLA COIL', max: 1, re: 20 } };
 const JET_MAX = 4;
 const isCoopMode = m => m === 'waves' || m === 'boss';
 const coop = () => isCoopMode(mode);
@@ -945,6 +949,8 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'pyro-storm', date: '2026-10-04', title: 'New Classes: Pyro & Stormcaller',
+    lines: ['Pyro (160 HP): the Inferno flamethrower sets drones on fire, Ring of Fire (Q) circles you with a burning wall, Heatwave (G) blasts drones back in flames. Scatter as backup', 'Stormcaller (115 HP): the Arc Thrower\'s lightning jumps to 3 more drones, Thunderstrike (Q) drops 5 bolts where you aim, Tesla Coil (G) zaps anything that comes close. Hand Cannon as backup', 'Both are in Squad Waves and Boss Raid'] },
   { id: 'season-bodies', date: '2026-10-04', title: 'Seasonal Skins Get Their Own Bodies',
     lines: ['13 new seasonal skins with brand-new models: Pumpkin King and Mummy (Halloween), Turkey Mascot (Thanksgiving), Frosty and Reindeer (Christmas), Teddy Bear and Heartthrob (Valentine\'s), Kente Royal (Black History Month), Easter Bunny and Hatchling (Easter), Unicorn (Pride), Pineapple and Snorkeler (Summer)', 'The Slime now has a full see-through jelly body with arms and legs', 'Pumpkin King and Mummy are in the Halloween shop right now'] },
   { id: 'new-bodies', date: '2026-10-04', title: 'Five New Skins, New Emotes & The Iron Roar',
@@ -2050,6 +2056,47 @@ function burst(pos, n, color, speed = 7, life = 0.6, size = 0.12, grav = 9) {
   }
   parts.instanceColor.needsUpdate = true;
 }
+// fire: soft glowing sprites (points) that swell then fade, separate from the box particles
+const FMAX = 1200, fP = new Float32Array(FMAX * 3), fV = new Float32Array(FMAX * 3), fL = new Float32Array(FMAX), fM = new Float32Array(FMAX), fS = new Float32Array(FMAX), fG = new Float32Array(FMAX);
+const fCol = new Float32Array(FMAX * 3), fSize = new Float32Array(FMAX), fGeo = new THREE.BufferGeometry();
+fGeo.setAttribute('position', new THREE.BufferAttribute(fP, 3).setUsage(THREE.DynamicDrawUsage));
+fGeo.setAttribute('color', new THREE.BufferAttribute(fCol, 3).setUsage(THREE.DynamicDrawUsage));
+fGeo.setAttribute('aSize', new THREE.BufferAttribute(fSize, 1).setUsage(THREE.DynamicDrawUsage));
+const fireMat = new THREE.ShaderMaterial({
+  uniforms: { uH: { value: 800 } }, transparent: true, depthWrite: false, vertexColors: true,
+  vertexShader: 'attribute float aSize; varying vec3 vC; uniform float uH; void main() { vC = color; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aSize * projectionMatrix[1][1] * uH * 0.5 / max(0.1, -mv.z); }',
+  fragmentShader: 'varying vec3 vC; void main() { float d = length(gl_PointCoord - 0.5) * 2.0; float a = smoothstep(1.0, 0.15, d); gl_FragColor = vec4(mix(vC, vec3(1.0, 0.95, 0.7), (1.0 - d) * 0.45), a * 0.8); }',
+});
+const firePts = new THREE.Points(fGeo, fireMat); firePts.frustumCulled = false; firePts.renderOrder = 5; scene.add(firePts);
+let fCur = 0, fLiveUntil = 0;
+// a stream of fire along a direction
+function spray(pos, dir, n, color, speed = 30, life = 0.5, size = 0.5, grav = -3, cone = 0.14) {
+  fLiveUntil = Math.max(fLiveUntil, time + life * 1.2);
+  for (let k = 0; k < n; k++) {
+    const i = fCur, sp = speed * rand(0.55, 1.1); fCur = (fCur + 1) % FMAX;
+    fP[i * 3] = pos.x + rand(-0.04, 0.04); fP[i * 3 + 1] = pos.y + rand(-0.04, 0.04); fP[i * 3 + 2] = pos.z + rand(-0.04, 0.04);
+    fV[i * 3] = (dir.x + rand(-cone, cone)) * sp; fV[i * 3 + 1] = (dir.y + rand(-cone, cone)) * sp; fV[i * 3 + 2] = (dir.z + rand(-cone, cone)) * sp;
+    fL[i] = fM[i] = life * rand(0.6, 1.1); fS[i] = size * rand(0.7, 1.4); fG[i] = grav;
+    const mx = Math.max(color.r, color.g, color.b, 0.01); fCol[i * 3] = color.r / mx; fCol[i * 3 + 1] = color.g / mx; fCol[i * 3 + 2] = color.b / mx;
+  }
+}
+function updateFire(dt) {
+  firePts.visible = time <= fLiveUntil;
+  if (!firePts.visible) return;
+  fireMat.uniforms.uH.value = renderer.domElement.height;
+  for (let i = 0; i < FMAX; i++) {
+    if (fL[i] <= 0) { fSize[i] = 0; continue; }
+    fL[i] -= dt;
+    const dr = 1 - 2.4 * dt, k = Math.max(0, fL[i] / fM[i]);
+    fV[i * 3 + 1] -= fG[i] * dt; fV[i * 3] *= dr; fV[i * 3 + 1] *= dr; fV[i * 3 + 2] *= dr;
+    fP[i * 3] += fV[i * 3] * dt; fP[i * 3 + 1] += fV[i * 3 + 1] * dt; fP[i * 3 + 2] += fV[i * 3 + 2] * dt;
+    // starts small at the nozzle, billows out, then dies away
+    fSize[i] = fS[i] * Math.sin(Math.min(1, k * 1.2) * Math.PI) * (0.3 + 0.7 * (1 - k));
+  }
+  fGeo.attributes.position.needsUpdate = true; fGeo.attributes.color.needsUpdate = true; fGeo.attributes.aSize.needsUpdate = true;
+}
+const FIRE = [new THREE.Color(3, 1.1, 0.15), new THREE.Color(3, 2.1, 0.5), new THREE.Color(2.6, 0.45, 0.08)];
+const fireCol = () => FIRE[(Math.random() * 3) | 0];
 function updateParticles(dt) {
   parts.visible = time <= pLiveUntil;
   if (time > pLiveUntil) { if (!pDirty) return; pDirty = false; pL.fill(0); }
@@ -2068,7 +2115,7 @@ function updateParticles(dt) {
   parts.instanceMatrix.needsUpdate = true;
 }
 const tracerGeo = new THREE.CylinderGeometry(0.022, 0.022, 1, 6); tracerGeo.rotateX(Math.PI / 2); tracerGeo.translate(0, 0, 0.5);
-const tracers = Array.from({ length: 40 }, () => {
+const tracers = Array.from({ length: 90 }, () => {
   const m = new THREE.Mesh(tracerGeo, new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
   m.visible = false; m.frustumCulled = false; scene.add(m); return { m, t: 0, d: 0.14 };
 });
@@ -2084,6 +2131,16 @@ const rings = Array.from({ length: 12 }, () => {
   m.visible = false; scene.add(m); return { m, t: 0, d: 1, s: 1 };
 });
 let rgCur = 0;
+// jagged lightning made of short tracer segments
+function bolt(a, b, color, width = 1.4, dur = 0.12, jag = 0.5) {
+  const n = clamp(Math.round(a.distanceTo(b) / 2.2), 2, 9);
+  let prev = a.clone();
+  for (let i = 1; i <= n; i++) {
+    const p = a.clone().lerp(b, i / n);
+    if (i < n) p.add(tD.set(rand(-jag, jag), rand(-jag, jag), rand(-jag, jag)));
+    tracer(prev, p, color, width, dur); prev = p;
+  }
+}
 function shockRing(pos, color, size, dur = 0.5) {
   const r = rings[rgCur]; rgCur = (rgCur + 1) % rings.length;
   r.m.position.copy(pos); r.m.material.color.copy(color); r.t = 0; r.d = dur; r.s = size; r.m.visible = true;
@@ -2101,7 +2158,7 @@ function explosionFX(pos, color, big = 1) {
   const pf = panFor(pos); sfx.boom(Math.max(0.25, pf.v) * (big > 1 ? 1.3 : 0.8), pf.pan);
 }
 function updateFX(dt) {
-  updateParticles(dt);
+  updateParticles(dt); updateFire(dt);
   for (const tr of tracers) if (tr.m.visible) { tr.t -= dt; tr.m.material.opacity = Math.max(0, tr.t / tr.d); if (tr.t <= 0) tr.m.visible = false; }
   for (const r of rings) if (r.m.visible) { r.t += dt; const k = r.t / r.d; r.m.scale.setScalar(0.3 + k * r.s); r.m.material.opacity = Math.max(0, 1 - k); if (k >= 1) r.m.visible = false; }
   for (const f of flashes) { if (f.t > 0) { f.t -= dt; f.l.intensity = f.i * Math.max(0, f.t / f.d); } else f.l.intensity = 0; }
@@ -2157,6 +2214,8 @@ const sfx = {
       case 'cannon': noise(0.12, 0.32 * v, 2500, 'bandpass', 0.6, pan); tone(110, 35, 0.3, 0.5 * v, 'sine', pan); tone(900, 200, 0.1, 0.06 * v, 'square', pan); break;
       case 'rail': tone(2600, 180, 0.35, 0.12 * v, 'sawtooth', pan); noise(0.3, 0.25 * v, 6000, 'highpass', 0.7, pan); tone(80, 30, 0.4, 0.4 * v, 'sine', pan); break;
       case 'nova': noise(0.35, 0.28 * v, 800, 'bandpass', 1, pan, 0, 200); tone(300, 80, 0.3, 0.22 * v, 'triangle', pan); break;
+      case 'inferno': noise(0.12, 0.1 * v, 700, 'lowpass', 0.8, pan, 0, 1600); break;
+      case 'arc': tone(3200, 500, 0.08, 0.05 * v, 'sawtooth', pan); noise(0.08, 0.16 * v, 7000, 'highpass', 0.8, pan); tone(120, 60, 0.08, 0.15 * v, 'square', pan); break;
       case 'blade': case 'dual': case 'claw': noise(0.2, 0.22 * v, 1200, 'bandpass', 2, pan, 0, 5000); break;
       case 'lmg': noise(0.08, 0.24 * v, 3200, 'bandpass', 0.7, pan); tone(130, 40, 0.14, 0.32 * v, 'sine', pan); tone(900, 250, 0.06, 0.04 * v, 'square', pan); break;
       default: noise(0.07, 0.22 * v, 4200, 'bandpass', 0.8, pan); tone(1500, 160, 0.08, 0.05 * v, 'square', pan); tone(170, 45, 0.13, 0.3 * v, 'sine', pan);
@@ -2571,6 +2630,25 @@ function buildGun(id) {
       g.userData.rec = add(new THREE.SphereGeometry(.011, 10, 8), rec, .045, .068, -.13);
       add(B(.06, .13, .07), cam, 0, -.12, .07, .3);
       mz = -.37;
+      break;
+    }
+    case 'inferno': {
+      // flamethrower: fuel tank slung under the body, long nozzle with a pilot light
+      add(B(.1, .12, .36), gunMat, 0, 0, -.02); add(C(.062, .062, .32, 16), gunMat2, 0, -.11, -.06, H);
+      for (const z of [-.18, .06]) add(T(.063, .011), gm, 0, -.11, z);
+      add(C(.028, .042, .34), gunMat, 0, .01, -.36, H); add(C(.055, .034, .07, 14), gunMat2, 0, .01, -.55, H);
+      for (const z of [-.3, -.4]) add(T(.034, .008), gm, 0, .01, z);
+      add(new THREE.SphereGeometry(.018, 8, 6), gm, 0, -.035, -.56); add(B(.012, .012, .2), gm, 0, -.03, -.47);
+      add(B(.06, .15, .07), gunMat, 0, -.11, .12, .3); add(B(.05, .11, .06), gunMat2, 0, -.09, -.2, -.2); mz = -.6;
+      break;
+    }
+    case 'arc': {
+      // arc thrower: glowing coils around the barrel and a three-prong emitter
+      add(B(.1, .11, .38), gunMat, 0, 0, -.02); add(C(.022, .022, .3), gunMat2, 0, .01, -.32, H);
+      for (const z of [-.2, -.26, -.32, -.38]) add(T(.05, .011), gm, 0, .01, z);
+      for (let k = 0; k < 3; k++) { const a = k / 3 * Math.PI * 2 + H; add(B(.012, .012, .13), gunMat2, Math.cos(a) * .04, .01 + Math.sin(a) * .04, -.5); }
+      add(new THREE.SphereGeometry(.028, 12, 8), gm, 0, .01, -.47); add(B(.03, .035, .1), gm, 0, .075, -.03);
+      add(B(.06, .15, .07), gunMat, 0, -.11, .1, .3); mz = -.52;
       break;
     }
     case 'blade': addKatana(g, gm, gunMat, gunMat2, 1); mz = -.3; break;
@@ -3450,6 +3528,8 @@ function makeAvatar(look, label, through, skin = 'standard', finish = 'factory',
     if (cls === 'summoner') for (const sx of [-1, 1]) part(PG.hand, gl, sx * 0.5, 1.92, 0.12, 0.75, 0.75, 0.75);
     if (cls === 'gravity') { const r1 = part(PG.gring, gl, 0, 1.12, 0, 1, 1, 1); r1.rotation.set(Math.PI / 2 + 0.3, 0, 0.2); const r2 = part(PG.gring, gl, 0, 0.5, 0, 0.45, 0.45, 0.45, head); r2.rotation.x = Math.PI / 2; }
     if (cls === 'tank') { for (const g of arms) { part(PG.box, gunMat, 0, 0.3, 0, 0.38, 0.16, 0.42, g); part(PG.box, gl, 0, 0.39, 0, 0.39, 0.03, 0.43, g); } part(PG.box, gunMat, 0, 1.28, -0.34, 0.56, 0.42, 0.1); part(PG.box, gl, 0, 1.28, -0.4, 0.3, 0.05, 0.02); }
+    if (cls === 'pyro') { for (const sx of [-1, 1]) { part(PG.tank, gunMat, sx * 0.13, 1.25, 0.38, 1.1, 1.1, 1.1); part(PG.box, gl, sx * 0.13, 1.52, 0.38, 0.14, 0.05, 0.14); } part(PG.box, gl, 0, 0.98, 0.38, 0.4, 0.05, 0.05); part(PG.box, gunMat2, 0, -0.07, -0.2, 0.26, 0.1, 0.06, head); }
+    if (cls === 'storm') { part(PG.box, gunMat, 0, 0.45, 0, 0.03, 0.4, 0.03, head); const o = part(PG.box, gl, 0, 0.68, 0, 0.1, 0.1, 0.1, head); o.rotation.set(0.6, 0.6, 0); for (const g of arms) { const r = part(PG.gring, gl, 0, 0.18, 0, 0.32, 0.32, 0.32, g); r.rotation.x = Math.PI / 2; } }
     if (cls === 'jetpack') for (const sx of [-1, 1]) { part(PG.tank, gunMat, sx * 0.15, 1.22, 0.38, 1, 1, 1); part(PG.box, gl, sx * 0.15, 0.94, 0.38, 0.13, 0.05, 0.13); }
     av.userData.gearMat = gl;
   }
@@ -4694,7 +4774,7 @@ const NADE_MAX = 2, NADE_RECHARGE = 7, NADE_FUSE = 1.7;
 let nadeCount = NADE_MAX, nadeT = 0, nadeSeq = 0, lastNade = null;
 const grenades = [];
 const nadeCore = new THREE.SphereGeometry(0.14, 14, 10), nadeRing = new THREE.TorusGeometry(0.2, 0.025, 6, 24);
-const THROW_COL = { hole: [1.6, 0.4, 2.9], repair: [2.9, 2.0, 0.4], decoy: [0.4, 2.6, 2.9], antigrav: [1.2, 0.9, 2.9], popper: [2.9, 0.8, 0.5], nade: [0.4, 2.4, 2.9], heal: [0.5, 2.8, 1.2], shield: [0.6, 2.2, 3], smoke: [1.4, 1.5, 1.7], pad: [2.9, 1.5, 0.4] };
+const THROW_COL = { tesla: [1.8, 2.6, 3.0], hole: [1.6, 0.4, 2.9], repair: [2.9, 2.0, 0.4], decoy: [0.4, 2.6, 2.9], antigrav: [1.2, 0.9, 2.9], popper: [2.9, 0.8, 0.5], nade: [0.4, 2.4, 2.9], heal: [0.5, 2.8, 1.2], shield: [0.6, 2.2, 3], smoke: [1.4, 1.5, 1.7], pad: [2.9, 1.5, 0.4] };
 function spawnNade(from, vel, mine, kind = 'nade') {
   const g = new THREE.Group();
   g.add(new THREE.Mesh(nadeCore, gunMat));
@@ -4752,6 +4832,7 @@ function throwNade() {
   if (!player.alive || nadeCount <= 0) return;
   if (k.g === 'hook') { if (chainHook()) { nadeCount--; if (nadeT <= 0) nadeT = gd.re; } return; }
   if (k.g === 'slam') { nadeCount--; if (nadeT <= 0) nadeT = gd.re; groundSlam(); return; }
+  if (k.g === 'heatwave') { nadeCount--; if (nadeT <= 0) nadeT = gd.re; heatwave(); return; }
   if (k.g === 'taunt') {
     nadeCount--; if (nadeT <= 0) nadeT = gd.re;
     pushAb('taunt', player.pos, myId); applyAb('taunt', player.pos.x, player.pos.y, player.pos.z, myId, settings.name);
@@ -4788,6 +4869,8 @@ function useAbility() {
     const extra = myId;
     pushAb(k.q, p, extra); applyAb(k.q, p.x, p.y, p.z, extra, settings.name);
   }
+  else if (k.q === 'firering') { pushAb('firering', player.pos, myId); applyAb('firering', player.pos.x, player.pos.y, player.pos.z, myId, settings.name); }
+  else if (k.q === 'thunder') thunderstrike();
   else if (k.q === 'drones') { pushAb('drones', player.pos, myId); applyAb('drones', player.pos.x, player.pos.y, player.pos.z, myId, settings.name); }
   else { pushAb(k.q, player.pos); applyAb(k.q, player.pos.x, player.pos.y, player.pos.z, 0, settings.name); }
 }
@@ -4800,19 +4883,25 @@ function groundBelow(p) {
   for (const c of colliders) if (p.x > c.min.x && p.x < c.max.x && p.z > c.min.z && p.z < c.max.z && c.max.y <= p.y + 0.4 && c.max.y > y) y = c.max.y;
   return y;
 }
-const OWNED_DEP = new Set(['hole', 'turret']);
+const OWNED_DEP = new Set(['hole', 'turret', 'tesla']);
 function deploy(kind, p) {
   p.y = groundBelow(p);
   const extra = kind === 'pad' ? `${myId}-${abSeq + 1}` : OWNED_DEP.has(kind) ? myId : 0;
   pushAb(kind, p, extra); applyAb(kind, p.x, p.y, p.z, extra, settings.name);
 }
 const DEP = { heal: { dur: 8, r: 4 }, shield: { dur: 20, r: 4.5 }, smoke: { dur: 12, r: 6 }, pad: { dur: 45, r: 1.2 },
-  taunt: { dur: 6, r: 0 }, turret: { dur: 25, r: 0.9 }, repair: { dur: 15, r: 4 }, decoy: { dur: 9, r: 1 }, hole: { dur: 4.5, r: 13 }, antigrav: { dur: 12, r: 5 }, barrier: { dur: 10, r: 2.7 }, drones: { dur: 20, r: 0 }, sentry: { dur: 30, r: 0 } };
+  taunt: { dur: 6, r: 0 }, turret: { dur: 25, r: 0.9 }, repair: { dur: 15, r: 4 }, decoy: { dur: 9, r: 1 }, hole: { dur: 4.5, r: 13 }, antigrav: { dur: 12, r: 5 }, barrier: { dur: 10, r: 2.7 }, drones: { dur: 20, r: 0 }, sentry: { dur: 30, r: 0 }, firering: { dur: 8, r: 6 }, tesla: { dur: 15, r: 10 } };
 // ally guns: turret, Summoner drones and the FFA sentry
 const MINIS = { drones: { n: 2, rate: 0.4, dmg: 11, range: 30, col: new THREE.Color(0.6, 1.8, 3.0), s: 1 }, sentry: { n: 1, rate: 0.28, dmg: 8, range: 36, col: new THREE.Color(3.0, 0.9, 0.4), s: 1.5 } };
 const softTex = () => canvasTex('soft', x => {
   const g = x.createRadialGradient(128, 128, 8, 128, 128, 128); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.5, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
   x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+});
+const fireWallTex = () => canvasTex('firewall', x => {
+  const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.55, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,1)');
+  x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.globalCompositeOperation = 'destination-out';
+  for (let i = 0; i < 26; i++) { const cx = i / 26 * 256 + rand(-4, 4), w = rand(4, 10); const t = x.createLinearGradient(0, 0, 0, 256); t.addColorStop(0, 'rgba(0,0,0,1)'); t.addColorStop(rand(0.3, 0.8), 'rgba(0,0,0,0)'); x.fillStyle = t; x.fillRect(cx - w / 2, 0, w, 256); }
 });
 const depGeo = {
   disc: new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), ring: new THREE.TorusGeometry(1, 0.018, 6, 64).rotateX(Math.PI / 2),
@@ -4821,6 +4910,7 @@ const depGeo = {
   tBase: new THREE.CylinderGeometry(0.42, 0.6, 0.5, 12), tHead: new THREE.BoxGeometry(0.5, 0.34, 0.56), tBarrel: new THREE.CylinderGeometry(0.06, 0.06, 0.7, 8).rotateX(Math.PI / 2),
   tEye: new THREE.SphereGeometry(0.07, 8, 6), tStripe: new THREE.BoxGeometry(0.52, 0.04, 0.58), beacon: new THREE.OctahedronGeometry(0.35, 0),
   holeCore: new THREE.SphereGeometry(1, 24, 16), holeDisk: new THREE.RingGeometry(1.25, 3.4, 48), plane: new THREE.PlaneGeometry(1, 1), edge: new THREE.BoxGeometry(1, 1, 1),
+  fireWall: new THREE.CylinderGeometry(1, 1, 1, 48, 1, true), teslaCol: new THREE.CylinderGeometry(0.1, 0.16, 1.6, 10), teslaRing: new THREE.TorusGeometry(0.24, 0.035, 6, 20).rotateX(Math.PI / 2),
   mini: new THREE.IcosahedronGeometry(0.26, 0), miniRing: new THREE.TorusGeometry(0.4, 0.03, 6, 24),
 };
 function applyAb(type, x, y, z, extra, who) {
@@ -4838,6 +4928,41 @@ function applyAb(type, x, y, z, extra, who) {
     tracer(new V3(x, y + 1.2, z), e.pos.clone(), GOLD, 2, 0.45);
     const pf = panFor(e.pos); tone(300, 160, 0.25, 0.15 * Math.max(0.3, pf.v), 'square', pf.pan); noise(0.2, 0.15, 1800, 'bandpass', 1, pf.pan);
     if (isHost && e.kind === 'drone') { if (e.type === 'titan') e.stunT = 0.8; else if (e.type === 'warden') e.stunT = 2; else { e.pullT = 0.7; e.pullTo = new V3(x, y + 1.6, z); } }
+    return;
+  }
+  if (type === 'heat') {
+    const from = new V3(x, y, z), dir = Array.isArray(extra) ? new V3(+extra[0] || 0, +extra[1] || 0, +extra[2] || -1).normalize() : new V3(0, 0, -1);
+    const o = from.clone().addScaledVector(dir, 0.8);
+    spray(o, dir, 40, FIRE[0], 34, 0.55, 2.4, -3, 0.35); spray(o, dir, 25, FIRE[1], 28, 0.5, 1.8, -3, 0.45); spray(o, dir, 15, WHITE, 36, 0.3, 0.8, 0, 0.3);
+    flash(o, FIRE[0], 80, 0.3);
+    const pf = panFor(from); noise(0.55, 0.4 * Math.max(0.3, pf.v), 500, 'lowpass', 1, pf.pan, 0, 2600); tone(140, 50, 0.4, 0.25 * Math.max(0.3, pf.v), 'sawtooth', pf.pan);
+    // the host shoves drones caught in the blast back
+    if (isHost) for (const e of ents.values()) if (e.kind === 'drone' && e.alive && e.type !== 'titan' && inCone(from, dir, e.pos, 13, 1.2 + TYPES[e.type].scale * 0.8, 0.4)) {
+      e.vel.addScaledVector(tA.subVectors(e.pos, from).normalize(), e.type === 'warden' ? 9 : 24); e.vel.y += 4; e.stunT = Math.max(e.stunT || 0, 0.4);
+    }
+    return;
+  }
+  if (type === 'thunder') {
+    const c = new V3(x, y, z), mine = String(extra) === myId, col = new THREE.Color(1.6, 2.3, 3.0);
+    shockRing(c.clone().setY(c.y + 0.12), col, 9, 0.5);
+    for (let k = 0; k < 5; k++) later(0.35 + k * 0.17, () => {
+      const a = rand(0, 6.283), rr = k ? rand(1.5, 4) : 0, p = c.clone().add(tB.set(Math.cos(a) * rr, 0.5, Math.sin(a) * rr));
+      p.y = groundBelow(p);
+      const sky = p.clone().setY(p.y + 45);
+      bolt(sky, p, col, 9, 0.35, 1.6); bolt(sky, p, WHITE, 3.5, 0.25, 1.2);
+      shockRing(p.clone().setY(p.y + 0.15), col, 7, 0.4); burst(p, 30, col, 10, 0.5, 0.1, 4); flash(p, col, 120, 0.25);
+      const pf = panFor(p); noise(0.5, 0.45 * Math.max(0.3, pf.v), 3000, 'highpass', 0.7, pf.pan); tone(90, 30, 0.5, 0.35 * Math.max(0.3, pf.v), 'sine', pf.pan);
+      const near = p.distanceTo(player.pos); if (near < 20) shake = Math.max(shake, 0.25 * (1 - near / 20));
+      let any = false;
+      for (const e of [...ents.values()]) {
+        if (!e.alive || e.kind !== 'drone') continue;
+        if (Math.hypot(e.pos.x - p.x, e.pos.z - p.z) < 3 + TYPES[e.type].scale * 0.8 && e.pos.y > p.y - 2) {
+          if (mine) { damageEnt(e, 65, e.pos.clone(), true); any = true; }
+          if (isHost && e.type !== 'titan') e.stunT = Math.max(e.stunT || 0, 0.6);
+        }
+      }
+      if (any) { hitmarker(false); sfx.hit(); }
+    });
     return;
   }
   if (type === 'slam') {
@@ -4958,6 +5083,24 @@ function addDeploy(kind, pos, extra) {
     g.add(aura, wire); d.spin = wire;
     const pf = panFor(pos); tone(110, 55, 0.7, 0.35 * Math.max(0.3, pf.v), 'sawtooth', pf.pan); noise(0.6, 0.3 * Math.max(0.3, pf.v), 400, 'lowpass', 1, pf.pan, 0, 120);
     shockRing(pos.clone().setY(pos.y + 0.2), col, 70, 0.9); shockRing(pos.clone().setY(pos.y + 1.5), col, 40, 0.7);
+  } else if (kind === 'firering') {
+    // a wall of flame that follows the pyro around
+    d.owner = String(extra); d.follow = true; d.tick = 0;
+    const ring = new THREE.Mesh(depGeo.ring, M(FIRE[0], 1)); ring.scale.setScalar(D.r); ring.position.y = 0.1;
+    const glow = new THREE.Mesh(depGeo.disc, M(new THREE.Color(0.5, 0.12, 0.02), 0.35)); glow.scale.setScalar(D.r + 0.3); glow.position.y = 0.05;
+    d.wall = new THREE.Mesh(depGeo.fireWall, M(new THREE.Color(1.6, 0.5, 0.08), 0.55, true, { side: THREE.DoubleSide, map: fireWallTex() })); d.wall.scale.set(D.r, 3, D.r); d.wall.position.y = 1.5;
+    g.add(ring, glow, d.wall);
+    const pf = panFor(pos); noise(0.8, 0.35 * Math.max(0.3, pf.v), 400, 'lowpass', 1, pf.pan, 0, 2000); tone(90, 160, 0.5, 0.2 * Math.max(0.3, pf.v), 'sawtooth', pf.pan);
+  } else if (kind === 'tesla') {
+    d.owner = String(extra); d.fireT = 0.5; d.col = new THREE.Color(1.6, 2.4, 3.0);
+    const base = new THREE.Mesh(depGeo.tBase, stoneMat); base.position.y = 0.25; base.castShadow = true;
+    const col = new THREE.Mesh(depGeo.teslaCol, gunMat2); col.position.y = 1.05; col.castShadow = true;
+    d.coil = new THREE.Group(); d.coil.position.y = 0.6;
+    for (let k = 0; k < 5; k++) { const r = new THREE.Mesh(depGeo.teslaRing, M(d.col, 1, false)); r.position.y = k * 0.22; r.scale.setScalar(1 - k * 0.08); d.coil.add(r); }
+    d.orb = new THREE.Mesh(depGeo.tEye, M(d.col, 1, false)); d.orb.position.y = 1.95; d.orb.scale.setScalar(3.2);
+    const halo = new THREE.Mesh(depGeo.bubble, M(d.col.clone().multiplyScalar(0.3), 0.3, true, { side: THREE.BackSide })); halo.position.y = 1.95; halo.scale.setScalar(0.45);
+    const ring = new THREE.Mesh(depGeo.ring, M(d.col.clone().multiplyScalar(0.5), 0.6)); ring.scale.setScalar(D.r); ring.position.y = 0.06;
+    g.add(base, col, d.coil, d.orb, halo, ring);
   } else if (kind === 'drones' || kind === 'sentry') {
     d.owner = String(extra); d.fireT = 0.8; d.shot = 0; d.cfg = MINIS[kind];
     d.minis = Array.from({ length: d.cfg.n }, () => {
@@ -4982,7 +5125,9 @@ function updateDeploys(dt) {
     if (d.kind === 'heal' && Math.random() < dt * 14) { const a = rand(0, 6.28), r = Math.random() * d.r; burst(tA.set(d.pos.x + Math.cos(a) * r, d.pos.y + 0.2, d.pos.z + Math.sin(a) * r), 1, GREEN, 1, 1.1, 0.09, -2.5); }
     if (d.puffs) for (const sp of d.puffs) { sp.userData.a += dt * sp.userData.s; sp.material.rotation = sp.userData.a; sp.position.y += Math.sin(time + sp.userData.a) * dt * 0.1; }
     if (d.rings) d.rings.forEach((r, k) => { const t = (time * 0.9 + k / 2) % 1; r.position.y = 0.2 + t * 2.2; r.scale.setScalar(1.1 - t * 0.4); r.material.opacity = (1 - t) * 0.8 * fade; });
+    if (d.kind === 'firering') updFireRing(d, dt);
     if (d.kind === 'turret') updTurret(d, dt);
+    else if (d.kind === 'tesla') updTesla(d, dt);
     else if (d.minis) { if (!updMinis(d, dt)) { removeDeploy(i); continue; } }
     else if (d.follow) { const op = d.owner === myId ? player.pos : peers.get(d.owner)?.pos; if (!op) { removeDeploy(i); continue; } d.g.position.copy(op); d.pos.copy(op); }
     else if (d.kind === 'hole') updHole(d, dt);
@@ -5190,7 +5335,10 @@ function fire() {
   const moving = Math.hypot(player.vel.x, player.vel.z) > 2;
   const spread = (ads ? W.ads : W.spread) + (W.pellets > 1 ? 0 : (moving ? 0.008 : 0) + (player.onGround ? 0 : 0.012)) * (ads ? 0.3 : 1);
   const g = curGun(), mp = g.muzzle.getWorldPosition(new V3()), col = wColor(curW);
-  if (W.projectile) {
+  if (W.flame) {
+    const end = flameShot(W, mp);
+    shotSeq++; lastShot = [shotSeq, r2(mp.x), r2(mp.y), r2(mp.z), r2(end.x), r2(end.y), r2(end.z), WIDS.indexOf(curW)];
+  } else if (W.projectile) {
     const dir = new V3(rand(-spread, spread), rand(-spread, spread), -1).normalize().applyQuaternion(camera.quaternion);
     const from = camera.position.clone().addScaledVector(dir, 0.6);
     spawnRocket(from, dir.multiplyScalar(W.speed), true);
@@ -5201,7 +5349,8 @@ function fire() {
       const dir = new V3(rand(-spread, spread), rand(-spread, spread), -1).normalize().applyQuaternion(camera.quaternion);
       const r = hitscan(camera.position, dir, W, targets);
       if (!first) first = r.point; if (r.hitTarget) anyHit = true;
-      if (k < 5) tracer(mp, r.point, col, curW === 'rail' ? 2.4 : 1, curW === 'rail' ? 0.35 : 0.14);
+      if (W.chain) { bolt(mp, r.point, col, 1.3, 0.1, 0.25); if (r.hitTarget) chainFrom(r.point, new Set([r.hitTarget]), Math.round(W.dmg * 0.75), W.chain, col, true); }
+      else if (k < 5) tracer(mp, r.point, col, curW === 'rail' ? 2.4 : 1, curW === 'rail' ? 0.35 : 0.14);
     }
     if (W.pellets > 1 && anyHit) { hitmarker(false); sfx.hit(); }
     shotSeq++; lastShot = [shotSeq, r2(mp.x), r2(mp.y), r2(mp.z), r2(first.x), r2(first.y), r2(first.z), WIDS.indexOf(curW)];
@@ -5212,6 +5361,114 @@ function fire() {
   sfx.shot(curW);
   if (curW === 'lmg' && settings.lmgCam) { tone(3200, 3200, 0.018, 0.05, 'square'); noise(0.03, 0.08, 6000, 'highpass'); }
   if (ammo === 0) startReload();
+}
+// ---------- Pyro & Stormcaller ----------
+// is point c inside a cone from `from` along `look`? (base radius plus widening with distance)
+function inCone(from, look, c, reach, base, widen) {
+  const off = tD.copy(c).sub(from), along = off.dot(look);
+  if (along < -0.5 || along > reach + base) return false;
+  return Math.sqrt(Math.max(0, off.lengthSq() - along * along)) < base + Math.max(0, along) * widen;
+}
+function coneEach(from, look, reach, base, widen, fn) {
+  for (const e of [...ents.values()]) {
+    if (!e.alive || (e.kind !== 'drone' && !enemyOf(myTeam, e.team))) continue;
+    const c = e.kind === 'drone' ? e.pos.clone() : e.pos.clone().setY(e.pos.y + 0.9);
+    if (inCone(from, look, c, reach, base + (e.kind === 'drone' ? TYPES[e.type].scale * 0.8 : 0.4), widen)) fn('e', e, c);
+  }
+  for (const o of peers.values()) {
+    if (!o.av.visible || !enemyOf(myTeam, o.team)) continue;
+    const c = o.pos.clone().setY(o.pos.y + 0.9);
+    if (inCone(from, look, c, reach, base + 0.4, widen)) fn('p', o, c);
+  }
+}
+// the flame stops at the first wall
+function wallReach(from, dir, max) { raycaster.set(from, dir); raycaster.far = max; const h = raycaster.intersectObjects(worldMeshes, false)[0]; return h ? h.distance : max; }
+let flameHitT = 0;
+function flameShot(W, mp) {
+  const look = new V3(0, 0, -1).applyQuaternion(camera.quaternion), eye = camera.position, reach = wallReach(eye, look, W.range);
+  const aimAt = eye.clone().addScaledVector(look, reach), dir = aimAt.clone().sub(mp).normalize(), sp = 30 * Math.min(1, reach / W.range + 0.15);
+  spray(mp, dir, 4, FIRE[0], sp, 0.5, 1.6, -3, 0.12); spray(mp, dir, 2, FIRE[1], sp * 0.9, 0.42, 1.1, -3, 0.07); spray(mp, dir, 2, FIRE[2], sp, 0.6, 2.2, -6, 0.18);
+  let any = false;
+  coneEach(eye, look, reach, 0.6, 0.18, (k, t, c) => { any = true; if (k === 'e') { damageEnt(t, W.dmg, c, true); ignite('e', t.id, 3); } else { damagePeer(t, W.dmg, c, true); ignite('p', t.id, 3); } });
+  if (any) { hitmarker(false); if (time - flameHitT > 0.15) { flameHitT = time; sfx.hit(); } }
+  return aimAt;
+}
+// burning: 4 damage every quarter second until it runs out (the attacker's game deals it)
+const burns = new Map(), BURN_DMG = 4;
+function ignite(kind, id, secs) { const k = kind + id, b = burns.get(k); if (b) b.until = Math.max(b.until, time + secs); else burns.set(k, { kind, id, until: time + secs, t: 0.25 }); }
+function updateBurns(dt) {
+  for (const [k, b] of burns) {
+    const t = b.kind === 'e' ? ents.get(b.id) : peers.get(b.id), alive = t && (b.kind === 'e' ? t.alive : t.av.visible);
+    if (!alive || time > b.until || !inMatch()) { burns.delete(k); continue; }
+    const c = b.kind === 'e' && t.kind === 'drone' ? t.pos.clone() : t.pos.clone().setY(t.pos.y + 1), sz = b.kind === 'e' && t.kind === 'drone' ? TYPES[t.type].scale : 1;
+    if (Math.random() < dt * 30) spray(tA.set(c.x + rand(-0.5, 0.5) * sz, c.y + rand(-0.3, 0.3) * sz, c.z + rand(-0.5, 0.5) * sz), UP, 1, fireCol(), 3, 0.5, 1.1 * Math.sqrt(sz), -4, 0.3);
+    b.t -= dt;
+    if (b.t <= 0) { b.t = 0.25; if (b.kind === 'e') damageEnt(t, BURN_DMG, c, true); else damagePeer(t, BURN_DMG, c, true); }
+  }
+}
+// lightning jumps from target to target; `hit` holds the ids already struck
+function chainFrom(pos, hit, dmg, jumps, col, mine) {
+  let from = pos.clone();
+  for (let j = 0; j < jumps; j++) {
+    let best = null, bd = 9;
+    for (const e of ents.values()) {
+      if (!e.alive || hit.has(e.id) || (e.kind !== 'drone' && !enemyOf(myTeam, e.team))) continue;
+      const c = e.kind === 'drone' ? e.pos : tA.copy(e.pos).setY(e.pos.y + 1), d = c.distanceTo(from) - (e.kind === 'drone' ? TYPES[e.type].scale * 0.6 : 0);
+      if (d < bd) { bd = d; best = { e, c: c.clone() }; }
+    }
+    for (const o of peers.values()) {
+      if (!o.av.visible || hit.has(o.id) || !enemyOf(myTeam, o.team)) continue;
+      const c = tA.copy(o.pos).setY(o.pos.y + 1), d = c.distanceTo(from);
+      if (d < bd) { bd = d; best = { o, c: c.clone() }; }
+    }
+    if (!best) return;
+    bolt(from, best.c, col, 1.1, 0.14, 0.45); burst(best.c, 6, col, 5, 0.25, 0.07);
+    if (mine) { if (best.e) damageEnt(best.e, dmg, best.c, true); else damagePeer(best.o, dmg, best.c, true); }
+    hit.add(best.e ? best.e.id : best.o.id); from = best.c; dmg = Math.round(dmg * 0.75);
+  }
+}
+function heatwave() {
+  const look = new V3(0, 0, -1).applyQuaternion(camera.quaternion), from = camera.position.clone(), reach = wallReach(from, look, 13);
+  pushAb('heat', from, [r2(look.x), r2(look.y), r2(look.z)]); applyAb('heat', from.x, from.y, from.z, [look.x, look.y, look.z], settings.name);
+  let any = false;
+  coneEach(from, look, reach, 1.2, 0.4, (k, t, c) => { any = true; if (k === 'e') { damageEnt(t, 35, c, true); ignite('e', t.id, 4); } else { damagePeer(t, 35, c, true); ignite('p', t.id, 4); } });
+  if (any) { hitmarker(false); sfx.hit(); }
+  vmKick = Math.min(vmKick + 2, 3); shake = Math.max(shake, 0.15);
+}
+function thunderstrike() {
+  const look = new V3(0, 0, -1).applyQuaternion(camera.quaternion);
+  raycaster.set(camera.position, look); raycaster.far = 70;
+  const h = raycaster.intersectObjects(shotTargets(), false)[0], gT = look.y < 0 ? -camera.position.y / look.y : Infinity;
+  const p = camera.position.clone().addScaledVector(look, Math.min(h ? h.distance : Infinity, gT, 60));
+  p.y = groundBelow(p.clone().setY(p.y + 0.5));
+  pushAb('thunder', p, myId); applyAb('thunder', p.x, p.y, p.z, myId, settings.name);
+}
+function updTesla(d, dt) {
+  d.coil.rotation.y += dt * 2.5; d.orb.scale.setScalar(1 + Math.sin(time * 22) * 0.18);
+  const top = d.pos.clone().setY(d.pos.y + 1.95);
+  if (Math.random() < dt * 7) bolt(top, top.clone().add(tB.set(rand(-1, 1), rand(-0.6, 0.4), rand(-1, 1)).normalize().multiplyScalar(rand(0.6, 1.3))), d.col, 0.6, 0.07, 0.15);
+  d.fireT -= dt; if (d.fireT > 0) return;
+  d.fireT = 0.55;
+  const t = allyTarget(top, DEP.tesla.r, d.owner);
+  if (!t) { d.fireT = 0.3; return; }
+  bolt(top, t.c, d.col, 1.6, 0.16, 0.5); burst(t.c, 8, d.col, 5, 0.3, 0.08); flash(top, d.col, 25, 0.12);
+  const pf = panFor(top); tone(2600, 400, 0.1, 0.05 * pf.v, 'sawtooth', pf.pan); noise(0.08, 0.1 * pf.v, 6000, 'highpass', 0.8, pf.pan);
+  const mine = d.owner === myId;
+  if (mine) { if (t.ent) damageEnt(t.ent, 22, t.c, true); else if (t.peer) damagePeer(t.peer, 22, t.c, true); }
+  if (t.ent || t.peer) chainFrom(t.c, new Set([t.ent ? t.ent.id : t.peer.id]), 16, 2, d.col, mine);
+}
+function updFireRing(d, dt) {
+  const R = d.r;
+  for (let n = Math.round(dt * 120 + Math.random()); n > 0; n--) { const a = rand(0, 6.283); spray(tA.set(d.pos.x + Math.cos(a) * R, d.pos.y + 0.15, d.pos.z + Math.sin(a) * R), UP, 1, fireCol(), rand(3, 7), 0.7, 1.5, -5, 0.25); }
+  d.wall.material.opacity = d.wall.material.userData.op * (0.8 + Math.sin(time * 18) * 0.2) * Math.min(1, (d.until - time) / 1.5);
+  d.tick -= dt; if (d.tick > 0 || d.owner !== myId) return;
+  d.tick = 0.25;
+  // drones inside the ring or touching its wall burn
+  for (const e of [...ents.values()]) {
+    if (!e.alive || (e.kind !== 'drone' && !enemyOf(myTeam, e.team))) continue;
+    const r = Math.hypot(e.pos.x - d.pos.x, e.pos.z - d.pos.z), big = e.kind === 'drone' ? TYPES[e.type].scale : 0.5, h = e.pos.y - d.pos.y;
+    if (r < R + big + 0.8 && h < 6 + big && h > -2) { damageEnt(e, Math.abs(r - R) < 1.8 + big ? 12 : 6, e.pos.clone(), true); ignite('e', e.id, 3); }
+  }
 }
 let swingSide = 1, lastHand = 1;
 const HAND_SWING = 0.3, handSwing = [0, 0];
@@ -5565,7 +5822,7 @@ function updatePeers(dt, list) {
       if (d.sh[0] !== o.shSeen) {
         o.shSeen = d.sh[0];
         const a = new V3(+d.sh[1], +d.sh[2], +d.sh[3]), b = new V3(+d.sh[4], +d.sh[5], +d.sh[6]), wid = WIDS[+d.sh[7]] || 'rifle';
-        if (a.distanceTo(b) < 650) { if (!WEAPONS[wid].melee) tracer(a, b, wColor(wid), wid === 'rail' ? 2.2 : 1, wid === 'rail' ? 0.35 : 0.14); burst(b, 6, wColor(wid), 4, 0.3, 0.07); const pf = panFor(a); sfx.shot(wid, pf.v * 0.8, pf.pan); }
+        if (a.distanceTo(b) < 650) { const RW = WEAPONS[wid]; if (RW.flame) { const dir = b.clone().sub(a).normalize(); spray(a, dir, 10, FIRE[0], 30, 0.5, 1.8); spray(a, dir, 6, FIRE[1], 26, 0.45, 1.3); } else { if (RW.chain) bolt(a, b, wColor(wid), 1.3, 0.12, 0.3); else if (!RW.melee) tracer(a, b, wColor(wid), wid === 'rail' ? 2.2 : 1, wid === 'rail' ? 0.35 : 0.14); burst(b, 6, wColor(wid), 4, 0.3, 0.07); } const pf = panFor(a); sfx.shot(wid, pf.v * 0.8, pf.pan); }
       }
     }
     if (Array.isArray(d.rk) && d.rk.length === 7) {
@@ -6344,7 +6601,7 @@ function frame(now) {
   syncInfect(); runTimers();
   onGSChange();
   if (state === 'playing') { updatePlayer(dt); stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
-  updateOrbs(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updatePickups(dt);
+  updateOrbs(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
   updateWeapon(dt); updateFlags(dt); updateMyPet(dt);
   sendPresence(dt);
