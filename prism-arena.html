@@ -1102,6 +1102,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'hold-heals', date: '2026-10-08', title: 'Heals In Hand', lines: ['Battle Royale: picking a heal slot now puts the shield cell, bandage or medkit in your hand. Click to use it'] },
   { id: 'br-cities', date: '2026-10-08', title: 'City, Maple Town & Haunted Hollow', lines: ['Battle Royale has three new places: the City (streets, skyscrapers, cars and two-storey shops), Maple Town (family houses with several rooms, stairs and an upstairs) and a seasonal area', 'The seasonal area changes with the seasons and has its own weather. Right now it is Haunted Hollow: a pumpkin patch and a haunted mansion under grey skies, rain and lightning', 'Battle Royale inventory: 5 slots in the bottom right for guns and heals, with a picture of each gun. Q pulls out the pickaxe', 'Every mode now shows your guns as pictures in the bottom right', 'Mech Pilot: the mech armour soaks most damage, but 30% still gets through to you. The minigun holds 300 rounds and takes longer to reload'] },
   { id: 'debloat', date: '2026-10-04', title: 'Spring Cleaning', lines: ['Capture the Flag, the Hub Plaza and the Frostfall map are gone, so there are fewer, busier modes', 'Your color is now only picked in Customize'] },
   { id: 'pause-live', date: '2026-10-04', title: 'No More Pause Freezing', lines: ["Opening the menu in a multiplayer match no longer freezes you in place: you keep falling, the storm still hurts and you can still be hit"] },
@@ -7198,7 +7199,7 @@ function throwNade() {
 function useAbility() {
   if (isPropPlayer() || playerFrozen()) return;
   const k = kit();
-  if (k.q === 'none') { if (mode === 'royale' && player.alive) { RY.sel = -1; if (curW !== 'pick') setWeapon('pick'); } return; }
+  if (k.q === 'none') { if (mode === 'royale' && player.alive) { RY.using = null; holdHeal(-1); RY.sel = -1; if (curW !== 'pick') setWeapon('pick'); else curGun().g.visible = true; } return; }
   if (!k.q) { toast(`Jetpack: jump, then hold ${bindLabel('jump')} to fly`); return; }
   if (k.q === 'pulse') return pulse();
   if (k.q === 'pounce') {
@@ -7731,10 +7732,11 @@ function hitscan(origin, dir, W, targets) {
   else if (hit || groundT < Infinity) burst(point, W.pellets > 1 ? 2 : 8, wColor(curW), 5, 0.35, 0.07);
   return { point, hitTarget: hit && (hit.object.userData.ent || hit.object.userData.peer) };
 }
-function startReload() { const W = WEAPONS[curW]; if (W.melee || reloadT > 0 || ammo === W.mag) return; if (mode === 'royale' && !royaleCanReload()) return; reloadT = W.reload; sfx.reload(); }
+function startReload() { if (mode === 'royale' && RY.hold) return; const W = WEAPONS[curW]; if (W.melee || reloadT > 0 || ammo === W.mag) return; if (mode === 'royale' && !royaleCanReload()) return; reloadT = W.reload; sfx.reload(); }
 function fire() {
   if (playerFrozen()) return;
   if (isPropPlayer()) { fireCd = 0.4; firing = false; propGun(); return; }
+  if (mode === 'royale' && RY.hold) { fireCd = 0.35; firing = false; royaleHeal(RY.hold); return; }
   if (mode === 'royale' && RY.using) { RY.using = null; toast('Stopped healing'); }
   const W = royaleW(curW);
   if (swapT > 0 || reloadT > 0) return;
@@ -8604,10 +8606,11 @@ function updateHUD() {
   }
   { const sh = slotsHTML(); if (hudCache.slots !== sh) { hudCache.slots = sh; $('slots').innerHTML = sh; } }
   const W = WEAPONS[curW], rRar = mode === 'royale' ? royaleRar(curW) : null, rRes = mode === 'royale' && AMMO_OF[curW] ? RY.ammo[AMMO_OF[curW]] : null;
-  setText('ammolbl', reloadT > 0 ? 'RELOADING' : rRar != null ? `${RAR[rRar].n.toUpperCase()} ${W.name.toUpperCase()}` : W.name.toUpperCase());
+  const hH = mode === 'royale' && RY.hold ? HEALS[RY.hold] : null;
+  setText('ammolbl', hH ? (RY.using ? `USING ${hH.n.toUpperCase()}` : `${hH.n.toUpperCase()} · CLICK TO USE`) : reloadT > 0 ? 'RELOADING' : rRar != null ? `${RAR[rRar].n.toUpperCase()} ${W.name.toUpperCase()}` : W.name.toUpperCase());
   setStyle($('ammolbl'), 'color', rRar != null && reloadT <= 0 ? RAR[rRar].css : '');
-  const ammoTxt = curW === 'dual' ? (parryCd > 0 ? parryCd.toFixed(1) : 'READY') : W.melee ? '∞' : rRes != null ? ammo + '/' + rRes : String(ammo);
-  if (hudCache.ammo !== ammoTxt) { hudCache.ammo = ammoTxt; $('ammo').innerHTML = curW === 'dual' ? `<small>DEFLECT </small>${ammoTxt}` : W.melee ? '∞' : `${ammo}<small> / ${rRes != null ? rRes : W.mag}</small>`; }
+  const ammoTxt = hH ? 'h' + healCount(RY.hold) : curW === 'dual' ? (parryCd > 0 ? parryCd.toFixed(1) : 'READY') : W.melee ? '∞' : rRes != null ? ammo + '/' + rRes : String(ammo);
+  if (hudCache.ammo !== ammoTxt) { hudCache.ammo = ammoTxt; $('ammo').innerHTML = hH ? `${healCount(RY.hold)}<small> LEFT</small>` : curW === 'dual' ? `<small>DEFLECT </small>${ammoTxt}` : W.melee ? '∞' : `${ammo}<small> / ${rRes != null ? rRes : W.mag}</small>`; }
   setStyle($('dashbar'), 'width', Math.round(100 - player.dashCd / 1.1 * 100) + '%'); $('abDash').classList.toggle('ready', player.dashCd <= 0);
   const K = kit(), qd = K.q ? QDEF[K.q] : null, gd = GDEF[K.g];
   setStyle($('abPulse'), 'visibility', K.q === 'none' ? 'hidden' : 'visible');
@@ -9621,7 +9624,7 @@ function royaleW(id) {
   const k = id + r; return rWCache[k] || (rWCache[k] = Object.assign({}, W, { dmg: Math.round(W.dmg * RAR[r].k) }));
 }
 function royaleResetInv() {
-  RY.slots = [null, null, null, null, null]; RY.sel = -1; RY.ammo = { L: 0, H: 0, S: 0, E: 0, R: 0 }; RY.using = null; RY.glide = false;
+  RY.slots = [null, null, null, null, null]; RY.sel = -1; if (RY.hold) holdHeal(-1); RY.ammo = { L: 0, H: 0, S: 0, E: 0, R: 0 }; RY.using = null; RY.glide = false;
   for (const k in ammoBy) delete ammoBy[k];
 }
 const slotCode = s => s.k === 'g' ? `g:${s.w}:${s.r}` : `h:${s.t}:${s.n}`;
@@ -9742,9 +9745,47 @@ function pickGun(it) {
 // pressing a slot's number: a gun goes in your hands, a heal gets used, an empty slot gives you the pickaxe
 function royaleSelect(i) {
   const s = RY.slots[i];
-  if (s && s.k === 'h') { royaleHeal(s.t); return; }
-  RY.sel = s ? i : -1;
-  const w = s ? s.w : 'pick'; if (w !== curW) setWeapon(w);
+  if (RY.using && RY.sel !== i) RY.using = null;
+  if (s && s.k === 'h') { holdHeal(i); return; }
+  holdHeal(-1); RY.sel = s ? i : -1;
+  const w = s ? s.w : 'pick'; if (w !== curW) setWeapon(w, true); else curGun().g.visible = true;
+}
+// ---------- heals you hold in your hand ----------
+const HEALVM = {};
+function healVM(t) {
+  if (HEALVM[t]) return HEALVM[t];
+  const g = new THREE.Group(), m = (geo, mat, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); g.add(o); return o; };
+  const red = new THREE.MeshStandardMaterial({ color: 0xd8343c, roughness: 0.5 });
+  if (t === 's') {
+    g.userData.glow = m(new THREE.CylinderGeometry(0.055, 0.055, 0.18, 16), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.2, 2.6) }));
+    for (const y of [-0.1, 0.1]) m(new THREE.CylinderGeometry(0.045, 0.045, 0.025, 16), new THREE.MeshStandardMaterial({ color: 0xd8dce8, metalness: 0.9, roughness: 0.25 }), 0, y, 0);
+    m(new THREE.TorusGeometry(0.058, 0.008, 6, 20).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd8dce8, metalness: 0.9, roughness: 0.25 }));
+  } else if (t === 'b') {
+    m(new THREE.CylinderGeometry(0.065, 0.065, 0.11, 16).rotateZ(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: 0.9 }));
+    m(new THREE.BoxGeometry(0.02, 0.07, 0.012), red, 0, 0, -0.068); m(new THREE.BoxGeometry(0.07, 0.02, 0.012), red, 0, 0, -0.068);
+  } else {
+    m(new THREE.BoxGeometry(0.2, 0.13, 0.08), new THREE.MeshStandardMaterial({ color: 0xf4f4f8, roughness: 0.5 }));
+    m(new THREE.BoxGeometry(0.03, 0.09, 0.01), red, 0, 0, -0.045); m(new THREE.BoxGeometry(0.09, 0.03, 0.01), red, 0, 0, -0.045);
+    m(new THREE.BoxGeometry(0.06, 0.02, 0.02), new THREE.MeshStandardMaterial({ color: 0x2a2a32 }), 0, 0.075, 0);
+  }
+  g.position.set(0.02, -0.03, -0.2); g.rotation.set(0.2, -0.4, 0.1); g.visible = false; vm.add(g);
+  return (HEALVM[t] = g);
+}
+// slot i holds a heal: put it in your hand (i = -1 puts it away)
+function holdHeal(i) {
+  const s = i >= 0 ? RY.slots[i] : null;
+  RY.hold = s && s.k === 'h' ? s.t : null;
+  for (const t of Object.keys(HEALS)) if (HEALVM[t] || t === RY.hold) healVM(t).visible = t === RY.hold;
+  if (RY.hold) { RY.sel = i; for (const k in guns) guns[k].g.visible = false; reloadT = 0; adsToggle = false; sfx.swap(); }
+}
+// running out of a heal while holding it: back to the pickaxe
+function healGone() { if (!RY.hold) return; const i = RY.slots.findIndex(s => s && s.k === 'h' && s.t === RY.hold); if (i >= 0) { RY.sel = i; return; } holdHeal(-1); RY.sel = -1; setWeapon('pick', true); }
+function animHeal(dt) {
+  if (!RY.hold) return;
+  const g = healVM(RY.hold), u = RY.using && RY.using.t === RY.hold, k = u ? clamp((time - RY.using.t0) / HEALS[RY.hold].t, 0, 1) : 0;
+  g.position.y = damp(g.position.y, u ? -0.03 + Math.sin(k * Math.PI) * 0.07 : -0.03, 10, dt); g.position.z = damp(g.position.z, u ? -0.16 : -0.2, 10, dt);
+  g.rotation.z = u ? Math.sin(time * 18) * 0.06 : damp(g.rotation.z, 0.1, 8, dt);
+  if (g.userData.glow) g.userData.glow.material.color.setRGB(0.4, 1.2 + (u ? Math.sin(time * 12) * 0.6 : 0), 2.6);
 }
 function royaleUse() {
   if (GS.rph !== 1 || !player.alive || !RY.near) return;
@@ -9762,8 +9803,8 @@ function royaleHeal(t) {
   RY.using = { t, t0: time, end: time + H.t }; tone(500, 700, 0.1, 0.05, 'triangle');
 }
 function royaleHealDone(t) {
-  const i = RY.slots.findIndex(s => s && s.k === 'h' && s.t === t); if (i < 0) return;
-  if (--RY.slots[i].n <= 0) RY.slots[i] = null;
+  const held = RY.slots[RY.sel], i = held && held.k === 'h' && held.t === t ? RY.sel : RY.slots.findIndex(s => s && s.k === 'h' && s.t === t); if (i < 0) return;
+  if (--RY.slots[i].n <= 0) { RY.slots[i] = null; healGone(); }
   if (t === 'b') player.hp = Math.min(75, player.hp + 25); else if (t === 'm') player.hp = maxHp(); else player.over = Math.min(100, (player.over || 0) + 50);
   curePoison(); burst(tA.copy(player.pos).setY(player.pos.y + 1), 22, t === 's' ? new THREE.Color(0.5, 1.6, 3) : GREEN, 4, 0.5, 0.09, -2);
   tone(880, 1320, 0.15, 0.07, 'triangle');
@@ -9841,9 +9882,9 @@ function slotsHTML() {
   const img = id => `<img src="${gunIcon(id)}" alt="${esc(WEAPONS[id]?.name || '')}">`;
   if (mode === 'gungame') return `<div class="islot on" style="--rc:${WEAPONS[curW].css}">${img(curW)}</div>`;
   if (mode === 'royale') {
-    let h = `<div class="islot pick${RY.sel < 0 ? ' on' : ''}"><kbd>${esc(bindLabel('pulse').toUpperCase())}</kbd>${img('pick')}</div>`;
+    let h = `<div class="islot pick${RY.sel < 0 && !RY.hold ? ' on' : ''}"><kbd>${esc(bindLabel('pulse').toUpperCase())}</kbd>${img('pick')}</div>`;
     RY.slots.forEach((s, i) => {
-      const using = s && s.k === 'h' && RY.using && RY.using.t === s.t, on = (s && s.k === 'g' && RY.sel === i) || using;
+      const using = s && s.k === 'h' && RY.using && RY.using.t === s.t, on = (s && RY.sel === i) || using;
       h += `<div class="islot${s ? '' : ' empty'}${on ? ' on' : ''}" style="--rc:${s && s.k === 'g' ? RAR[s.r].css : 'transparent'}"><kbd>${i + 1}</kbd>${!s ? '' : s.k === 'g' ? img(s.w) : `<i style="color:${s.t === 'm' ? '#ff4f5e' : '#fff'}">${HEALS[s.t].icon}</i><small>${s.n}</small>`}</div>`;
     });
     return h;
@@ -9975,7 +10016,7 @@ function updateRoyale(dt) {
   const want = GS.rph === 1 ? GS.rsd : 0;
   if (RL.seed !== want) royaleLoot(want);
   if (GS.rph === 1 && state === 'playing' && !RY.inMatch) { if (settings.room === 'public' && brInst < 40) royaleNextLobby(); else royaleWait(); }
-  royaleZoneFx(dt); updateZoneWeather(dt);
+  royaleZoneFx(dt); updateZoneWeather(dt); animHeal(dt);
   const ui = royaleUI(), inGame = state !== 'menu' && state !== 'editor';
   ui.map.style.display = inGame ? '' : 'none'; ui.heals.style.display = 'none';
   // what everyone else picked up, opened, dropped or left behind
