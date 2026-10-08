@@ -1110,6 +1110,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'br-fixes-1', date: '2026-10-08', title: 'Battle Royale Fixes', lines: ['Upstairs floors no longer cover the stairwell, so you can see the way back down', 'Coloured floors in towns no longer flicker green', 'Dirt roads no longer run through the City', 'The seasonal area moves to a different part of the island every season'] },
   { id: 'missions-v2', date: '2026-10-08', title: 'Missions Overhaul & Account Linking', lines: ['Missions have 7 new kinds of objective: disarm bombs before the fuse runs out, run through rings against the clock, carry cores to the uplink, capture zones, shoot down generators that shoot back, hunt elite drones that teleport, and wipe out the swarm', 'Every mission now has a different mix of objectives', 'Mission bosses are much harder: they use their Boss Raid second-lap attacks, have more health, hit harder, and drones keep coming during the fight', 'Profile: link two accounts yourself. Type the other account\'s ID on both accounts and they merge into one shared wallet'] },
   { id: 'hold-heals', date: '2026-10-08', title: 'Heals In Hand', lines: ['Battle Royale: picking a heal slot now puts the shield cell, bandage or medkit in your hand. Click to use it'] },
   { id: 'br-cities', date: '2026-10-08', title: 'City, Maple Town & Haunted Hollow', lines: ['Battle Royale has three new places: the City (streets, skyscrapers, cars and two-storey shops), Maple Town (family houses with several rooms, stairs and an upstairs) and a seasonal area', 'The seasonal area changes with the seasons and has its own weather. Right now it is Haunted Hollow: a pumpkin patch and a haunted mansion under grey skies, rain and lightning', 'Battle Royale inventory: 5 slots in the bottom right for guns and heals, with a picture of each gun. Q pulls out the pickaxe', 'Every mode now shows your guns as pictures in the bottom right', 'Mech Pilot: the mech armour soaks most damage, but 30% still gets through to you. The minigun holds 300 rounds and takes longer to reload'] },
@@ -2456,7 +2457,8 @@ function buildRoyale() {
   const ni = g => g.index ? g.toNonIndexed() : g;
   const tint = (geo, c) => { geo = ni(geo); const cc = new THREE.Color(c), n = geo.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { a[i * 3] = cc.r; a[i * 3 + 1] = cc.g; a[i * 3 + 2] = cc.b; } geo.setAttribute('color', new THREE.BufferAttribute(a, 3)); return geo; };
   // solid: trunks, rocks, crates, roofs (they stop bullets); soft: leaves and floors
-  const solidG = [], softG = [], roadG = [], used = [];
+  const solidG = [], softG = [], roadG = [], used = [], flatG = [[], [], []];
+  const flat = (k, geo, c) => flatG[k].push(tint(geo, c));
   const free = (x, z, r) => Math.hypot(x, z) < ARENA_R - 8 && used.every(([ux, uz, ur]) => Math.hypot(x - ux, z - uz) > ur + r);
   const spot = (x, z, y = 0) => RL.spots.push(new V3(x, y, z));
   const chest = (x, z, ry = 0, y = 0) => { const c = chestMesh(); c.g.position.set(x, y, z); c.g.rotation.y = ry; scene.add(c.g); RL.chests.push({ pos: new V3(x, y, z), ry, ...c, open: false }); colliders.push({ min: new V3(x - 0.5, y, z - 0.5), max: new V3(x + 0.5, y + 0.62, z + 0.5) }); };
@@ -2489,7 +2491,7 @@ function buildRoyale() {
     block(x, z, w + 0.4, 0.3, d + 0.4, h, null);
     const sh = new THREE.Shape([new THREE.Vector2(-w / 2 - 0.4, 0), new THREE.Vector2(w / 2 + 0.4, 0), new THREE.Vector2(0, Math.min(w, d) * 0.3)]);
     solidG.push(tint(new THREE.ExtrudeGeometry(sh, { depth: d + 0.8, bevelEnabled: false }).translate(x, h + 0.3, z - d / 2 - 0.4), roofC));
-    softG.push(tint(new THREE.PlaneGeometry(w - 0.8, d - 0.8).rotateX(-Math.PI / 2).translate(x, 0.025, z), 0x8a6a48));
+    flat(2, new THREE.PlaneGeometry(w - 0.8, d - 0.8).rotateX(-Math.PI / 2).translate(x, 0.025, z), 0x8a6a48);
     spot(x + rr(-w / 5, w / 5), z + rr(-d / 5, d / 5)); spot(x + rr(-w / 5, w / 5), z + rr(-d / 5, d / 5));
     if (withChest) {
       const back = [1, 0, 3, 2][door], bx = back === 2 ? x - w / 2 + 1 : back === 3 ? x + w / 2 - 1 : x, bz = back === 0 ? z - d / 2 + 1 : back === 1 ? z + d / 2 - 1 : z;
@@ -2505,8 +2507,17 @@ function buildRoyale() {
   // named places
   const POI = [['PRISM POINT', 0, 0, 26], ['OLD TOWN', -135, 30, 34], ['PINE WOODS', 40, 160, 38], ['CRYSTAL QUARRY', 150, -100, 28], ['RED BARN FARM', -110, -145, 32], ['LOOKOUT', 180, 60, 14], ['NEW TOWN', 55, -180, 32], ['THE RUINS', -180, 115, 28], ['SUNNY RANCH', 130, 160, 26], ['DUSTY CAMP', -40, 95, 20], ['CITY', 85, -25, 46], ['MAPLE TOWN', -70, -55, 40]];
   RL.pois = POI;
+  const SZN_AT = { halloween: [-195, -40], christmas: [-72, 197], valentine: [207, -36], easter: [-100, 143], summer: [-36, -207], thanksgiving: [119, 83], blackhistory: [-25, -143], pride: [17, -98], none: [-195, -40] }[SEASON || 'none'] || [-195, -40];
+  const NOROAD = [[85, -25, 49], [-70, -55, 43], [SZN_AT[0], SZN_AT[1], 48]];
+  const roadAround = (x0, z0, x1, z1) => {
+    const L = Math.hypot(x1 - x0, z1 - z0), dx = (x1 - x0) / L, dz = (z1 - z0) / L, cuts = [];
+    for (const [cx, cz, r] of NOROAD) { const t = (cx - x0) * dx + (cz - z0) * dz, h = Math.hypot(x0 + dx * t - cx, z0 + dz * t - cz); if (h < r) { const s = Math.sqrt(r * r - h * h); cuts.push([t - s, t + s]); } }
+    let cur = 0;
+    for (const [a, b] of cuts.sort((p, q) => p[0] - q[0])) { if (a > cur + 1) road(x0 + dx * cur, z0 + dz * cur, x0 + dx * Math.min(a, L), z0 + dz * Math.min(a, L)); cur = Math.max(cur, b); }
+    if (cur < L - 1) road(x0 + dx * cur, z0 + dz * cur, x1, z1);
+  };
   for (const [, x, z, r] of POI) used.push([x, z, r]);
-  for (const [, x, z, r] of POI.slice(1)) { const d = Math.hypot(x, z); road(x / d * 18, z / d * 18, x - x / d * r * 0.6, z - z / d * r * 0.6); }
+  for (const [, x, z, r] of POI.slice(1)) { const d = Math.hypot(x, z); roadAround(x / d * 18, z / d * 18, x - x / d * r * 0.6, z - z / d * r * 0.6); }
   // Prism Point: a crystal shrine in the middle
   block(0, 0, 12, 1.2, 12, 0, roseGlow);
   for (const [sx, sz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) block(sx * 7, sz * 7, sz ? 4 : 2, 0.6, sz ? 2 : 4, 0, null);
@@ -2547,7 +2558,7 @@ function buildRoyale() {
     block(cx + 11, cz - 2, 4, 11, 4, 0, null); solidG.push(tint(new THREE.ConeGeometry(2.9, 2.4, 8).translate(cx + 11, 12.2, cz - 2), 0x8a8a92));
     const fx = cx - 4, fz = cz + 19;
     for (const [x, z, w, d] of [[fx, fz - 9, 26, 0.3], [fx, fz + 9, 26, 0.3], [fx - 13, fz, 0.3, 18], [fx + 13, fz - 5, 0.3, 8]]) block(x, z, w, 1.1, d, 0, null);
-    for (let i = 0; i < 7; i++) softG.push(tint(new THREE.PlaneGeometry(24, 1.2).rotateX(-Math.PI / 2).translate(fx, 0.035, fz - 7 + i * 2.3), 0x6a4a2a));
+    for (let i = 0; i < 7; i++) flat(1, new THREE.PlaneGeometry(24, 1.2).rotateX(-Math.PI / 2).translate(fx, 0.035, fz - 7 + i * 2.3), 0x6a4a2a);
     for (let i = 0; i < 5; i++) { const x = fx + rr(-10, 10), z = fz + rr(-6, 6), h = hayProp(); h.position.set(x, 0, z); h.traverse(k => { if (k.isMesh) { k.castShadow = true; k.receiveShadow = true; } }); scene.add(h); colliders.push({ min: new V3(x - 1.2, 0, z - 0.85), max: new V3(x + 1.2, 1.6, z + 0.85) }); }
     spot(cx - 4, cz); spot(cx + 4, cz + 2); spot(fx, fz); spot(fx + 6, fz - 4); chest(fx - 8, fz + 5, 0.4);
   }
@@ -2605,6 +2616,7 @@ function buildRoyale() {
     const runZ = (xx, l0, l1, h, th, ops, y, c) => { const [a, b] = zr(l0, l1); wallRun(false, a, b, xx, h, th, ops.map(([p0, p1, y0, y1]) => { const [q0, q1] = zr(p0, p1); return [q0, q1, y0, y1]; }), y, c, o.glow); };
     const win = (c, ww = 1.4) => [c - ww / 2, c + ww / 2, 1.1, 2.3], door = (c, ww = 1.5) => [c - ww / 2, c + ww / 2, 0, 2.5];
     const xl = x - w / 2 + t / 2, xr = x + w / 2 - t / 2, lf = -d / 2 + t / 2, lb = d / 2 - t / 2, lm = -d / 2 + d * 0.55;
+    const sx = xl + t / 2 + 0.65, holeX = sx + 0.7, holeL = lf + 0.85 + 4.5; // stairs and the hole above them
     for (let f = 0; f < floors; f++) {
       const y = f * (H + 0.3);
       wallRun(true, x - w / 2, x + w / 2, wz(lf), H, t, f ? [win(x - w * 0.25), win(x + w * 0.25)] : [door(x - w * 0.18), win(x + w * 0.25, o.shop ? 3.4 : 1.4)], y, col, o.glow);
@@ -2613,14 +2625,17 @@ function buildRoyale() {
       // a wall across the house (front room / back rooms), and one splitting the back into two rooms
       wallRun(true, xl + t / 2, xr - t / 2, wz(lm), H, it, [door(x + w * 0.22, 1.2)], y, inner);
       runZ(x - w * 0.05, lm + it / 2, lb - t / 2, H, it, [door((lm + lb) / 2, 1.1)], y, inner);
-      softG.push(tint(new THREE.PlaneGeometry(w - 0.7, d - 0.7).rotateX(-Math.PI / 2).translate(x, y + 0.03, z), o.floor || 0x8a6a48));
+      { const fc = o.floor || 0x8a6a48, fy = y + 0.03, x0 = x - w / 2 + 0.35, x1 = x + w / 2 - 0.35;
+        if (f === 1) {
+          flat(2, new THREE.PlaneGeometry(x1 - holeX, d - 0.7).rotateX(-Math.PI / 2).translate((holeX + x1) / 2, fy, z), fc);
+          const [a, b] = zr(holeL, d / 2 - 0.35); flat(2, new THREE.PlaneGeometry(holeX - x0, b - a).rotateX(-Math.PI / 2).translate((x0 + holeX) / 2, fy, (a + b) / 2), fc);
+        } else flat(2, new THREE.PlaneGeometry(w - 0.7, d - 0.7).rotateX(-Math.PI / 2).translate(x, fy, z), fc); }
       // a room's worth of furniture
       if (f === 0) { cblock(x + w * 0.28, wz(lf + 1.1), 2.2, 0.8, 0.9, 0, 0x6a4a8a); cblock(x - w * 0.28, wz((lm + lb) / 2), 1.4, 0.8, 0.9, 0, 0x8a6a48); cblock(x + w * 0.24, wz(lb - 0.6), w * 0.32, 1.0, 0.7, 0, 0xc8c8d0); }
       else for (const s of [-1, 1]) { cblock(x + s * w * 0.27, wz(lb - 1.3), 1.5, 0.5, 2.1, y, s < 0 ? 0xb8c8e8 : 0xe8b8c8); cblock(x + s * w * 0.27, wz(lb - 0.45), 1.3, 0.2, 0.4, y + 0.5, 0xffffff); }
       spot(x + w * 0.05, wz(lf + 2), y); spot(x - w * 0.27, wz(lm + 1.3), y); spot(x + w * 0.27, wz(lm + 1.3), y);
       if (f === 0 && floors > 1) {
         // stairs up the left wall of the front room, and a hole in the floor above them
-        const sx = xl + t / 2 + 0.65, holeX = sx + 0.7, holeL = lf + 0.85 + 4.5;
         for (let k = 0; k < 9; k++) cblock(sx, wz(lf + 0.85 + k * 0.5), 1.2, 0.4 * (k + 1), 0.5, 0, inner);
         cblock((holeX + x + w / 2) / 2, z, x + w / 2 - holeX, 0.3, d, H, inner);
         const [a, b] = zr(holeL, d / 2); cblock((x - w / 2 + holeX) / 2, (a + b) / 2, holeX - (x - w / 2), 0.3, b - a, H, inner);
@@ -2639,8 +2654,8 @@ function buildRoyale() {
     const facade = canvasTex('facade', x => { x.fillStyle = '#56607a'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) { x.fillStyle = '#1c2840'; x.fillRect(i * 64 + 10, j * 128 + 22, 44, 84); x.fillStyle = 'rgba(160,200,255,.25)'; x.fillRect(i * 64 + 12, j * 128 + 24, 18, 80); } }, 1);
     const lit = canvasTex('facadelit', x => { x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) if (Math.random() < 0.45) { x.fillStyle = Math.random() < 0.5 ? '#ffd890' : '#cfe6ff'; x.fillRect(i * 64 + 10, j * 128 + 22, 44, 84); } }, 1);
     const fmats = [0xd8dce8, 0xe8d8c8, 0xc8d8e0].map(c => new THREE.MeshStandardMaterial({ color: c, map: facade, emissive: 0xffffff, emissiveMap: lit, emissiveIntensity: 0.45, roughness: 0.45, metalness: 0.35 }));
-    softG.push(tint(new THREE.PlaneGeometry(span, span).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x34343a));
-    for (const k of [-1.5, -0.5, 0.5, 1.5]) for (let s = -42; s < 42; s += 5) { softG.push(tint(new THREE.PlaneGeometry(2.4, 0.25).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz + k * off), 0xe8c84a)); softG.push(tint(new THREE.PlaneGeometry(0.25, 2.4).rotateX(-Math.PI / 2).translate(cx + k * off, 0.045, cz + s), 0xe8c84a)); }
+    flat(0, new THREE.PlaneGeometry(span, span).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x34343a);
+    for (const k of [-1.5, -0.5, 0.5, 1.5]) for (let s = -42; s < 42; s += 5) { flat(2, new THREE.PlaneGeometry(2.4, 0.25).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz + k * off), 0xe8c84a); flat(2, new THREE.PlaneGeometry(0.25, 2.4).rotateX(-Math.PI / 2).translate(cx + k * off, 0.045, cz + s), 0xe8c84a); }
     let shop = 0;
     for (const i of [-1, 0, 1]) for (const j of [-1, 0, 1]) {
       const bx = cx + i * off, bz = cz + j * off;
@@ -2675,8 +2690,8 @@ function buildRoyale() {
   }
   // ---------- Maple Town: a street of family houses, most of them two storeys ----------
   { const cx = -70, cz = -55, HC = [0xe8dcc8, 0xc8d8e8, 0xe8c8b8, 0xd8e8c8, 0xf0e6a8, 0xe0d0e8];
-    softG.push(tint(new THREE.PlaneGeometry(86, 7).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x4a4a50));
-    for (let s = -40; s < 42; s += 5) softG.push(tint(new THREE.PlaneGeometry(2.4, 0.22).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz), 0xf4f4f0));
+    flat(1, new THREE.PlaneGeometry(86, 7).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x4a4a50);
+    for (let s = -40; s < 42; s += 5) flat(2, new THREE.PlaneGeometry(2.4, 0.22).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz), 0xf4f4f0);
     let n = 0;
     for (const side of [-1, 1]) for (const dx of [-27, 0, 27]) {
       const w = rr(11, 13), d = rr(10, 11.5), hz = cz + side * (3.5 + 4.5 + d / 2);
@@ -2690,9 +2705,9 @@ function buildRoyale() {
     for (let k = 0; k < 6; k++) spot(cx + rr(-38, 38), cz + rr(-2.5, 2.5));
   }
   // ---------- the seasonal area: its own look and its own weather ----------
-  { const cx = -195, cz = -40, SZN = SEASON || 'none';
+  { const [cx, cz] = SZN_AT, SZN = SEASON || 'none';
     used.push([cx, cz, 46]);
-    softG.push(tint(new THREE.CircleGeometry(46, 40).rotateX(-Math.PI / 2).translate(cx, 0.028, cz), { halloween: 0x3a3428, christmas: 0xf4f8ff, valentine: 0xe8a6c0, easter: 0x7fc85a, summer: 0xf0dca8, thanksgiving: 0x9a6a32, blackhistory: 0x8a6a3a, pride: 0xd8d0f0, none: 0x3a4a34 }[SZN] || 0x3a4a34));
+    flat(0, new THREE.CircleGeometry(46, 40).rotateX(-Math.PI / 2).translate(cx, 0.028, cz), { halloween: 0x3a3428, christmas: 0xf4f8ff, valentine: 0xe8a6c0, easter: 0x7fc85a, summer: 0xf0dca8, thanksgiving: 0x9a6a32, blackhistory: 0x8a6a3a, pride: 0xd8d0f0, none: 0x3a4a34 }[SZN] || 0x3a4a34);
     const put = (g, x, z, y = 0, box = null) => { g.position.set(x, y, z); g.traverse(k => { if (k.isMesh) { k.castShadow = true; k.receiveShadow = true; } }); scene.add(g); if (box) colliders.push({ min: new V3(x - box[0] / 2, y, z - box[1] / 2), max: new V3(x + box[0] / 2, y + box[2], z + box[1] / 2) }); return g; };
     const ring = (n, r0, r1, fn) => { for (let k = 0; k < n; k++) { const a = rnd() * 6.283, r = rr(r0, r1); fn(cx + Math.cos(a) * r, cz + Math.sin(a) * r, k); } };
     const glowM = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 1.3, 0.3) });
@@ -2710,7 +2725,7 @@ function buildRoyale() {
       for (let k = 0; k < 10; k++) { const x = cx - 14 + (k % 5) * 6.5 + rr(-0.8, 0.8), z = cz - 21.5 + Math.floor(k / 5) * 2.4, t = tombstone(tm); t.rotation.y = rr(-0.2, 0.2); put(t, x, z, 0, [1.2, 0.4, 1.6]); }
       ring(12, 22, 42, (x, z) => { const g = leafy(0x2a2026, 0x2a2026, 5, 0.5); g.rotation.y = rnd() * 6; put(g, x, z, 0, [0.8, 0.8, 5]); });
       // the pumpkin patch: rows of pumpkins on dark earth, some of them carved
-      for (let row = 0; row < 4; row++) { softG.push(tint(new THREE.PlaneGeometry(30, 1.6).rotateX(-Math.PI / 2).translate(cx, 0.04, cz + 10 + row * 4.5), 0x2a2018)); for (let c = 0; c < 6; c++) { const r = rr(0.45, 0.95), x = cx - 13 + c * 5.2 + rr(-0.6, 0.6), z = cz + 10 + row * 4.5; put(bigPumpkin(r, rnd() < 0.35), x, z, r * 0.82, null); colliders.push({ min: new V3(x - r, 0, z - r), max: new V3(x + r, r * 1.6, z + r) }); } }
+      for (let row = 0; row < 4; row++) { flat(1, new THREE.PlaneGeometry(30, 1.6).rotateX(-Math.PI / 2).translate(cx, 0.04, cz + 10 + row * 4.5), 0x2a2018); for (let c = 0; c < 6; c++) { const r = rr(0.45, 0.95), x = cx - 13 + c * 5.2 + rr(-0.6, 0.6), z = cz + 10 + row * 4.5; put(bigPumpkin(r, rnd() < 0.35), x, z, r * 0.82, null); colliders.push({ min: new V3(x - r, 0, z - r), max: new V3(x + r, r * 1.6, z + r) }); } }
       // a scarecrow keeping watch
       cblock(cx + 17, cz + 17, 0.18, 3, 0.18, 0, 0x5a3a20); cblock(cx + 17, cz + 17, 2.2, 0.16, 0.16, 2.1, 0x5a3a20);
       solidG.push(tint(new THREE.IcosahedronGeometry(0.42, 1).translate(cx + 17, 3.25, cz + 17), 0xd8b45a)); solidG.push(tint(new THREE.ConeGeometry(0.55, 0.7, 10).translate(cx + 17, 3.85, cz + 17), 0x2a2026));
@@ -2772,7 +2787,8 @@ function buildRoyale() {
   }
   for (const m of mergeChunks(solidG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); }
   for (const m of mergeChunks(softG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); }
-  const roadM = new THREE.Mesh(mergeGeometries(roadG), new THREE.MeshStandardMaterial({ color: 0x9a7a52, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })); roadM.receiveShadow = true; scene.add(roadM);
+  flatG.forEach((list, k) => { if (!list.length) return; const mat = vcMat.clone(); Object.assign(mat, { polygonOffset: true, polygonOffsetFactor: -2 * (k + 1), polygonOffsetUnits: -6 * (k + 1) }); for (const m of mergeChunks(list, mat)) { m.receiveShadow = true; scene.add(m); } });
+  const roadM = new THREE.Mesh(mergeGeometries(roadG), new THREE.MeshStandardMaterial({ color: 0x9a7a52, roughness: 1, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -9 })); roadM.receiveShadow = true; scene.add(roadM);
   finalizeWorld();
 }
 if (CMAP) buildCustomWorld(CMAP);
