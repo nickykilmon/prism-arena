@@ -1110,6 +1110,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'towers-music', date: '2026-10-08', title: 'Office Towers & New Music', lines: ['Battle Royale: the City skyscrapers are now office towers you can explore. Walk in through the doors or land on the roof, and take the stairs up and down every floor', 'Houses no longer have a see-through strip where the two floors meet', 'All-new music: 7 EDM tracks in different styles (house, dubstep, drum & bass, future bass, hardstyle, melodic and trance) with build-ups and drops. Music is muffled in the menus and opens up in a match. Press N to skip a song'] },
   { id: 'br-fixes-1', date: '2026-10-08', title: 'Battle Royale Fixes', lines: ['Upstairs floors no longer cover the stairwell, so you can see the way back down', 'Coloured floors in towns no longer flicker green', 'Dirt roads no longer run through the City', 'The seasonal area moves to a different part of the island every season'] },
   { id: 'missions-v2', date: '2026-10-08', title: 'Missions Overhaul & Account Linking', lines: ['Missions have 7 new kinds of objective: disarm bombs before the fuse runs out, run through rings against the clock, carry cores to the uplink, capture zones, shoot down generators that shoot back, hunt elite drones that teleport, and wipe out the swarm', 'Every mission now has a different mix of objectives', 'Mission bosses are much harder: they use their Boss Raid second-lap attacks, have more health, hit harder, and drones keep coming during the fight', 'Profile: link two accounts yourself. Type the other account\'s ID on both accounts and they merge into one shared wallet'] },
   { id: 'hold-heals', date: '2026-10-08', title: 'Heals In Hand', lines: ['Battle Royale: picking a heal slot now puts the shield cell, bandage or medkit in your hand. Click to use it'] },
@@ -2622,6 +2623,7 @@ function buildRoyale() {
       wallRun(true, x - w / 2, x + w / 2, wz(lf), H, t, f ? [win(x - w * 0.25), win(x + w * 0.25)] : [door(x - w * 0.18), win(x + w * 0.25, o.shop ? 3.4 : 1.4)], y, col, o.glow);
       wallRun(true, x - w / 2, x + w / 2, wz(lb), H, t, [win(x - w * 0.25), win(x + w * 0.25)], y, col, o.glow);
       runZ(xl, lf + t / 2, lb - t / 2, H, t, [win(lm + 1.6)], y, col); runZ(xr, lf + t / 2, lb - t / 2, H, t, [win(-d * 0.18)], y, col);
+      if (f < floors - 1) { const yb = y + H; cblock(x, wz(lf), w, 0.3, t, yb, col); cblock(x, wz(lb), w, 0.3, t, yb, col); cblock(xl, z, t, 0.3, d, yb, col); cblock(xr, z, t, 0.3, d, yb, col); }
       // a wall across the house (front room / back rooms), and one splitting the back into two rooms
       wallRun(true, xl + t / 2, xr - t / 2, wz(lm), H, it, [door(x + w * 0.22, 1.2)], y, inner);
       runZ(x - w * 0.05, lm + it / 2, lb - t / 2, H, it, [door((lm + lb) / 2, 1.1)], y, inner);
@@ -2649,11 +2651,46 @@ function buildRoyale() {
     if (o.chest) chest(x + w * 0.28, wz(lm + 1.4), face > 0 ? Math.PI : 0, floors > 1 ? H + 0.3 : 0);
     used.push([x, z, Math.max(w, d) * 0.75]);
   };
-  // ---------- the City: a grid of streets, skyscrapers and two-storey shops round a plaza ----------
+  // an office tower you can explore: doors on three sides, a floor every 4 m with window bands all round,
+  // switchback stairs in one corner (two lanes split by a wall), and a roof with a parapet you can land on
+  const tower = (x, z, w, d, n, col) => {
+    const FH = 4, y0 = 0.15, t = 0.4, H = FH - 0.3, x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2;
+    const lane = 1.7, hx0 = x0 + t, hx1 = hx0 + lane * 2, hz0 = z0 + t + 1.8, run = 5.5, hz1 = hz0 + run, slabC = 0x8a8a92, rail = 0x3a3a42;
+    const band = (a0, a1, door) => door ? [[a0 + 1.2, (a0 + a1) / 2 - 2, 1.0, 2.9], [(a0 + a1) / 2 - 1.3, (a0 + a1) / 2 + 1.3, 0, 3.0], [(a0 + a1) / 2 + 2, a1 - 1.2, 1.0, 2.9]] : [[a0 + 1.2, a1 - 1.2, 1.0, 2.9]];
+    for (let f = 0; f < n; f++) {
+      const y = y0 + f * FH, g = f === 0;
+      wallRun(true, x0, x1, z0 + t / 2, H, t, band(x0, x1, g), y, col);
+      wallRun(true, x0, x1, z1 - t / 2, H, t, band(x0, x1, g), y, col);
+      wallRun(false, z0 + t, z1 - t, x0 + t / 2, H, t, band(z0 + t, z1 - t, false), y, col); // the stairwell side has no door
+      wallRun(false, z0 + t, z1 - t, x1 - t / 2, H, t, band(z0 + t, z1 - t, g), y, col);
+      // the floor above (the roof on the top level): solid everywhere except over the stairs
+      const sy = y + H;
+      cblock(x, (z0 + hz0) / 2, w, 0.3, hz0 - z0, sy, slabC);
+      cblock(x, (hz1 + z1) / 2, w, 0.3, z1 - hz1, sy, slabC);
+      cblock((hx1 + x1) / 2, (hz0 + hz1) / 2, x1 - hx1, 0.3, run, sy, slabC);
+      cblock((x0 + hx0) / 2, (hz0 + hz1) / 2, t, 0.3, run, sy, col);
+      // this level's flight: lane A climbs towards +z, lane B back towards -z, so they stack up floor after floor
+      const up = f % 2 === 0, lx = up ? hx0 + lane / 2 : hx0 + lane * 1.5;
+      for (let k = 0; k < 10; k++) cblock(lx, up ? hz0 + (k + 0.5) * 0.55 : hz1 - (k + 0.5) * 0.55, lane - 0.1, 0.4 * (k + 1), 0.55, y, 0x9a9aa2);
+      cblock(hx0 + lane, (hz0 + hz1) / 2, 0.12, FH, run, y, col);
+      // a railing along the open side of the stairwell
+      if (f) cblock(hx1 + 0.06, (hz0 + hz1) / 2, 0.12, 1.0, run, y, rail);
+      // desks, loot, and a chest halfway up
+      for (const [dx, dz] of [[0.15, -0.22], [0.15, 0.22], [0.36, 0]]) cblock(x + w * dx, z + d * dz, 2.4, 0.8, 1.1, y, 0x6a5a4a);
+      spot(x + w * 0.25, z + d * 0.36, y); spot(x - w * 0.05, z - d * 0.36, y);
+      if (f === Math.floor(n / 2)) chest(x + w * 0.36, z + d * 0.36, Math.PI, y);
+    }
+    // the roof: a parapet, the stair opening with a railing, an air-con unit and a chest
+    const ry = y0 + n * FH;
+    cblock(x, z0 + 0.15, w, 1.0, 0.3, ry, col); cblock(x, z1 - 0.15, w, 1.0, 0.3, ry, col);
+    cblock(x0 + 0.15, z, 0.3, 1.0, d, ry, col); cblock(x1 - 0.15, z, 0.3, 1.0, d, ry, col);
+    cblock(hx1 + 0.06, (hz0 + hz1) / 2, 0.12, 1.0, run, ry, rail);
+    cblock(x + w * 0.25, z + d * 0.22, 3, 1.6, 3, ry, 0x4a4a52);
+    chest(x + w * 0.25, z - d * 0.25, 0, ry); spot(x - w * 0.1, z + d * 0.3, ry);
+    used.push([x, z, Math.max(w, d) * 0.75]);
+  };
+  // ---------- the City: a grid of streets, office towers and two-storey shops round a plaza ----------
   { const cx = 85, cz = -25, B = 20, S = 7, off = B + S, span = 3 * B + 4 * S;
-    const facade = canvasTex('facade', x => { x.fillStyle = '#56607a'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) { x.fillStyle = '#1c2840'; x.fillRect(i * 64 + 10, j * 128 + 22, 44, 84); x.fillStyle = 'rgba(160,200,255,.25)'; x.fillRect(i * 64 + 12, j * 128 + 24, 18, 80); } }, 1);
-    const lit = canvasTex('facadelit', x => { x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) if (Math.random() < 0.45) { x.fillStyle = Math.random() < 0.5 ? '#ffd890' : '#cfe6ff'; x.fillRect(i * 64 + 10, j * 128 + 22, 44, 84); } }, 1);
-    const fmats = [0xd8dce8, 0xe8d8c8, 0xc8d8e0].map(c => new THREE.MeshStandardMaterial({ color: c, map: facade, emissive: 0xffffff, emissiveMap: lit, emissiveIntensity: 0.45, roughness: 0.45, metalness: 0.35 }));
     flat(0, new THREE.PlaneGeometry(span, span).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x34343a);
     for (const k of [-1.5, -0.5, 0.5, 1.5]) for (let s = -42; s < 42; s += 5) { flat(2, new THREE.PlaneGeometry(2.4, 0.25).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz + k * off), 0xe8c84a); flat(2, new THREE.PlaneGeometry(0.25, 2.4).rotateX(-Math.PI / 2).translate(cx + k * off, 0.045, cz + s), 0xe8c84a); }
     let shop = 0;
@@ -2666,12 +2703,7 @@ function buildRoyale() {
         for (const [dx, dz] of [[-6, 0], [6, 0], [0, -6], [0, 6]]) cblock(bx + dx, bz + dz, dx ? 0.6 : 2.4, 0.5, dx ? 2.4 : 0.6, 0.15, 0x6a4a3a);
         chest(bx - 4, bz + 4, 0.8, 0.15); chest(bx + 4, bz - 4, 3.9, 0.15); spot(bx + 3, bz + 3, 0.15); spot(bx - 3, bz - 3, 0.15);
       } else if (i && j) {
-        // skyscraper (you can't get in, but it's great cover)
-        const w = rr(12, 15), d = rr(12, 15), h = rr(22, 40), m = new THREE.Mesh(boxGeo(w, h, d), fmats[(i + j + 2) % 3]);
-        m.position.set(bx, 0.15 + h / 2, bz); m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m);
-        colliders.push({ min: new V3(bx - w / 2, 0, bz - d / 2), max: new V3(bx + w / 2, h + 0.15, bz + d / 2) });
-        cblock(bx, bz, w * 0.5, 1.6, d * 0.5, h + 0.15, 0x4a4a52);
-        spot(bx + w / 2 + 1.5, bz, 0.15); spot(bx - w / 2 - 1.5, bz + 2, 0.15);
+        tower(bx, bz, 13 + Math.floor(rnd() * 3), 13 + Math.floor(rnd() * 3), 6 + Math.floor(rnd() * 4), [0xc8ccd8, 0xd8ccc0, 0xb8c8d0][(i + j + 2) % 3]);
       } else {
         // a two-storey shop with rooms upstairs
         house2(bx, bz, 15, 12, j > 0 || (!j && i > 0) ? -1 : 1, { floors: 2, flat: true, shop: true, col: [0xc8b8a8, 0xa8b8c8, 0xd8c8b0, 0xb8c8b0][shop % 4], chest: shop % 2 === 0, floor: 0x9a9aa2 });
@@ -3154,19 +3186,165 @@ const sfx = {
   spawn(v, pan) { tone(1200, 300, 0.3, 0.05 * v, 'sine', pan); },
 };
 const midi = m => 440 * Math.pow(2, (m - 69) / 12);
-const PROG = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];
+// ================= music: a little EDM engine =================
+// Seven tracks in different styles and tempos. Each one has an intro, a build-up (riser, a snare roll that speeds up,
+// a breath of silence), a drop, a breakdown, a second build and drop, then hands over to another track.
+// In the menus everything plays through a low-pass filter, and it opens up when you're in a match.
+const SCALE = [0, 2, 3, 5, 7, 8, 10];
+const sdeg = d => SCALE[((d % 7) + 7) % 7] + 12 * Math.floor(d / 7);
+const TRACKS = [
+  { name: 'Neon Rush', style: 'house', bpm: 128, root: 57, prog: [0, 5, 2, 6], seed: 3 },
+  { name: 'Prism Drop', style: 'dubstep', bpm: 140, root: 53, prog: [0, 5, 3, 4], seed: 7, cb: 2 },
+  { name: 'Overclock', style: 'dnb', bpm: 174, root: 50, prog: [0, 5, 6, 4], seed: 11, cb: 2 },
+  { name: 'Skyline', style: 'future', bpm: 150, root: 54, prog: [5, 6, 0, 4], seed: 13 },
+  { name: 'Hyperdrive', style: 'hard', bpm: 150, root: 52, prog: [0, 6, 5, 6], seed: 19 },
+  { name: 'Afterglow', style: 'melodic', bpm: 122, root: 56, prog: [0, 3, 5, 4], seed: 23 },
+  { name: 'Starfall', style: 'trance', bpm: 138, root: 49, prog: [0, 5, 2, 6], seed: 29 },
+];
+const ARR = [['intro', 8], ['build', 8], ['drop', 16], ['break', 8], ['build', 8], ['drop', 16], ['outro', 4]], ARR_LEN = 68;
+const MUS = { trk: -1, bar: 0, s: 0, hist: [], motif: null, wob: null, bus: null, skip: false };
+function musBus() {
+  if (MUS.bus) return MUS.bus;
+  const c = A.ctx, B = {};
+  B.lp = c.createBiquadFilter(); B.lp.type = 'lowpass'; B.lp.frequency.value = 900; B.lp.Q.value = 0.7; B.lp.connect(A.music);
+  B.drums = c.createGain(); B.drums.connect(B.lp);
+  // everything except the drums ducks under the kick (the pump)
+  B.duck = c.createGain(); B.duck.connect(B.lp);
+  B.syn = c.createGain(); B.syn.connect(B.duck);
+  const ir = c.createBuffer(2, Math.floor(c.sampleRate * 2.4), c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3); }
+  B.verb = c.createConvolver(); B.verb.buffer = ir; const vw = c.createGain(); vw.gain.value = 0.5; B.verb.connect(vw); vw.connect(B.duck);
+  B.dly = c.createDelay(1.5); const fb = c.createGain(); fb.gain.value = 0.36; const dlp = c.createBiquadFilter(); dlp.frequency.value = 3500;
+  B.dly.connect(dlp); dlp.connect(fb); fb.connect(B.dly); const dw = c.createGain(); dw.gain.value = 0.32; dlp.connect(dw); dw.connect(B.duck);
+  // distortion for the hardstyle kick and the dirty basses
+  B.shape = c.createWaveShaper(); const cv = new Float32Array(1024); for (let i = 0; i < 1024; i++) cv[i] = Math.tanh((i / 1023 * 2 - 1) * 4); B.shape.curve = cv;
+  const sg = c.createGain(); sg.gain.value = 0.5; B.shape.connect(sg); sg.connect(B.drums);
+  return (MUS.bus = B);
+}
+// one synth voice: oscillators (or noise) -> filter -> envelope -> bus, with optional reverb and delay sends
+function mv(o) {
+  const c = A.ctx, B = MUS.bus, t = o.t, dur = o.dur, end = t + dur + (o.r || 0.04), g = c.createGain();
+  let f = null;
+  if (o.cut) { f = c.createBiquadFilter(); f.type = o.ft || 'lowpass'; f.Q.value = o.q || 0.8; f.frequency.setValueAtTime(o.cut, t); if (o.cut2) f.frequency.exponentialRampToValueAtTime(o.cut2, t + (o.ct || dur)); f.connect(g); }
+  const srcs = [];
+  if (o.noise) { const s = c.createBufferSource(); s.buffer = A.noise; s.loop = true; srcs.push(s); }
+  else for (const dt of o.det || [0]) { const s = c.createOscillator(); s.type = o.type || 'sawtooth'; s.frequency.setValueAtTime(o.f, t); if (o.f2) s.frequency.exponentialRampToValueAtTime(o.f2, t + (o.gt || dur)); s.detune.value = dt; srcs.push(s); }
+  for (const s of srcs) { s.connect(f || g); s.start(t); s.stop(end + 0.05); }
+  const v = o.vol / Math.sqrt(srcs.length), a = o.a || 0.004;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + a);
+  if (o.sus) g.gain.setValueAtTime(v, t + Math.max(a, dur)); else g.gain.exponentialRampToValueAtTime(Math.max(0.0001, v * 0.02), t + dur);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  g.connect(o.to || B.syn);
+  if (o.rv) { const s = c.createGain(); s.gain.value = o.rv; g.connect(s); s.connect(B.verb); }
+  if (o.dl) { const s = c.createGain(); s.gain.value = o.dl; g.connect(s); s.connect(B.dly); }
+}
+const DR = {
+  kick(t, hard) {
+    const c = A.ctx, B = MUS.bus, o = c.createOscillator(), g = c.createGain();
+    o.frequency.setValueAtTime(hard ? 260 : 170, t); o.frequency.exponentialRampToValueAtTime(hard ? 50 : 45, t + (hard ? 0.08 : 0.11));
+    g.gain.setValueAtTime(hard ? 1.6 : 1, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (hard ? 0.5 : 0.36));
+    o.connect(g); g.connect(hard ? B.shape : B.drums); o.start(t); o.stop(t + 0.55);
+    noise(0.012, 0.3, 4000, 'highpass', 1, 0, 0, null, B.drums, t);
+  },
+  snare(t, v = 1) { noise(0.17, 0.42 * v, 1900, 'bandpass', 0.8, 0, 0, null, MUS.bus.drums, t); tone(230, 160, 0.08, 0.26 * v, 'triangle', 0, 0, MUS.bus.drums, t); },
+  clap(t, v = 1) { for (let k = 0; k < 3; k++) noise(k < 2 ? 0.02 : 0.15, 0.38 * v, 1300, 'bandpass', 1.4, 0, 0, null, MUS.bus.drums, t + k * 0.011); },
+  hat(t, v = 1, open) { noise(open ? 0.15 : 0.035, 0.11 * v, 9000, 'highpass', 0.8, 0, 0, null, MUS.bus.drums, t); },
+  crash(t) { noise(1.8, 0.2, 7000, 'highpass', 0.5, 0, 0, 3500, MUS.bus.drums, t); },
+  impact(t) { tone(95, 28, 1.3, 0.75, 'sine', 0, 0, MUS.bus.drums, t); noise(1.1, 0.3, 900, 'lowpass', 0.7, 0, 0, 60, MUS.bus.drums, t); DR.crash(t); },
+};
+function duck(t, len) { const g = MUS.bus.duck.gain; g.cancelScheduledValues(t); g.setValueAtTime(0.15, t); g.linearRampToValueAtTime(1, t + len); }
+const mpad = (ch, t, dur, cut, v = 1) => { for (const n of [ch[0] - 12, ...ch]) mv({ det: [-14, 0, 14], f: midi(n), t, dur, a: Math.min(0.4, dur / 4), sus: 1, r: 0.5, vol: 0.045 * v, cut, rv: 0.35 }); };
+const stab = (ch, t, dur, cut, v = 1) => { for (const n of [...ch, ch[0] + 12]) mv({ det: [-18, -6, 6, 18], f: midi(n), t, dur, vol: 0.055 * v, cut, q: 1.4, rv: 0.15 }); };
+const sub = (n, t, dur, v = 1) => mv({ type: 'sine', f: midi(n), t, dur, a: 0.01, sus: 1, r: 0.06, vol: 0.3 * v });
+function riser(t, dur) {
+  mv({ noise: 1, t, dur, a: dur * 0.95, sus: 1, r: 0.03, vol: 0.14, ft: 'bandpass', cut: 300, cut2: 9000, ct: dur, q: 2.5, to: MUS.bus.drums });
+  const T = TRACKS[MUS.trk]; mv({ f: midi(T.root), f2: midi(T.root + 24), gt: dur, t, dur, a: dur * 0.9, sus: 1, r: 0.03, vol: 0.035, cut: 700, cut2: 7000, ct: dur, rv: 0.4 });
+}
+function wobble(n, t, dur, rate, v = 1) {
+  const c = A.ctx, B = MUS.bus, g = c.createGain(), fl = c.createBiquadFilter(), f = midi(n);
+  fl.type = 'lowpass'; fl.Q.value = 7; fl.frequency.value = 800;
+  const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = rate; lg.gain.value = 1300; lfo.connect(lg); lg.connect(fl.frequency);
+  for (const [ty, m, dt] of [['sawtooth', 1, -12], ['square', 0.5, 8], ['sawtooth', 2, 5]]) { const o = c.createOscillator(); o.type = ty; o.frequency.value = f * m; o.detune.value = dt; o.connect(fl); o.start(t); o.stop(t + dur + 0.05); }
+  lfo.start(t); lfo.stop(t + dur + 0.05);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.16 * v, t + 0.01); g.gain.setValueAtTime(0.16 * v, t + dur - 0.02); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+  fl.connect(g); g.connect(B.syn); const d = c.createGain(); d.gain.value = 0.25 * v; g.connect(d); d.connect(B.shape);
+}
+function newTrack() {
+  const pool = TRACKS.map((_, k) => k).filter(k => !MUS.hist.includes(k) && k !== MUS.trk);
+  const i = pool[Math.floor(Math.random() * pool.length)]; MUS.hist.push(i); if (MUS.hist.length > 3) MUS.hist.shift();
+  MUS.trk = i; MUS.bar = 0; MUS.s = 0;
+  const T = TRACKS[i]; let q = T.seed * 7919 + 101; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
+  // the hook: a one-bar rhythm of chord tones that repeats all track long, so it sticks in your head
+  MUS.motif = Array.from({ length: 16 }, (_, s) => (s === 0 || r() < (s % 2 ? 0.25 : 0.55)) ? { n: Math.floor(r() * 4), len: r() < 0.3 ? 2 : 1 } : null);
+  MUS.wob = Array.from({ length: 8 }, () => [1, 2, 3, 4, 6][Math.floor(r() * 5)]);
+  MUS.bus.dly.delayTime.setValueAtTime(Math.min(1.4, 60 / T.bpm * 0.75), A.ctx.currentTime);
+  if (state === 'playing' && A.musicOn) toast(`♪ Now playing: ${T.name}`);
+}
+function nextSong() { MUS.skip = true; if (!A.musicOn) setMusic(true); }
+function lead(T, ch, t, st, s, v) {
+  const m = MUS.motif[s]; if (!m) return;
+  const n = (m.n === 3 ? ch[0] + 12 : ch[m.n]) + 12;
+  if (T.style === 'future' || T.style === 'melodic') mv({ type: 'triangle', det: [-8, 8], f: midi(n), t, dur: st * m.len * 1.5, vol: 0.08 * v, cut: 5000, cut2: 900, rv: 0.3, dl: 0.35 });
+  else mv({ det: [-12, 0, 12], f: midi(n), t, dur: st * m.len * 1.4, vol: 0.075 * v, cut: T.style === 'hard' ? 6000 : 4200, q: 2, rv: 0.25, dl: 0.25, to: T.style === 'hard' ? MUS.bus.shape : MUS.bus.syn });
+}
+function musStep(T, t, st) {
+  const B = MUS.bus, s = MUS.s, bar = MUS.bar, beat = st * 4, sty = T.style, half = sty === 'dubstep' || sty === 'future';
+  let sec = 'outro', sb = 0, sl = 4; { let b = bar; for (const [n, len] of ARR) { if (b < len) { sec = n; sb = b; sl = len; break; } b -= len; } }
+  const cb = T.cb || 1, d0 = T.prog[Math.floor(bar / cb) % T.prog.length];
+  const ch = [0, 2, 4].map(k => T.root + sdeg(d0 + k)), bn = T.root - 24 + sdeg(d0), newChord = s === 0 && bar % cb === 0, chordLen = cb * 16 * st;
+  const drop = sec === 'drop', build = sec === 'build', calm = !drop && !build, prog = sl > 1 ? sb / (sl - 1) : 1;
+  const silent = build && sb === sl - 1 && s >= 12; // the breath before the drop
+  // ---- drums
+  if (drop && s === 0 && sb === 0) DR.impact(t);
+  else if (drop && s === 0 && sb % 8 === 0) DR.crash(t);
+  const kickAt = sty === 'dnb' ? s === 0 || s === 10 : half ? s === 0 || (sty === 'future' && s === 6) || (sty === 'dubstep' && s === 11 && bar % 2 === 1) : s % 4 === 0;
+  const kickOn = drop || (build && sb < sl - 2) || (sec === 'intro' && sb >= 4) || (sec === 'outro' && sb < 2);
+  if (kickAt && kickOn && !silent) { DR.kick(t, sty === 'hard'); if (!calm) duck(t, half || sty === 'dnb' ? beat * 1.5 : beat * 0.85); }
+  if (drop) {
+    if (half ? s === 8 : s === 4 || s === 12) (half || sty === 'dnb' ? DR.snare(t) : DR.clap(t, 0.9));
+    if (sty === 'dnb' && (s === 7 || s === 15) && Math.random() < 0.5) DR.snare(t, 0.22);
+    if (sty === 'future' && s >= 12 && bar % 2) { DR.hat(t, 0.6); DR.hat(t + st / 2, 0.45); } // trap hat roll
+    else if (s % 2 === 0) DR.hat(t, s % 4 === 2 ? 1 : 0.5, s % 4 === 2 && !half && sty !== 'dnb');
+    else if (sty === 'dnb' || sty === 'trance' || sty === 'hard') DR.hat(t, 0.3);
+  } else if (sec === 'intro' && sb >= 2 && s % 4 === 2) DR.hat(t, 0.6, true);
+  else if (sec === 'break' && sb >= 4 && s % 4 === 2) DR.hat(t, 0.35);
+  // ---- the build: riser, a snare roll that speeds up, the filter opening
+  if (build) {
+    if (sb === 0 && s === 0) riser(t, sl * 16 * st);
+    const every = sb < 4 ? 4 : sb < 6 ? 2 : 1;
+    if (!silent && s % every === 0) DR.snare(t, 0.2 + prog * 0.6);
+    if (!silent && sb === sl - 2) DR.snare(t + st / 2, 0.2 + prog * 0.5);
+  }
+  // ---- chords and bass
+  if (calm || build) {
+    if (newChord) mpad(ch, t, chordLen, sec === 'intro' ? 400 + prog * 2200 : build ? 1200 + prog * 4000 : 1800, sec === 'outro' ? 0.7 : 1);
+    if (build && s % 2 === 0 && !silent) stab(ch, t, st * 1.1, 600 + prog * 6000, 0.5);
+    if (newChord && (sec === 'break' || (sec === 'intro' && sb >= 4))) sub(bn + 12, t, chordLen, 0.6);
+  }
+  if (drop) {
+    if (sty === 'house') { if (s % 4 === 2) { stab(ch, t, st * 1.6, 3800); mv({ det: [-8, 8], f: midi(bn + 12), t, dur: st * 1.7, cut: 1100, cut2: 200, vol: 0.24 }); } if (newChord) sub(bn, t, chordLen, 0.5); }
+    else if (sty === 'melodic') { if (s % 4) mv({ det: [-8, 8], f: midi(bn + 12 + (s % 4 === 3 ? 12 : 0)), t, dur: st * 0.9, cut: 900, cut2: 250, vol: 0.2 }); if (newChord) mpad(ch, t, chordLen, 2600, 0.8); mv({ type: 'triangle', f: midi(ch[s % 3] + 24), t, dur: st * 0.8, vol: 0.035, cut: 5000, cut2: 1200, dl: 0.3 }); }
+    else if (sty === 'trance') { if (s % 4) mv({ det: [-6, 6], f: midi(bn + 12 + (s % 2 ? 0 : 12)), t, dur: st * 0.8, cut: 1400, cut2: 300, vol: 0.2 }); if (newChord) mpad(ch, t, chordLen, 6000, 1.2); if (s % 2 === 0) mv({ det: [-10, 10], f: midi(ch[(s / 2) % 3] + 24), t, dur: st * 0.9, vol: 0.04, cut: 6000, cut2: 1500, dl: 0.3 }); }
+    else if (sty === 'dubstep') { if (s % 4 === 0 && !(s === 4 && bar % 2 === 0)) wobble(bn + (s === 12 && bar % 2 ? 7 : 0), t, beat * 0.95, MUS.wob[(bar % 2) * 4 + s / 4] * T.bpm / 60); if (newChord) sub(bn, t, chordLen, 0.5); if (s === 14) stab(ch, t, st * 1.5, 2200, 0.8); }
+    else if (sty === 'dnb') { if (s === 0 || s === 8) { mv({ det: [-25, 25], f: midi(bn + 12), t, dur: st * 7.6, sus: 1, r: 0.05, cut: 350, cut2: 1600, ct: st * 6, q: 3, vol: 0.2 }); sub(bn, t, st * 7.6, 0.6); } if (newChord) mpad(ch, t, chordLen, 1500, 0.6); }
+    else if (sty === 'future') { if ([0, 3, 6, 8, 10, 13].includes(s)) stab([...ch, ch[1] + 12], t, st * (s === 13 ? 3 : 1.8), 5200, 1.1); if (newChord) sub(bn, t, chordLen, 0.6); }
+    else if (sty === 'hard') { if (s % 4 === 2) mv({ det: [-10, 10], f: midi(bn + 24), f2: midi(bn + 12), gt: st * 1.5, t, dur: st * 1.8, cut: 2500, cut2: 400, vol: 0.2, to: B.shape }); if (newChord) mpad(ch, t, chordLen, 4000, 0.9); }
+    // the hook comes in for the second half of each drop (all of it in hardstyle and future bass)
+    if (sb >= 8 || sty === 'hard' || sty === 'future') lead(T, ch, t, st, s, 1);
+  }
+  if (sec === 'break' && sb >= 2) lead(T, ch, t, st, s, 0.6);
+}
 function schedMusic() {
   if (!A.ctx) return;
-  const step = 60 / 112 / 4;
+  const B = musBus();
+  B.lp.frequency.setTargetAtTime(state === 'playing' || state === 'dead' ? 18000 : 1000, A.ctx.currentTime, 0.4);
+  if (A.next < A.ctx.currentTime - 0.3) A.next = A.ctx.currentTime + 0.05; // the tab slept: don't play the backlog
   while (A.next < A.ctx.currentTime + 0.2) {
-    const s = A.step, t = A.next, i = s % 16, chord = PROG[Math.floor(s / 16) % 4], M = A.music;
-    const intense = state === 'playing';
-    if (i % 4 === 0 && intense) tone(150, 40, 0.28, 0.5, 'sine', 0, 0, M, t);
-    if (i % 4 === 2 && intense) noise(0.04, 0.09, 8000, 'highpass', 1, 0, 0, null, M, t);
-    if (i % 2 === 0) tone(midi(chord[0] - 12), midi(chord[0] - 12), step * 1.7, intense ? 0.16 : 0.08, 'triangle', 0, 0, M, t);
-    tone(midi(chord[[0, 1, 2, 1][i % 4]] + (i >= 8 ? 12 : 0)), 0, step * 0.9, 0.035, 'triangle', 0, 0, M, t);
-    if (i === 0) for (const n of chord) tone(midi(n), 0, step * 16, 0.02, 'sawtooth', 0, 0, M, t);
-    A.step++; A.next += step;
+    if (MUS.trk < 0 || MUS.bar >= ARR_LEN || MUS.skip) { MUS.skip = false; newTrack(); }
+    const T = TRACKS[MUS.trk], st = 60 / T.bpm / 4;
+    if (A.musicOn) musStep(T, A.next, st);
+    A.next += st;
+    if (++MUS.s >= 16) { MUS.s = 0; MUS.bar++; }
   }
 }
 function applyAudio() {
@@ -3193,7 +3371,7 @@ const ACTIONS = [
   ['left', 'Move left', ['KeyA', 'ArrowLeft']], ['right', 'Move right', ['KeyD', 'ArrowRight']],
   ['jump', 'Jump / double jump', ['Space', null]], ['dash', 'Dash', ['ShiftLeft', 'ShiftRight']],
   ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Ability (pulse / class)', ['KeyQ', null]], ['nade', 'Grenade / gadget', ['KeyG', null]],
-  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]], ['spray', 'Spray', ['KeyY', null]],
+  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['song', 'Next song', ['KeyN', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]], ['spray', 'Spray', ['KeyY', null]],
   ['panic', 'Panic screen', ['Backquote', null]],
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
 ];
@@ -3234,7 +3412,7 @@ function renderKeyLabels() {
     ['Reload', bindLabel('reload')], ['Switch gun', [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => bindLabel('w' + n)).join(' ')],
     ['Chat', bindLabel('chat')], ['Scoreboard', bindLabel('board')],
     ['Emotes', bindLabel('emote')], ['Kill streak (FFA)', bindLabel('streak')],
-    ['Music', bindLabel('music')], ['Panic screen', bindLabel('panic')], ['Pause', 'Esc'],
+    ['Music', bindLabel('music')], ['Next song', bindLabel('song')], ['Panic screen', bindLabel('panic')], ['Pause', 'Esc'],
   ];
   const el = $('keyhelp'); el.textContent = '';
   for (const [label, key] of rows) { const k = document.createElement('kbd'), t = document.createElement('span'); k.textContent = key.toUpperCase(); t.textContent = label; el.append(k, t); }
@@ -8977,6 +9155,7 @@ function actionDown(a) {
     case 'streak': useStreak(); break;
     case 'emote': toggleEmotes(); break;
     case 'music': setMusic(!A.musicOn); break;
+    case 'song': nextSong(); break;
     case 'board': renderBoard(); $('board').hidden = false; break;
     default: {
       const m = /^w([1-9])$/.exec(a);
