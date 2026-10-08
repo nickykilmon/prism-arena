@@ -109,8 +109,15 @@ button,input,select{font:inherit;color:inherit}
 #ammo{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 #ammo small{font-size:16px;color:var(--dim);font-weight:500}
 #br .lbl{font-size:11px;letter-spacing:.2em;color:var(--dim)}
-#slots{display:flex;gap:4px;justify-content:flex-end;margin-bottom:8px}
+#slots{display:flex;gap:6px;justify-content:flex-end;margin-bottom:8px}
 #slots span{font-size:10px;width:18px;height:18px;line-height:18px;text-align:center;border:1px solid var(--line);border-radius:2px;color:var(--dim);background:var(--panel)}
+.islot{position:relative;width:64px;height:42px;border:1px solid var(--line);border-bottom:3px solid var(--rc,var(--line));border-radius:5px;background:var(--panel);display:flex;align-items:center;justify-content:center;text-align:center}
+.islot.on{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 14px rgba(95,242,255,.35)}
+.islot.empty{opacity:.45}.islot.pick{width:46px}
+.islot img{max-width:58px;max-height:32px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.islot kbd{position:absolute;left:4px;top:1px;font-size:10px;color:var(--dim);font-family:var(--display)}
+.islot i{font-style:normal;font-size:20px;line-height:1}
+.islot small{position:absolute;right:5px;bottom:1px;font-size:11px;font-weight:700}
 #slots span.on{color:#14061a;background:var(--cyan);border-color:var(--cyan)}
 #board{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--panel-solid);border:1px solid var(--line);border-radius:6px;padding:18px 22px;min-width:min(560px,calc(100vw - 32px));font-family:var(--body);max-height:80vh;overflow:auto}
 #board h3{font-family:var(--display);margin:0 0 10px;letter-spacing:.2em;font-size:13px;color:var(--dim)}
@@ -746,7 +753,7 @@ const WEAPONS = {
   inferno: { name: 'Inferno',       auto: true,  rate: 0.06,  dmg: 6,   mag: 100, reload: 2.2, spread: 0, ads: 0, pellets: 1, range: 11, zoom: 72, recoil: 0.15, color: [3.0, 1.1, 0.2], css: '#ff7a1f', blurb: 'Flamethrower · sets drones on fire', flame: true },
   arc:     { name: 'Arc Thrower',   auto: true,  rate: 0.16,  dmg: 16,  mag: 30, reload: 1.6,  spread: 0.01,  ads: 0.004, pellets: 1, range: 45, zoom: 60, recoil: 0.6, color: [1.8, 2.6, 3.0], css: '#c8e8ff', blurb: 'Lightning that jumps to 3 more targets', chain: 3 },
   autocannon: { name: 'Twin Autocannon', auto: true, rate: 0.13, dmg: 18, mag: 40, reload: 1.9, spread: 0.012, ads: 0.004, pellets: 1, range: 350, zoom: 58, recoil: 1.2, color: [3.0, 1.6, 0.4], css: '#ff9a3c', blurb: 'Heavy twin-barrel auto' },
-  minigun: { name: 'Mech Minigun', auto: true, rate: 0.05, dmg: 9, mag: 999, reload: 0.2, spread: 0.03, ads: 0.03, pellets: 1, range: 320, zoom: 70, recoil: 0.25, color: [3.0, 1.4, 0.3], css: '#ff8a3c', blurb: 'Mech only' },
+  minigun: { name: 'Mech Minigun', auto: true, rate: 0.05, dmg: 9, mag: 300, reload: 2.4, spread: 0.03, ads: 0.03, pellets: 1, range: 320, zoom: 70, recoil: 0.25, color: [3.0, 1.4, 0.3], css: '#ff8a3c', blurb: 'Mech only' },
   cards:   { name: 'Card Thrower', auto: false, rate: 0.3, dmg: 22, mag: 21, reload: 1.4, spread: 0.045, ads: 0.03, pellets: 3, range: 220, zoom: 64, recoil: 0.8, color: [3.0, 2.4, 0.9], css: '#ffd86b', blurb: '3 cards a throw · 1 in 5 crits for triple', cards: true },
   pick:    { name: 'Prism Pick',    melee: true, rate: 0.5,   dmg: 25,  mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.2, zoom: 80, recoil: 0,   color: [2.6, 2.0, 0.7], css: '#ffd86b', blurb: 'Battle Royale starter' },
   blade:   { name: 'Prism Blade',   melee: true, rate: 0.45,  dmg: 100, mag: 0,  reload: 0,    spread: 0,     ads: 0,     pellets: 1, range: 3.4, zoom: 80, recoil: 0,   color: [3.0, 0.4, 2.2], css: '#ff6fd8', blurb: 'Final level' },
@@ -883,7 +890,7 @@ if (!CLASSES[settings.cls]) settings.cls = 'fighter';
 function kit() {
   if (coop()) { const c = CLASSES[settings.cls]; return { guns: c.guns, q: c.q, g: c.g, jet: c.q === null }; }
   if (amInfected()) return { guns: ['claw'], q: 'pounce', g: 'none', jet: false };
-  if (mode === 'royale') return { guns: ['pick', ...RY.guns.filter(Boolean)], q: 'none', g: 'none', jet: false };
+  if (mode === 'royale') return { guns: ['pick', ...RY.slots.filter(s => s && s.k === 'g').map(s => s.w)], q: 'none', g: 'none', jet: false };
   return { guns: settings.loadout, q: 'pulse', g: 'nade', jet: false };
 }
 store.set('hue', settings.hue);
@@ -1095,6 +1102,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'br-cities', date: '2026-10-08', title: 'City, Maple Town & Haunted Hollow', lines: ['Battle Royale has three new places: the City (streets, skyscrapers, cars and two-storey shops), Maple Town (family houses with several rooms, stairs and an upstairs) and a seasonal area', 'The seasonal area changes with the seasons and has its own weather. Right now it is Haunted Hollow: a pumpkin patch and a haunted mansion under grey skies, rain and lightning', 'Battle Royale inventory: 5 slots in the bottom right for guns and heals, with a picture of each gun. Q pulls out the pickaxe', 'Every mode now shows your guns as pictures in the bottom right', 'Mech Pilot: the mech armour soaks most damage, but 30% still gets through to you. The minigun holds 300 rounds and takes longer to reload'] },
   { id: 'debloat', date: '2026-10-04', title: 'Spring Cleaning', lines: ['Capture the Flag, the Hub Plaza and the Frostfall map are gone, so there are fewer, busier modes', 'Your color is now only picked in Customize'] },
   { id: 'pause-live', date: '2026-10-04', title: 'No More Pause Freezing', lines: ["Opening the menu in a multiplayer match no longer freezes you in place: you keep falling, the storm still hurts and you can still be hit"] },
   { id: 'br-lobbies', date: '2026-10-04', title: 'Battle Royale Lobbies', lines: ["In the public room, if a Battle Royale match has already started you're sent to the next lobby (BR2, BR3 and so on) instead of joining halfway", 'Getting knocked out and pressing Play again puts you in a fresh lobby. You can no longer sneak back into the match you were knocked out of', 'In a private room you still watch until the next match starts'] },
@@ -2485,7 +2493,7 @@ function buildRoyale() {
   const ground = new THREE.Mesh(new THREE.CircleGeometry(ARENA_R, 120).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.95 }));
   ground.receiveShadow = true; scene.add(ground);
   // named places
-  const POI = [['PRISM POINT', 0, 0, 26], ['OLD TOWN', -135, 30, 34], ['PINE WOODS', 40, 160, 38], ['CRYSTAL QUARRY', 150, -100, 28], ['RED BARN FARM', -110, -145, 32], ['LOOKOUT', 180, 60, 14], ['NEW TOWN', 55, -180, 32], ['THE RUINS', -180, 115, 28], ['SUNNY RANCH', 130, 160, 26], ['DUSTY CAMP', -40, 95, 20]];
+  const POI = [['PRISM POINT', 0, 0, 26], ['OLD TOWN', -135, 30, 34], ['PINE WOODS', 40, 160, 38], ['CRYSTAL QUARRY', 150, -100, 28], ['RED BARN FARM', -110, -145, 32], ['LOOKOUT', 180, 60, 14], ['NEW TOWN', 55, -180, 32], ['THE RUINS', -180, 115, 28], ['SUNNY RANCH', 130, 160, 26], ['DUSTY CAMP', -40, 95, 20], ['CITY', 85, -25, 46], ['MAPLE TOWN', -70, -55, 40]];
   RL.pois = POI;
   for (const [, x, z, r] of POI) used.push([x, z, r]);
   for (const [, x, z, r] of POI.slice(1)) { const d = Math.hypot(x, z); road(x / d * 18, z / d * 18, x - x / d * r * 0.6, z - z / d * r * 0.6); }
@@ -2567,6 +2575,173 @@ function buildRoyale() {
     for (let k = 0; k < 4; k++) { const a = k / 4 * 6.283 + 0.4; house(cx + Math.cos(a) * 11, cz + Math.sin(a) * 11, 5, 5, k, rp(ROOFS), 2.8, k === 0); }
     block(cx, cz, 2, 0.5, 2, 0, amberGlow); spot(cx + 3, cz + 1); spot(cx - 3, cz - 1);
   }
+  // ---------- coloured walls with doors and windows, and real houses with rooms and stairs ----------
+  const glassG = [], glowG = [];
+  const cblock = (x, z, w, h, d, y, c) => { solidG.push(tint(new THREE.BoxGeometry(w, h, d).translate(x, y + h / 2, z), c)); colliders.push({ min: new V3(x - w / 2, y, z - d / 2), max: new V3(x + w / 2, y + h, z + d / 2) }); };
+  // a wall running along x (at depth `fixed`) or along z (at x = `fixed`), built round its openings [from, to, bottom, top]
+  const wallRun = (alongX, a0, a1, fixed, h, t, ops, y, col, glow) => {
+    const piece = (p0, p1, y0, y1) => { if (p1 - p0 < 0.05 || y1 - y0 < 0.05) return; const c = (p0 + p1) / 2, len = p1 - p0; if (alongX) cblock(c, fixed, len, y1 - y0, t, y + y0, col); else cblock(fixed, c, t, y1 - y0, len, y + y0, col); };
+    let cur = a0;
+    for (const [o0, o1, y0, y1] of ops.slice().sort((p, q) => p[0] - q[0])) {
+      piece(cur, o0, 0, h); piece(o0, o1, 0, y0); piece(o0, o1, y1, h); cur = o1;
+      if (y0 > 0.3) { const c = (o0 + o1) / 2; (glow ? glowG : glassG).push(ni(new THREE.PlaneGeometry(o1 - o0, y1 - y0)).rotateY(alongX ? 0 : Math.PI / 2).translate(alongX ? c : fixed, y + (y0 + y1) / 2, alongX ? fixed : c)); }
+    }
+    piece(cur, a1, 0, h);
+  };
+  // face 1: the front door is on the -z side; face -1: on the +z side
+  const house2 = (x, z, w, d, face, o = {}) => {
+    const H = 3.3, t = 0.35, it = 0.2, col = o.col || 0xe8dcc8, inner = o.inner || 0xeee6d8, floors = o.floors || 1, wz = l => z + l * face;
+    const zr = (a, b) => [Math.min(wz(a), wz(b)), Math.max(wz(a), wz(b))];
+    const runZ = (xx, l0, l1, h, th, ops, y, c) => { const [a, b] = zr(l0, l1); wallRun(false, a, b, xx, h, th, ops.map(([p0, p1, y0, y1]) => { const [q0, q1] = zr(p0, p1); return [q0, q1, y0, y1]; }), y, c, o.glow); };
+    const win = (c, ww = 1.4) => [c - ww / 2, c + ww / 2, 1.1, 2.3], door = (c, ww = 1.5) => [c - ww / 2, c + ww / 2, 0, 2.5];
+    const xl = x - w / 2 + t / 2, xr = x + w / 2 - t / 2, lf = -d / 2 + t / 2, lb = d / 2 - t / 2, lm = -d / 2 + d * 0.55;
+    for (let f = 0; f < floors; f++) {
+      const y = f * (H + 0.3);
+      wallRun(true, x - w / 2, x + w / 2, wz(lf), H, t, f ? [win(x - w * 0.25), win(x + w * 0.25)] : [door(x - w * 0.18), win(x + w * 0.25, o.shop ? 3.4 : 1.4)], y, col, o.glow);
+      wallRun(true, x - w / 2, x + w / 2, wz(lb), H, t, [win(x - w * 0.25), win(x + w * 0.25)], y, col, o.glow);
+      runZ(xl, lf + t / 2, lb - t / 2, H, t, [win(lm + 1.6)], y, col); runZ(xr, lf + t / 2, lb - t / 2, H, t, [win(-d * 0.18)], y, col);
+      // a wall across the house (front room / back rooms), and one splitting the back into two rooms
+      wallRun(true, xl + t / 2, xr - t / 2, wz(lm), H, it, [door(x + w * 0.22, 1.2)], y, inner);
+      runZ(x - w * 0.05, lm + it / 2, lb - t / 2, H, it, [door((lm + lb) / 2, 1.1)], y, inner);
+      softG.push(tint(new THREE.PlaneGeometry(w - 0.7, d - 0.7).rotateX(-Math.PI / 2).translate(x, y + 0.03, z), o.floor || 0x8a6a48));
+      // a room's worth of furniture
+      if (f === 0) { cblock(x + w * 0.28, wz(lf + 1.1), 2.2, 0.8, 0.9, 0, 0x6a4a8a); cblock(x - w * 0.28, wz((lm + lb) / 2), 1.4, 0.8, 0.9, 0, 0x8a6a48); cblock(x + w * 0.24, wz(lb - 0.6), w * 0.32, 1.0, 0.7, 0, 0xc8c8d0); }
+      else for (const s of [-1, 1]) { cblock(x + s * w * 0.27, wz(lb - 1.3), 1.5, 0.5, 2.1, y, s < 0 ? 0xb8c8e8 : 0xe8b8c8); cblock(x + s * w * 0.27, wz(lb - 0.45), 1.3, 0.2, 0.4, y + 0.5, 0xffffff); }
+      spot(x + w * 0.05, wz(lf + 2), y); spot(x - w * 0.27, wz(lm + 1.3), y); spot(x + w * 0.27, wz(lm + 1.3), y);
+      if (f === 0 && floors > 1) {
+        // stairs up the left wall of the front room, and a hole in the floor above them
+        const sx = xl + t / 2 + 0.65, holeX = sx + 0.7, holeL = lf + 0.85 + 4.5;
+        for (let k = 0; k < 9; k++) cblock(sx, wz(lf + 0.85 + k * 0.5), 1.2, 0.4 * (k + 1), 0.5, 0, inner);
+        cblock((holeX + x + w / 2) / 2, z, x + w / 2 - holeX, 0.3, d, H, inner);
+        const [a, b] = zr(holeL, d / 2); cblock((x - w / 2 + holeX) / 2, (a + b) / 2, holeX - (x - w / 2), 0.3, b - a, H, inner);
+        runZ(holeX + 0.06, lf + 0.4, holeL - 1.2, 1.0, 0.12, [], H + 0.3, 0x5a4030);
+      }
+    }
+    const top = floors * (H + 0.3) - 0.3;
+    cblock(x, z, w + 0.4, 0.3, d + 0.4, top, o.flat ? col : inner);
+    if (!o.flat) { const sh = new THREE.Shape([new THREE.Vector2(-w / 2 - 0.4, 0), new THREE.Vector2(w / 2 + 0.4, 0), new THREE.Vector2(0, Math.min(w, d) * 0.32)]); solidG.push(tint(new THREE.ExtrudeGeometry(sh, { depth: d + 0.8, bevelEnabled: false }).translate(x, top + 0.3, z - d / 2 - 0.4), o.roof || rp(ROOFS))); }
+    else cblock(x, z, w + 0.5, 0.7, d + 0.5, top + 0.3, o.trim || 0x4a4a52);
+    if (o.chest) chest(x + w * 0.28, wz(lm + 1.4), face > 0 ? Math.PI : 0, floors > 1 ? H + 0.3 : 0);
+    used.push([x, z, Math.max(w, d) * 0.75]);
+  };
+  // ---------- the City: a grid of streets, skyscrapers and two-storey shops round a plaza ----------
+  { const cx = 85, cz = -25, B = 20, S = 7, off = B + S, span = 3 * B + 4 * S;
+    const facade = canvasTex('facade', x => { x.fillStyle = '#56607a'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) { x.fillStyle = '#1c2840'; x.fillRect(i * 64 + 10, j * 128 + 22, 44, 84); x.fillStyle = 'rgba(160,200,255,.25)'; x.fillRect(i * 64 + 12, j * 128 + 24, 18, 80); } }, 1);
+    const lit = canvasTex('facadelit', x => { x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) if (Math.random() < 0.45) { x.fillStyle = Math.random() < 0.5 ? '#ffd890' : '#cfe6ff'; x.fillRect(i * 64 + 10, j * 128 + 22, 44, 84); } }, 1);
+    const fmats = [0xd8dce8, 0xe8d8c8, 0xc8d8e0].map(c => new THREE.MeshStandardMaterial({ color: c, map: facade, emissive: 0xffffff, emissiveMap: lit, emissiveIntensity: 0.45, roughness: 0.45, metalness: 0.35 }));
+    softG.push(tint(new THREE.PlaneGeometry(span, span).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x34343a));
+    for (const k of [-1.5, -0.5, 0.5, 1.5]) for (let s = -42; s < 42; s += 5) { softG.push(tint(new THREE.PlaneGeometry(2.4, 0.25).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz + k * off), 0xe8c84a)); softG.push(tint(new THREE.PlaneGeometry(0.25, 2.4).rotateX(-Math.PI / 2).translate(cx + k * off, 0.045, cz + s), 0xe8c84a)); }
+    let shop = 0;
+    for (const i of [-1, 0, 1]) for (const j of [-1, 0, 1]) {
+      const bx = cx + i * off, bz = cz + j * off;
+      cblock(bx, bz, B, 0.15, B, 0, 0x9a9aa2);
+      if (!i && !j) {
+        // the plaza: a fountain, benches and two chests
+        cblock(bx, bz, 5, 0.9, 5, 0.15, 0xb8b8c4); crystal(bx, 3.4, bz, 0.9, 0x5ff2ff);
+        for (const [dx, dz] of [[-6, 0], [6, 0], [0, -6], [0, 6]]) cblock(bx + dx, bz + dz, dx ? 0.6 : 2.4, 0.5, dx ? 2.4 : 0.6, 0.15, 0x6a4a3a);
+        chest(bx - 4, bz + 4, 0.8, 0.15); chest(bx + 4, bz - 4, 3.9, 0.15); spot(bx + 3, bz + 3, 0.15); spot(bx - 3, bz - 3, 0.15);
+      } else if (i && j) {
+        // skyscraper (you can't get in, but it's great cover)
+        const w = rr(12, 15), d = rr(12, 15), h = rr(22, 40), m = new THREE.Mesh(boxGeo(w, h, d), fmats[(i + j + 2) % 3]);
+        m.position.set(bx, 0.15 + h / 2, bz); m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m);
+        colliders.push({ min: new V3(bx - w / 2, 0, bz - d / 2), max: new V3(bx + w / 2, h + 0.15, bz + d / 2) });
+        cblock(bx, bz, w * 0.5, 1.6, d * 0.5, h + 0.15, 0x4a4a52);
+        spot(bx + w / 2 + 1.5, bz, 0.15); spot(bx - w / 2 - 1.5, bz + 2, 0.15);
+      } else {
+        // a two-storey shop with rooms upstairs
+        house2(bx, bz, 15, 12, j > 0 || (!j && i > 0) ? -1 : 1, { floors: 2, flat: true, shop: true, col: [0xc8b8a8, 0xa8b8c8, 0xd8c8b0, 0xb8c8b0][shop % 4], chest: shop % 2 === 0, floor: 0x9a9aa2 });
+        shop++;
+      }
+    }
+    // street lamps and parked cars
+    for (const k of [-1, 1]) for (const l of [-1, 1]) { const L = lampProp(); L.position.set(cx + k * off * 0.5, 0, cz + l * off * 0.5); scene.add(L); }
+    const car = (x, z, along, c) => {
+      const L = 4.2, W = 1.9, gw = along ? L : W, gd = along ? W : L;
+      cblock(x, z, gw, 0.75, gd, 0.3, c); cblock(x, z, along ? 2.2 : 1.7, 0.6, along ? 1.7 : 2.2, 1.05, 0x2a3040);
+      for (const a of [-1, 1]) for (const b of [-1, 1]) solidG.push(tint(new THREE.CylinderGeometry(0.34, 0.34, 0.3, 10).rotateX(along ? Math.PI / 2 : 0).rotateZ(along ? 0 : Math.PI / 2).translate(x + (along ? a * 1.35 : b * 0.85), 0.34, z + (along ? b * 0.85 : a * 1.35)), 0x15151a));
+    };
+    for (let k = 0; k < 10; k++) { const along = k % 2 === 0, lane = rp([-1.5, -0.5, 0.5, 1.5]) * off + (rnd() < 0.5 ? -2 : 2), pos = rr(-38, 38); if (along) car(cx + pos, cz + lane, true, rp([0xd8343c, 0x3f7fe0, 0xf2f0ea, 0x2a2a2a, 0xffd23a])); else car(cx + lane, cz + pos, false, rp([0xd8343c, 0x3f7fe0, 0xf2f0ea, 0x2a2a2a, 0x4fbf4a])); }
+    for (let k = 0; k < 8; k++) spot(cx + rp([-1.5, -0.5, 0.5, 1.5]) * off, cz + rr(-36, 36));
+  }
+  // ---------- Maple Town: a street of family houses, most of them two storeys ----------
+  { const cx = -70, cz = -55, HC = [0xe8dcc8, 0xc8d8e8, 0xe8c8b8, 0xd8e8c8, 0xf0e6a8, 0xe0d0e8];
+    softG.push(tint(new THREE.PlaneGeometry(86, 7).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x4a4a50));
+    for (let s = -40; s < 42; s += 5) softG.push(tint(new THREE.PlaneGeometry(2.4, 0.22).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz), 0xf4f4f0));
+    let n = 0;
+    for (const side of [-1, 1]) for (const dx of [-27, 0, 27]) {
+      const w = rr(11, 13), d = rr(10, 11.5), hz = cz + side * (3.5 + 4.5 + d / 2);
+      house2(cx + dx, hz, w, d, side < 0 ? -1 : 1, { floors: n % 3 === 1 ? 1 : 2, col: HC[n % HC.length], roof: rp(ROOFS), chest: n % 2 === 0 });
+      // white picket fence along the yard, with a gap for the path
+      const fz = cz + side * 4.6; cblock(cx + dx - w * 0.35, fz, w * 0.5, 0.9, 0.12, 0, 0xf4f4f0); cblock(cx + dx + w * 0.32, fz, w * 0.36, 0.9, 0.12, 0, 0xf4f4f0);
+      cblock(cx + dx + w * 0.45, cz + side * 5.3, 0.3, 1.1, 0.3, 0, 0x3f7fe0);
+      tree(cx + dx + (n % 2 ? -1 : 1) * (w / 2 + 3), hz, rr(0.9, 1.2), 0);
+      n++;
+    }
+    for (let k = 0; k < 6; k++) spot(cx + rr(-38, 38), cz + rr(-2.5, 2.5));
+  }
+  // ---------- the seasonal area: its own look and its own weather ----------
+  { const cx = -195, cz = -40, SZN = SEASON || 'none';
+    used.push([cx, cz, 46]);
+    softG.push(tint(new THREE.CircleGeometry(46, 40).rotateX(-Math.PI / 2).translate(cx, 0.028, cz), { halloween: 0x3a3428, christmas: 0xf4f8ff, valentine: 0xe8a6c0, easter: 0x7fc85a, summer: 0xf0dca8, thanksgiving: 0x9a6a32, blackhistory: 0x8a6a3a, pride: 0xd8d0f0, none: 0x3a4a34 }[SZN] || 0x3a4a34));
+    const put = (g, x, z, y = 0, box = null) => { g.position.set(x, y, z); g.traverse(k => { if (k.isMesh) { k.castShadow = true; k.receiveShadow = true; } }); scene.add(g); if (box) colliders.push({ min: new V3(x - box[0] / 2, y, z - box[1] / 2), max: new V3(x + box[0] / 2, y + box[2], z + box[1] / 2) }); return g; };
+    const ring = (n, r0, r1, fn) => { for (let k = 0; k < n; k++) { const a = rnd() * 6.283, r = rr(r0, r1); fn(cx + Math.cos(a) * r, cz + Math.sin(a) * r, k); } };
+    const glowM = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 1.3, 0.3) });
+    if (SZN === 'halloween') {
+      // the haunted mansion: two dark storeys of rooms with glowing windows, and two pointed towers
+      house2(cx, cz - 9, 20, 14, -1, { floors: 2, col: 0x3a3440, inner: 0x4a4250, roof: 0x241f2a, chest: true, glow: true, floor: 0x3a2c22 });
+      for (const s of [-1, 1]) { cblock(cx + s * 11.5, cz - 16, 4, 11, 4, 0, 0x2e2a36); solidG.push(tint(new THREE.ConeGeometry(3.3, 5.5, 8).translate(cx + s * 11.5, 13.75, cz - 16), 0x1e1a24)); for (const y of [4, 8]) glowG.push(ni(new THREE.PlaneGeometry(0.9, 1.4)).translate(cx + s * 11.5, y, cz - 13.97)); }
+      // an iron fence round the grounds, with the gate facing the pumpkin patch
+      const fx0 = cx - 18, fx1 = cx + 18, fz0 = cz - 25, fz1 = cz + 4;
+      for (const [x0, x1, z] of [[fx0, fx1, fz0], [fx0, cx - 2.5, fz1], [cx + 2.5, fx1, fz1]]) { cblock((x0 + x1) / 2, z, x1 - x0, 1.7, 0.1, 0, 0x16141a); for (let x = x0; x <= x1; x += 1.5) solidG.push(tint(new THREE.ConeGeometry(0.07, 0.35, 4).translate(x, 1.85, z), 0x16141a)); }
+      for (const x of [fx0, fx1]) { cblock(x, (fz0 + fz1) / 2, 0.1, 1.7, fz1 - fz0, 0, 0x16141a); for (let z = fz0; z <= fz1; z += 1.5) solidG.push(tint(new THREE.ConeGeometry(0.07, 0.35, 4).translate(x, 1.85, z), 0x16141a)); }
+      for (const s of [-1, 1]) cblock(cx + s * 2.8, fz1, 0.6, 2.6, 0.6, 0, 0x2e2a36);
+      // a graveyard behind the house and dead trees all round
+      const tm = PM(0x8a8698, { roughness: 0.9 });
+      for (let k = 0; k < 10; k++) { const x = cx - 14 + (k % 5) * 6.5 + rr(-0.8, 0.8), z = cz - 21.5 + Math.floor(k / 5) * 2.4, t = tombstone(tm); t.rotation.y = rr(-0.2, 0.2); put(t, x, z, 0, [1.2, 0.4, 1.6]); }
+      ring(12, 22, 42, (x, z) => { const g = leafy(0x2a2026, 0x2a2026, 5, 0.5); g.rotation.y = rnd() * 6; put(g, x, z, 0, [0.8, 0.8, 5]); });
+      // the pumpkin patch: rows of pumpkins on dark earth, some of them carved
+      for (let row = 0; row < 4; row++) { softG.push(tint(new THREE.PlaneGeometry(30, 1.6).rotateX(-Math.PI / 2).translate(cx, 0.04, cz + 10 + row * 4.5), 0x2a2018)); for (let c = 0; c < 6; c++) { const r = rr(0.45, 0.95), x = cx - 13 + c * 5.2 + rr(-0.6, 0.6), z = cz + 10 + row * 4.5; put(bigPumpkin(r, rnd() < 0.35), x, z, r * 0.82, null); colliders.push({ min: new V3(x - r, 0, z - r), max: new V3(x + r, r * 1.6, z + r) }); } }
+      // a scarecrow keeping watch
+      cblock(cx + 17, cz + 17, 0.18, 3, 0.18, 0, 0x5a3a20); cblock(cx + 17, cz + 17, 2.2, 0.16, 0.16, 2.1, 0x5a3a20);
+      solidG.push(tint(new THREE.IcosahedronGeometry(0.42, 1).translate(cx + 17, 3.25, cz + 17), 0xd8b45a)); solidG.push(tint(new THREE.ConeGeometry(0.55, 0.7, 10).translate(cx + 17, 3.85, cz + 17), 0x2a2026));
+      // lantern posts
+      for (const [x, z] of [[cx - 5, cz + 6], [cx + 5, cz + 6], [cx - 17, cz + 25], [cx + 17, cz + 25]]) { cblock(x, z, 0.2, 2.8, 0.2, 0, 0x16141a); glowG.push(ni(new THREE.IcosahedronGeometry(0.28, 1)).translate(x, 3.1, z)); }
+      // ghostly wisps drifting round the grounds
+      const wM = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.2, 1.8, 2.2), transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }), wisps = [];
+      for (let k = 0; k < 7; k++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 8), wM); m.userData = { a: rnd() * 6.283, r: rr(8, 26), y: rr(1.5, 5), s: rr(0.15, 0.35) }; scene.add(m); wisps.push(m); }
+      animProps.push(t => { for (const m of wisps) { const u = m.userData, a = u.a + t * u.s; m.position.set(cx + Math.cos(a) * u.r, u.y + Math.sin(t * 1.3 + u.a) * 0.6, cz + Math.sin(a) * u.r); } });
+      chest(cx - 12, cz + 27, 0); chest(cx + 15, cz - 21, Math.PI);
+      for (const [x, z] of [[cx - 8, cz + 8], [cx + 9, cz + 26], [cx - 15, cz - 19], [cx + 2, cz + 20]]) spot(x, z);
+      RL.zone = { name: 'HAUNTED HOLLOW', fog: 0x2c2a36, near: 6, far: 85, light: 0.42, sky: 0x2a2833, skyA: 0.9, fx: 'rain', lightning: true, clouds: 0x22202a };
+    } else {
+      // every other season (or no season) gets a smaller themed area with its own weather
+      const S = {
+        christmas: { name: 'FROSTY VILLAGE', col: 0x8a5a3a, roof: 0xf4f8ff, props: [[() => pine(1.4), 12, [1.4, 1.4, 4]], [() => snowmanProp(), 5, [1.6, 1.6, 2.6]], [() => present(1.4, PM(0xd8343c), PM(0xffd23a, { metalness: 0.4 }), 0, 0), 8, [1.4, 1.4, 1.4]], [() => candyCane(4, 0, 0), 6, null]], zone: { fog: 0xc8d4e8, near: 15, far: 150, light: 0.85, sky: 0xd8e0ec, skyA: 0.6, fx: 'snow', fxCol: 0xffffff } },
+        valentine: { name: 'ROSE GARDEN', col: 0xf2c8d8, roof: 0xd83a6a, props: [[() => { const g = bushProp(); g.traverse(o => { if (o.material && o.geometry.type !== 'CylinderGeometry') o.material = PM(0xd8343c); }); return g; }, 14, [2, 2, 1.6]], [() => heartProp(0), 6, null]], zone: { fog: 0xffc8dc, near: 25, far: 220, light: 1, sky: 0xffd0e0, skyA: 0.35, fx: 'petals', fxCol: 0xff8fb8 } },
+        easter: { name: 'EGG MEADOW', col: 0xfff0d6, roof: 0x8fd0ff, props: [[c => eggProp(c), 16, [1.6, 1.6, 2.4]], [() => bushProp(), 8, [2, 2, 1.6]]], zone: { fog: 0xe0f4ff, near: 40, far: 260, light: 1.05, sky: 0xd8f0ff, skyA: 0.25, fx: 'petals', fxCol: 0xffd6ec } },
+        summer: { name: 'SUNNY BEACH', col: 0xf0dcb0, roof: 0x19c7d0, props: [[() => palmTree(), 10, [0.9, 0.9, 6]], [c => umbrellaProp(c), 7, [0.4, 0.4, 3]], [() => castleProp(), 3, [2.4, 2.4, 2]]], zone: { fog: 0xfff2d8, near: 60, far: 420, light: 1.15, sky: 0xfff0d0, skyA: 0.15, fx: '', fxCol: 0xffffff } },
+        thanksgiving: { name: 'HARVEST FIELDS', col: 0x9a2a22, roof: 0x5a3a20, props: [[() => leafy(0x5a3a22, 0xe0782a), 12, [1, 1, 4]], [() => hayProp(), 8, [2.4, 1.7, 1.6]], [() => { const g = new THREE.Group(), p = bigPumpkin(0.8, false); p.position.y = 0.66; g.add(p); return g; }, 10, [1.6, 1.6, 1.3]]], zone: { fog: 0xe0a060, near: 20, far: 180, light: 0.85, sky: 0xe8b070, skyA: 0.35, fx: 'leaves', fxCol: 0xe0782a } },
+        blackhistory: { name: 'HERITAGE PLAZA', col: 0xc9a46a, roof: 0x1f8a3a, props: [[() => torchProp(), 6, [0.5, 0.5, 3.4]], [() => baobabProp(), 5, [2.4, 2.4, 5]], [c => flagProp(c), 6, [0.3, 0.3, 6]]], zone: { fog: 0xd98a4a, near: 25, far: 200, light: 0.85, sky: 0xe09a5a, skyA: 0.35, fx: '', fxCol: 0xffd28a } },
+        pride: { name: 'PRIDE PARK', col: 0xf4f0ff, roof: 0xc58cff, props: [[c => flagProp(c), 10, [0.3, 0.3, 6]], [() => archProp(), 1, null], [() => bushProp(), 6, [2, 2, 1.6]]], zone: { fog: 0xe8d8ff, near: 40, far: 260, light: 1.05, sky: 0xf0e0ff, skyA: 0.25, fx: 'confetti', fxCol: 0xffffff } },
+        none: { name: 'MISTY MARSH', col: 0x4a4038, roof: 0x2a2a26, props: [[() => leafy(0x2a2026, 0x3a4a30, 5, 0.6), 14, [0.8, 0.8, 5]], [() => rockProp(), 8, [1.6, 1.6, 1.4]]], zone: { fog: 0x4a5a4a, near: 8, far: 95, light: 0.5, sky: 0x48524a, skyA: 0.8, fx: 'rain', lightning: false, clouds: 0x3a423c } },
+      }[SZN] || null;
+      const C = S || { name: 'MISTY MARSH', col: 0x4a4038, roof: 0x2a2a26, props: [], zone: { fog: 0x4a5a4a, near: 8, far: 95, light: 0.5, sky: 0x48524a, skyA: 0.8, fx: 'rain' } };
+      house2(cx, cz - 6, 13, 11, -1, { floors: 2, col: C.col, roof: C.roof, chest: true });
+      house2(cx - 16, cz + 14, 9, 8, -1, { floors: 1, col: C.col, roof: C.roof });
+      for (const [mk, n, box] of C.props) ring(n, 14, 42, (x, z, k) => put(mk(k), x, z, 0, box));
+      chest(cx + 15, cz + 18, 0.5); for (const [x, z] of [[cx + 8, cz + 10], [cx - 8, cz + 26], [cx + 18, cz - 14]]) spot(x, z);
+      RL.zone = Object.assign({ name: C.name }, C.zone);
+    }
+    RL.zone.c = new V3(cx, 0, cz); RL.zone.r = 40;
+    RL.pois.push([RL.zone.name, cx, cz, 44]);
+    // a dark storm cloud hangs over the gloomy ones
+    if (RL.zone.clouds) {
+      const ct = canvasTex('gloomcloud', x => { const g = x.createRadialGradient(128, 128, 10, 128, 128, 128); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.5, 'rgba(255,255,255,.6)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); });
+      for (let k = 0; k < 14; k++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: ct, color: RL.zone.clouds, transparent: true, opacity: 0.85, depthWrite: false })); const a = rnd() * 6.283, r = rr(0, 36), sz = rr(40, 70); s.scale.set(sz, sz * 0.4, 1); s.position.set(cx + Math.cos(a) * r, rr(38, 52), cz + Math.sin(a) * r); scene.add(s); }
+    }
+    if (glowG.length) { const gm = new THREE.Mesh(mergeGeometries(glowG), glowM); scene.add(gm); }
+  }
+  if (glassG.length) scene.add(new THREE.Mesh(mergeGeometries(glassG), new THREE.MeshStandardMaterial({ color: 0x9fd0ff, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0.4, side: THREE.DoubleSide, depthWrite: false })));
   // little huts all over the island
   for (let i = 0, tries = 0; i < 24 && tries < 900; tries++) {
     const a = rnd() * 6.283, r = rr(35, ARENA_R - 25), x = Math.cos(a) * r, z = Math.sin(a) * r;
@@ -3457,7 +3632,7 @@ function setWeapon(id, instant) {
   flashSprite.material.color.copy(gv.base).multiplyScalar(0.5);
   ammo = ammoBy[id] != null ? ammoBy[id] : WEAPONS[id].mag; reloadT = 0; swapT = instant ? 0 : 0.35; adsToggle = false; ads = false;
   if (!instant) sfx.swap();
-  $('slots').innerHTML = mode === 'gungame' ? '' : kit().guns.map((w, i) => `<span class="${w === id ? 'on' : ''}">${i + 1}</span>`).join('');
+  hudCache.slots = null;
   hudCache.ammo = null;
 }
 
@@ -7023,7 +7198,7 @@ function throwNade() {
 function useAbility() {
   if (isPropPlayer() || playerFrozen()) return;
   const k = kit();
-  if (k.q === 'none') return;
+  if (k.q === 'none') { if (mode === 'royale' && player.alive) { RY.sel = -1; if (curW !== 'pick') setWeapon('pick'); } return; }
   if (!k.q) { toast(`Jetpack: jump, then hold ${bindLabel('jump')} to fly`); return; }
   if (k.q === 'pulse') return pulse();
   if (k.q === 'pounce') {
@@ -7978,7 +8153,8 @@ function hurt(dmg, src) {
   if (coop() && inShield(player.pos)) { shockRing(player.pos.clone().setY(player.pos.y + 1), new THREE.Color(0.6, 2.2, 3), 1.5, 0.25); return; }
   if (coop() && deploys.some(d => d.kind === 'taunt' && d.owner === myId)) dmg *= 0.5;
   // the mech's armor and the repair beacon's bonus shield soak damage first
-  if (mechOn && player.mechArmor > 0) { player.mechArmor -= dmg; burst(tA.copy(player.pos).setY(player.pos.y + 3), 6, new THREE.Color(3, 1.6, 0.4), 5, 0.3, 0.08); tone(300, 200, 0.05, 0.08, 'square'); shake = Math.max(shake, 0.08); return; }
+  // in the mech: the armour takes the hit, and 30% of it still gets through to you
+  if (mechOn && player.mechArmor > 0) { player.mechArmor -= dmg; dmg *= 0.3; burst(tA.copy(player.pos).setY(player.pos.y + 3), 6, new THREE.Color(3, 1.6, 0.4), 5, 0.3, 0.08); tone(300, 200, 0.05, 0.08, 'square'); shake = Math.max(shake, 0.08); }
   if (player.over > 0) { const a = Math.min(player.over, dmg); player.over -= a; dmg -= a; if (dmg <= 0) { tone(1400, 1100, 0.05, 0.05, 'triangle'); return; } }
   player.hp -= dmg; player.lastDmgT = time;
   if (src.poison) tone(160, 120, 0.08, 0.05, 'sine');
@@ -8426,6 +8602,7 @@ function updateHUD() {
     setText('hLead', `${lead.n} · ${Math.min(lead.lv + 1, LADDER.length)}`);
     setText('hint', ggLv === LADDER.length - 1 ? 'BLADE KILL TO WIN' : '');
   }
+  { const sh = slotsHTML(); if (hudCache.slots !== sh) { hudCache.slots = sh; $('slots').innerHTML = sh; } }
   const W = WEAPONS[curW], rRar = mode === 'royale' ? royaleRar(curW) : null, rRes = mode === 'royale' && AMMO_OF[curW] ? RY.ammo[AMMO_OF[curW]] : null;
   setText('ammolbl', reloadT > 0 ? 'RELOADING' : rRar != null ? `${RAR[rRar].n.toUpperCase()} ${W.name.toUpperCase()}` : W.name.toUpperCase());
   setStyle($('ammolbl'), 'color', rRar != null && reloadT <= 0 ? RAR[rRar].css : '');
@@ -8763,7 +8940,7 @@ function actionDown(a) {
     case 'board': renderBoard(); $('board').hidden = false; break;
     default: {
       const m = /^w([1-9])$/.exec(a);
-      if (m && mode === 'royale' && +m[1] >= 5) { const t = Object.keys(HEALS).find(k => HEALS[k].key === +m[1]); if (t) royaleHeal(t); break; }
+      if (m && mode === 'royale') { if (+m[1] <= 5 && player.alive) royaleSelect(+m[1] - 1); break; }
       if (m && mode !== 'gungame' && !mechOn) { const id = kit().guns[+m[1] - 1]; if (id && id !== curW) setWeapon(id); }
     }
   }
@@ -9422,7 +9599,7 @@ const AMMO = { L: { n: 'Light Ammo', c: 0x5ff2ff, max: 240, give: [30, 60] }, H:
 const AMMO_ROLL = 'LLLHHSSEER';
 const HEALS = { b: { n: 'Bandage', icon: '🩹', key: 5, max: 10, t: 2, give: [2, 3] }, m: { n: 'Medkit', icon: '✚', key: 6, max: 3, t: 4.5, give: [1, 1] }, s: { n: 'Shield Cell', icon: '🛡', key: 7, max: 4, t: 3, give: [1, 2] } };
 const BR_GUNS = ['rifle', 'smg', 'scatter', 'cannon', 'rail', 'nova', 'lmg', 'inferno', 'arc', 'autocannon', 'cards'], BR_GUN_W = [10, 10, 8, 8, 3, 2, 6, 5, 6, 5, 6];
-const RY = { guns: [null, null, null], rar: [0, 0, 0], ammo: { L: 0, H: 0, S: 0, E: 0, R: 0 }, heals: { b: 0, m: 0, s: 0 }, using: null, picked: [], opened: [], drops: [], dropSeq: 0, glide: false, zoneT: 0.5, near: null, inMatch: false, lastInv: [], zc: [0, 0, ARENA_R], mapT: 0, ui: null };
+const RY = { slots: [null, null, null, null, null], sel: -1, ammo: { L: 0, H: 0, S: 0, E: 0, R: 0 }, using: null, picked: [], opened: [], drops: [], dropSeq: 0, glide: false, zoneT: 0.5, near: null, inMatch: false, lastInv: [], zc: [0, 0, ARENA_R], mapT: 0, ui: null };
 const mulberry = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const parseCode = s => { const [k, a, b] = String(s).split(':'); return { k, a, b: +b || 0 }; };
 function rollGun(r, better) {
@@ -9433,7 +9610,9 @@ function rollGun(r, better) {
 }
 function rollAmmo(r, t) { const A = AMMO[t]; return `a:${t}:${Math.round(A.give[0] + r() * (A.give[1] - A.give[0]))}`; }
 function rollHeal(r) { const v = r(), t = v < 0.5 ? 'b' : v < 0.78 ? 's' : 'm', H = HEALS[t]; return `h:${t}:${H.give[0] + Math.floor(r() * (H.give[1] - H.give[0] + 1))}`; }
-const royaleRar = id => { const i = RY.guns.indexOf(id); return i >= 0 ? RY.rar[i] : null; };
+// Battle Royale inventory: 5 slots, each holding a gun or a stack of one kind of heal. The pickaxe is always on Q.
+const rSlotGun = id => RY.slots.find(s => s && s.k === 'g' && s.w === id);
+const royaleRar = id => { const s = rSlotGun(id); return s ? s.r : null; };
 // rarer guns hit harder
 const rWCache = {};
 function royaleW(id) {
@@ -9442,16 +9621,16 @@ function royaleW(id) {
   const k = id + r; return rWCache[k] || (rWCache[k] = Object.assign({}, W, { dmg: Math.round(W.dmg * RAR[r].k) }));
 }
 function royaleResetInv() {
-  RY.guns = [null, null, null]; RY.rar = [0, 0, 0]; RY.ammo = { L: 0, H: 0, S: 0, E: 0, R: 0 }; RY.heals = { b: 0, m: 0, s: 0 }; RY.using = null; RY.glide = false;
+  RY.slots = [null, null, null, null, null]; RY.sel = -1; RY.ammo = { L: 0, H: 0, S: 0, E: 0, R: 0 }; RY.using = null; RY.glide = false;
   for (const k in ammoBy) delete ammoBy[k];
 }
+const slotCode = s => s.k === 'g' ? `g:${s.w}:${s.r}` : `h:${s.t}:${s.n}`;
 function royaleInvCodes() {
-  const out = [];
-  RY.guns.forEach((w, i) => { if (w) out.push(`g:${w}:${RY.rar[i]}`); });
+  const out = RY.slots.filter(Boolean).map(slotCode);
   for (const t in RY.ammo) if (RY.ammo[t] > 0) out.push(`a:${t}:${RY.ammo[t]}`);
-  for (const t in RY.heals) if (RY.heals[t] > 0) out.push(`h:${t}:${RY.heals[t]}`);
   return out;
 }
+const healCount = t => RY.slots.reduce((n, s) => n + (s && s.k === 'h' && s.t === t ? s.n : 0), 0);
 // ---------- loot on the ground ----------
 const LG = { ring: new THREE.TorusGeometry(0.55, 0.035, 6, 32).rotateX(Math.PI / 2), beam: new THREE.CylinderGeometry(0.05, 0.05, 1, 6, 1, true).translate(0, 0.5, 0), box: new THREE.BoxGeometry(0.5, 0.32, 0.34), roll: new THREE.CylinderGeometry(0.15, 0.15, 0.26, 14).rotateZ(Math.PI / 2), crossA: new THREE.BoxGeometry(0.06, 0.2, 0.03), crossB: new THREE.BoxGeometry(0.2, 0.06, 0.03), kit: new THREE.BoxGeometry(0.56, 0.36, 0.2), cell: new THREE.CylinderGeometry(0.13, 0.13, 0.42, 14), cap: new THREE.CylinderGeometry(0.1, 0.1, 0.06, 14) };
 const LM = {};
@@ -9531,26 +9710,41 @@ function royaleBotDrop(e) { if (!GS.rsd) return; const t = AMMO_OF[e.wp] || 'L';
 function autoPick(it) {
   const c = it.c;
   if (c.k === 'a') { const A = AMMO[c.a]; if (RY.ammo[c.a] >= A.max) return false; RY.ammo[c.a] = Math.min(A.max, RY.ammo[c.a] + c.b); hudCache.ammo = null; toast(`+${c.b} ${A.n}`); }
-  else { const H = HEALS[c.a]; if (RY.heals[c.a] >= H.max) return false; RY.heals[c.a] = Math.min(H.max, RY.heals[c.a] + c.b); toast(`+${c.b} ${H.n}${c.b > 1 ? 's' : ''} · press ${H.key} to use`); }
+  else {
+    // heals stack onto a matching slot first, then take an empty one
+    const H = HEALS[c.a]; let left = c.b;
+    for (const s of RY.slots) if (left > 0 && s && s.k === 'h' && s.t === c.a && s.n < H.max) { const add = Math.min(left, H.max - s.n); s.n += add; left -= add; }
+    let i; while (left > 0 && (i = RY.slots.indexOf(null)) >= 0) { const add = Math.min(left, H.max); RY.slots[i] = { k: 'h', t: c.a, n: add }; left -= add; }
+    if (left === c.b) { if (time - (RY.fullT || 0) > 3) { RY.fullT = time; toast(`No room for the ${H.n.toLowerCase()} · your 5 slots are full`); } return false; }
+    toast(`+${c.b - left} ${H.n}${c.b - left > 1 ? 's' : ''}`);
+  }
   takeItem(it.id, true); sfx.pickup(); return true;
 }
-function dropGun(i) {
-  const w = RY.guns[i]; if (!w) return;
-  const code = `g:${w}:${RY.rar[i]}`, id = 'x' + myId + '.' + GS.rsd + '.' + (++RY.dropSeq), p = player.pos;
+// whatever is in a slot lands at your feet
+function dropSlot(i) {
+  const s = RY.slots[i]; if (!s) return;
+  const code = slotCode(s), id = 'x' + myId + '.' + GS.rsd + '.' + (++RY.dropSeq), p = player.pos;
   const x = p.x + Math.sin(player.yaw) * 0.9, z = p.z + Math.cos(player.yaw) * 0.9, y = groundBelow(tC.set(x, p.y + 0.5, z));
   addItem(id, code, x, y, z);
   RY.drops.push([id, code, r1(x), r1(y), r1(z)]); if (RY.drops.length > 8) RY.drops.shift();
-  RY.guns[i] = null; RY.rar[i] = 0; delete ammoBy[w];
+  RY.slots[i] = null; if (s.k === 'g') delete ammoBy[s.w];
 }
 function pickGun(it) {
   const c = it.c, w = c.a;
-  let i = RY.guns.indexOf(w);
-  if (i >= 0) dropGun(i);
-  else { i = RY.guns.indexOf(null); if (i < 0) { i = Math.max(0, RY.guns.indexOf(curW)); dropGun(i); } }
-  RY.guns[i] = w; RY.rar[i] = c.b; ammoBy[w] = WEAPONS[w].mag;
+  let i = RY.slots.findIndex(s => s && s.k === 'g' && s.w === w);
+  if (i >= 0) dropSlot(i);
+  else { i = RY.slots.indexOf(null); if (i < 0) { i = RY.sel >= 0 ? RY.sel : 0; dropSlot(i); } }
+  RY.slots[i] = { k: 'g', w, r: c.b }; ammoBy[w] = WEAPONS[w].mag;
   takeItem(it.id, true); sfx.pickup();
-  setWeapon(w);
+  royaleSelect(i);
   const R = RAR[c.b]; announce(`${R.n.toUpperCase()} ${WEAPONS[w].name.toUpperCase()}`, `Uses ${AMMO[AMMO_OF[w]].n.toLowerCase()}`, R.css);
+}
+// pressing a slot's number: a gun goes in your hands, a heal gets used, an empty slot gives you the pickaxe
+function royaleSelect(i) {
+  const s = RY.slots[i];
+  if (s && s.k === 'h') { royaleHeal(s.t); return; }
+  RY.sel = s ? i : -1;
+  const w = s ? s.w : 'pick'; if (w !== curW) setWeapon(w);
 }
 function royaleUse() {
   if (GS.rph !== 1 || !player.alive || !RY.near) return;
@@ -9559,19 +9753,102 @@ function royaleUse() {
 // reloading takes from your reserve
 function royaleReload(W, cur) { const t = AMMO_OF[curW]; if (!t) return W.mag; const take = Math.min(W.mag - cur, RY.ammo[t]); RY.ammo[t] -= take; return cur + take; }
 function royaleCanReload() { const t = AMMO_OF[curW]; if (!t || RY.ammo[t] > 0) return true; toast(`Out of ${AMMO[t].n.toLowerCase()}`); return false; }
-// ---------- heals (5 bandage, 6 medkit, 7 shield cell) ----------
+// ---------- heals ----------
 function royaleHeal(t) {
   const H = HEALS[t]; if (!H || !player.alive || GS.rph !== 1) return;
   if (RY.using) { RY.using = null; toast('Stopped healing'); return; }
-  if (RY.heals[t] <= 0) { toast(`No ${H.n.toLowerCase()}s`); return; }
+  if (healCount(t) <= 0) { toast(`No ${H.n.toLowerCase()}s`); return; }
   if (t === 's' ? player.over >= 100 : t === 'b' ? player.hp >= 75 : player.hp >= maxHp()) { toast(t === 's' ? 'Shield is full' : t === 'b' ? 'Bandages only heal up to 75' : 'Health is full'); return; }
   RY.using = { t, t0: time, end: time + H.t }; tone(500, 700, 0.1, 0.05, 'triangle');
 }
 function royaleHealDone(t) {
-  RY.heals[t]--;
+  const i = RY.slots.findIndex(s => s && s.k === 'h' && s.t === t); if (i < 0) return;
+  if (--RY.slots[i].n <= 0) RY.slots[i] = null;
   if (t === 'b') player.hp = Math.min(75, player.hp + 25); else if (t === 'm') player.hp = maxHp(); else player.over = Math.min(100, (player.over || 0) + 50);
   curePoison(); burst(tA.copy(player.pos).setY(player.pos.y + 1), 22, t === 's' ? new THREE.Color(0.5, 1.6, 3) : GREEN, 4, 0.5, 0.09, -2);
   tone(880, 1320, 0.15, 0.07, 'triangle');
+}
+// ---------- the seasonal area's own weather: fog, a grey sky, rain or snow, lightning ----------
+const WX = { k: 0, flashT: 0, dome: null, rain: null, flakes: null, col: new THREE.Color() };
+function updateZoneWeather(dt) {
+  const Z = RL.zone; if (!Z) return;
+  if (!WX.dome) {
+    WX.dome = new THREE.Mesh(new THREE.SphereGeometry(300, 24, 16), new THREE.MeshBasicMaterial({ color: Z.sky, transparent: true, opacity: 0, side: THREE.BackSide, depthWrite: false, fog: false })); WX.dome.renderOrder = -1; WX.dome.frustumCulled = false; scene.add(WX.dome);
+    const N = 900, rp = new Float32Array(N * 6); for (let i = 0; i < N; i++) { const x = rand(-30, 30), y = rand(0, 30), z = rand(-30, 30); rp.set([x, y, z, x, y - 0.8, z], i * 6); }
+    WX.rain = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(rp, 3)), new THREE.LineBasicMaterial({ color: 0xb0bcd0, transparent: true, opacity: 0, depthWrite: false })); WX.rain.frustumCulled = false; scene.add(WX.rain);
+    const M = 700, fp = new Float32Array(M * 3), fc = new Float32Array(M * 3), base = new THREE.Color(Z.fxCol || 0xffffff);
+    for (let i = 0; i < M; i++) { fp.set([rand(-30, 30), rand(0, 25), rand(-30, 30)], i * 3); const c = Z.fx === 'confetti' ? new THREE.Color().setHSL(Math.random(), 1, 0.6) : base; fc.set([c.r, c.g, c.b], i * 3); }
+    WX.flakes = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(fp, 3)).setAttribute('color', new THREE.BufferAttribute(fc, 3)), new THREE.PointsMaterial({ vertexColors: true, size: Z.fx === 'snow' ? 0.16 : 0.22, transparent: true, opacity: 0, depthWrite: false })); WX.flakes.frustumCulled = false; scene.add(WX.flakes);
+  }
+  const cp = camera.position, d = Math.hypot(cp.x - Z.c.x, cp.z - Z.c.z), want = clamp(1 - (d - Z.r) / 35, 0, 1);
+  WX.k = damp(WX.k, want, 2.5, dt); const k = WX.k;
+  const baseFar = curQ.decor ? 760 : 420, baseHemi = curQ.cheap ? 1.7 : 0.9;
+  scene.fog.color.setHex(TH.fog[0]).lerp(WX.col.setHex(Z.fog), k);
+  scene.fog.near = TH.fog[1] + (Z.near - TH.fog[1]) * k; scene.fog.far = baseFar + (Z.far - baseFar) * k;
+  // lightning: a double flash, then thunder a moment later
+  WX.flashT = Math.max(0, WX.flashT - dt);
+  if (Z.lightning && k > 0.6 && Math.random() < dt * 0.1) { WX.flashT = 0.35; const v = k; setTimeout(() => noise(1.8, 0.4 * v, 220, 'lowpass', 0.8, 0, 0, 60), rand(300, 1500)); }
+  const fl = WX.flashT > 0 ? (Math.sin(WX.flashT * 55) > 0 ? 3 : 0.5) * WX.flashT : 0;
+  hemi.intensity = baseHemi * (1 + (Z.light - 1) * k) + fl * 2; sun.intensity = TH.sunC[1] * (1 + (Z.light - 1) * k);
+  WX.dome.visible = k > 0.01 && Z.skyA > 0; if (WX.dome.visible) { WX.dome.position.copy(cp); WX.dome.material.opacity = Math.min(1, k * Z.skyA + fl * 0.08); }
+  const wet = Z.fx === 'rain' && k > 0.01, fall = (Z.fx === 'snow' || Z.fx === 'petals' || Z.fx === 'leaves' || Z.fx === 'confetti') && k > 0.01;
+  WX.rain.visible = wet; WX.flakes.visible = fall;
+  if (wet) {
+    WX.rain.position.set(cp.x, 0, cp.z); WX.rain.material.opacity = 0.55 * k;
+    const a = WX.rain.geometry.attributes.position.array, dy = 28 * dt;
+    for (let i = 0; i < a.length; i += 6) { a[i + 1] -= dy; a[i + 4] -= dy; if (a[i + 4] < 0) { const x = rand(-30, 30), z = rand(-30, 30), y = rand(22, 32); a[i] = a[i + 3] = x; a[i + 2] = a[i + 5] = z; a[i + 1] = y; a[i + 4] = y - 0.8; } }
+    WX.rain.geometry.attributes.position.needsUpdate = true;
+  }
+  if (fall) {
+    WX.flakes.position.set(cp.x, 0, cp.z); WX.flakes.material.opacity = 0.9 * k;
+    const a = WX.flakes.geometry.attributes.position.array, sp = Z.fx === 'snow' ? 1.6 : 1.1;
+    for (let i = 0; i < a.length; i += 3) { a[i + 1] -= sp * dt; a[i] += Math.sin(time * 0.8 + i) * dt * 0.6; if (a[i + 1] < 0) { a[i] = rand(-30, 30); a[i + 1] = rand(20, 26); a[i + 2] = rand(-30, 30); } }
+    WX.flakes.geometry.attributes.position.needsUpdate = true;
+  }
+}
+// ---------- weapon slots in the bottom-right corner, with a picture of each gun ----------
+const GUN_ICON = {};
+function makeGunIcons() {
+  GUN_ICON.done = true;
+  const prevClear = new THREE.Color(); renderer.getClearColor(prevClear); const prevA = renderer.getClearAlpha();
+  try {
+    const sc = new THREE.Scene(); sc.environment = scene.environment;
+    sc.add(new THREE.HemisphereLight(0xffffff, 0x334455, 1.6)); const dl = new THREE.DirectionalLight(0xffffff, 2.4); dl.position.set(3, 4, 2); sc.add(dl);
+    const W = 192, Hh = 96, cam = new THREE.OrthographicCamera(-1, 1, 0.5, -0.5, 0.01, 50); cam.position.set(6, 0, 0); cam.lookAt(0, 0, 0);
+    const buf = new THREE.Vector2(); renderer.getDrawingBufferSize(buf);
+    const pr = renderer.getPixelRatio(), cv = document.createElement('canvas'); cv.width = W; cv.height = Hh; const x = cv.getContext('2d', { willReadFrequently: true });
+    renderer.setScissorTest(true); renderer.setViewport(0, 0, W / pr, Hh / pr); renderer.setScissor(0, 0, W / pr, Hh / pr); renderer.setClearColor(0x00ff00, 1);
+    for (const id of WIDS) {
+      const src = guns[id]; if (!src) continue;
+      const g = src.g.clone(true); g.traverse(o => { if (o.isSprite) o.visible = false; }); g.visible = true; g.position.set(0, 0, 0); g.rotation.set(0, 0, 0);
+      const holder = new THREE.Group(); holder.add(g); sc.add(holder); holder.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(holder), c = box.getCenter(new V3()), s = box.getSize(new V3());
+      g.position.sub(c); holder.updateMatrixWorld(true);
+      const hw = Math.max(s.z / 2, s.y) * 1.12 + 0.01; cam.left = -hw; cam.right = hw; cam.top = hw / 2; cam.bottom = -hw / 2; cam.updateProjectionMatrix();
+      renderer.render(sc, cam);
+      x.clearRect(0, 0, W, Hh); x.drawImage(renderer.domElement, 0, buf.y - Hh, W, Hh, 0, 0, W, Hh);
+      // the green backdrop becomes see-through
+      const im = x.getImageData(0, 0, W, Hh), d = im.data;
+      for (let i = 0; i < d.length; i += 4) { const k = d[i + 1] - Math.max(d[i], d[i + 2]); if (k > 30) { d[i + 3] = Math.max(0, 255 - k * 2.2); d[i + 1] = Math.max(d[i], d[i + 2]); } }
+      x.putImageData(im, 0, 0); GUN_ICON[id] = cv.toDataURL();
+      sc.remove(holder);
+    }
+  } catch (e) {}
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.setClearColor(prevClear, prevA);
+}
+const gunIcon = id => { if (!GUN_ICON.done) makeGunIcons(); return GUN_ICON[id] || ''; };
+function slotsHTML() {
+  const img = id => `<img src="${gunIcon(id)}" alt="${esc(WEAPONS[id]?.name || '')}">`;
+  if (mode === 'gungame') return `<div class="islot on" style="--rc:${WEAPONS[curW].css}">${img(curW)}</div>`;
+  if (mode === 'royale') {
+    let h = `<div class="islot pick${RY.sel < 0 ? ' on' : ''}"><kbd>${esc(bindLabel('pulse').toUpperCase())}</kbd>${img('pick')}</div>`;
+    RY.slots.forEach((s, i) => {
+      const using = s && s.k === 'h' && RY.using && RY.using.t === s.t, on = (s && s.k === 'g' && RY.sel === i) || using;
+      h += `<div class="islot${s ? '' : ' empty'}${on ? ' on' : ''}" style="--rc:${s && s.k === 'g' ? RAR[s.r].css : 'transparent'}"><kbd>${i + 1}</kbd>${!s ? '' : s.k === 'g' ? img(s.w) : `<i style="color:${s.t === 'm' ? '#ff4f5e' : '#fff'}">${HEALS[s.t].icon}</i><small>${s.n}</small>`}</div>`;
+    });
+    return h;
+  }
+  return kit().guns.map((w, i) => `<div class="islot${w === curW ? ' on' : ''}" style="--rc:${WEAPONS[w].css}"><kbd>${i + 1}</kbd>${img(w)}</div>`).join('');
 }
 // ---------- match flow ----------
 const royaleSpawn = () => new V3(rand(-18, 18), LOBBY_Y, rand(-18, 18));
@@ -9698,9 +9975,9 @@ function updateRoyale(dt) {
   const want = GS.rph === 1 ? GS.rsd : 0;
   if (RL.seed !== want) royaleLoot(want);
   if (GS.rph === 1 && state === 'playing' && !RY.inMatch) { if (settings.room === 'public' && brInst < 40) royaleNextLobby(); else royaleWait(); }
-  royaleZoneFx(dt);
+  royaleZoneFx(dt); updateZoneWeather(dt);
   const ui = royaleUI(), inGame = state !== 'menu' && state !== 'editor';
-  ui.map.style.display = ui.heals.style.display = inGame ? '' : 'none';
+  ui.map.style.display = inGame ? '' : 'none'; ui.heals.style.display = 'none';
   // what everyone else picked up, opened, dropped or left behind
   RL.syncT -= dt;
   if (RL.syncT <= 0 && RL.seed) {
@@ -9757,8 +10034,6 @@ function updateRoyale(dt) {
   }
   const barHtml = RY.using ? `USING ${HEALS[RY.using.t].n.toUpperCase()}<div style="height:6px;margin-top:5px;background:rgba(255,255,255,.18);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(clamp((time - RY.using.t0) / HEALS[RY.using.t].t, 0, 1) * 100)}%;background:#74ffb5"></div></div>` : '';
   if (hudCache.rbar !== barHtml) { hudCache.rbar = barHtml; ui.bar.innerHTML = barHtml; }
-  const hh = Object.entries(HEALS).map(([t, H]) => `<div style="background:var(--panel);border:1px solid ${RY.heals[t] ? 'var(--line)' : 'rgba(255,255,255,.08)'};border-radius:4px;padding:5px 8px;opacity:${RY.heals[t] ? 1 : 0.45}"><b style="color:var(--amber)">${H.key}</b> ${H.icon} ×${RY.heals[t]}</div>`).join('');
-  if (hudCache.rheal !== hh) { hudCache.rheal = hh; ui.heals.innerHTML = hh; }
   RY.mapT -= dt; if (RY.mapT <= 0 && inGame) { RY.mapT = 0.12; drawRoyaleMap(); }
 }
 // ================= kill cam =================
