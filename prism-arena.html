@@ -111,6 +111,7 @@ button,input,select{font:inherit;color:inherit}
 #br .lbl{font-size:11px;letter-spacing:.2em;color:var(--dim)}
 #slots{display:flex;gap:6px;justify-content:flex-end;margin-bottom:8px}
 #slots span{font-size:10px;width:18px;height:18px;line-height:18px;text-align:center;border:1px solid var(--line);border-radius:2px;color:var(--dim);background:var(--panel)}
+.lkrow{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);margin-top:8px}.lkrow code{color:var(--cyan)}.lkrow .btnrow{margin:0}
 .islot{position:relative;width:64px;height:42px;border:1px solid var(--line);border-bottom:3px solid var(--rc,var(--line));border-radius:5px;background:var(--panel);display:flex;align-items:center;justify-content:center;text-align:center}
 .islot.on{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 14px rgba(95,242,255,.35)}
 .islot.empty{opacity:.45}.islot.pick{width:46px}
@@ -516,7 +517,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
       <button class="mode" data-mode="ffa"><b>Free-for-All</b><span>Your gun, everyone vs everyone. First to 20 kills.</span></button>
       <button class="mode" data-mode="gungame"><b>Gun Game</b><span>Every kill swaps your gun. Finish the ladder to win.</span></button>
       <button class="mode" data-mode="infect"><b>Infection</b><span>One player starts infected. Survive 3 minutes or join the horde.</span></button>
-      <button class="mode" data-mode="mission"><b>Missions</b><span>A co-op story campaign: collect, hack, escort, defend, then beat a boss.</span></button>
+      <button class="mode" data-mode="mission"><b>Missions</b><span>A co-op story campaign: 13 kinds of objectives (bombs, rings, hunts, zones and more), then a boss.</span></button>
       <button class="mode" data-mode="duel"><b>1v1 Duel</b><span>First to 5 rounds. Challenge a friend, or a tough bot if you're alone.</span></button>
       <button class="mode" data-mode="prophunt"><b>Prop Hunt</b><span>Hide as anything in Prism Mart, or hunt the props down.</span></button>
       <button class="mode" data-mode="royale"><b>Battle Royale</b><span>50 drop onto a big island. Loot guns, ammo and heals. Last one standing wins.</span></button>
@@ -603,6 +604,13 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
       <div class="pstats" id="pfStats"></div>
       <div class="btnrow" id="pfBtns"></div>
       <p class="note" id="pfNote"></p>
+      <div id="pfLink" class="creator" hidden>
+        <label for="lkTo">Link your accounts</label>
+        <p class="note" style="margin:2px 0 8px">Play on more than one device or browser? Link them into one account and they share coins and items. 1: type your other account's player ID here and press LINK. 2: on the other account, open Profile and type this account's ID (<code id="lkMine"></code>). Only link accounts that are yours.</p>
+        <div class="crow"><input id="lkTo" maxlength="26" autocomplete="off" spellcheck="false" placeholder="P-xxxxxxxxxx"><button class="ghost" id="lkGo">LINK</button></div>
+        <small id="lkMsg"></small>
+        <div id="lkList"></div>
+      </div>
     </div>
     <div class="pane" id="setPane" hidden>
       <div class="sect" style="margin-bottom:-4px">Graphics</div>
@@ -631,7 +639,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="field check"><label><input type="checkbox" id="chaton">Show chat</label></div>
       </div>
       <div class="sect" style="margin-bottom:-4px">Account</div>
-      <div class="field"><label>Your player ID</label><div class="crow"><code id="pidv"></code><button class="ghost" id="pidcopy">COPY</button></div></div>
+      <div class="field"><label>Your player ID</label><div class="crow"><code id="pidv"></code><button class="ghost" id="pidcopy">COPY</button><button class="ghost" id="pidlink">LINK ACCOUNTS</button></div></div>
       <p class="note">This ID stays the same even if you change your callsign. Creators share theirs so creator-code coins reach them.</p>
       <div class="sect" style="margin-bottom:-4px">Controls at a glance</div>
       <div class="keys" id="keyhelp"></div>
@@ -794,7 +802,7 @@ const REVIVE_TIME = 3.5, MEDIC_REVIVE_TIME = 1.75;
 const TEAM_NAME = ['RED', 'BLUE'], TEAM_CSS = ['#ff5a6e', '#5aa8ff'];
 const TEAM_COL = [new THREE.Color(2.9, 0.35, 0.45), new THREE.Color(0.35, 1.3, 3.0)];
 const BOT_NAMES = ['Viper', 'Nyx', 'Rook', 'Echo', 'Jinx', 'Talon', 'Pixel', 'Bolt', 'Halo', 'Mako', 'Rune', 'Vex', 'Blaze', 'Cobra', 'Drift', 'Ember', 'Frost', 'Ghost', 'Hex', 'Ion', 'Jolt', 'Kite', 'Lynx', 'Moss', 'Nova', 'Onyx', 'Pike', 'Quill', 'Raze', 'Sable', 'Tango', 'Umbra', 'Volt', 'Wisp', 'Xeno', 'Yeti', 'Zephyr', 'Ace', 'Brick', 'Comet', 'Dash', 'Fang', 'Grit', 'Hawk', 'Ivy', 'Jett', 'Kodiak', 'Lark', 'Mantis', 'Nitro', 'Orbit', 'Pulsar', 'Quake', 'Rogue', 'Spike', 'Tusk'];
-const DTYPES = ['scout', 'charger', 'warden', 'titan', 'poisoner', 'queen', 'qclone', 'colossus', 'voideye', 'reaper', 'wyrm', 'overmind'];
+const DTYPES = ['scout', 'charger', 'warden', 'titan', 'poisoner', 'queen', 'qclone', 'colossus', 'voideye', 'reaper', 'wyrm', 'overmind', 'pylon', 'elite'];
 
 // ================= seasons =================
 // Every season runs on the same dates each year. Its shop items and its map only appear while it is on;
@@ -1102,6 +1110,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'missions-v2', date: '2026-10-08', title: 'Missions Overhaul & Account Linking', lines: ['Missions have 7 new kinds of objective: disarm bombs before the fuse runs out, run through rings against the clock, carry cores to the uplink, capture zones, shoot down generators that shoot back, hunt elite drones that teleport, and wipe out the swarm', 'Every mission now has a different mix of objectives', 'Mission bosses are much harder: they use their Boss Raid second-lap attacks, have more health, hit harder, and drones keep coming during the fight', 'Profile: link two accounts yourself. Type the other account\'s ID on both accounts and they merge into one shared wallet'] },
   { id: 'hold-heals', date: '2026-10-08', title: 'Heals In Hand', lines: ['Battle Royale: picking a heal slot now puts the shield cell, bandage or medkit in your hand. Click to use it'] },
   { id: 'br-cities', date: '2026-10-08', title: 'City, Maple Town & Haunted Hollow', lines: ['Battle Royale has three new places: the City (streets, skyscrapers, cars and two-storey shops), Maple Town (family houses with several rooms, stairs and an upstairs) and a seasonal area', 'The seasonal area changes with the seasons and has its own weather. Right now it is Haunted Hollow: a pumpkin patch and a haunted mansion under grey skies, rain and lightning', 'Battle Royale inventory: 5 slots in the bottom right for guns and heals, with a picture of each gun. Q pulls out the pickaxe', 'Every mode now shows your guns as pictures in the bottom right', 'Mech Pilot: the mech armour soaks most damage, but 30% still gets through to you. The minigun holds 300 rounds and takes longer to reload'] },
   { id: 'debloat', date: '2026-10-04', title: 'Spring Cleaning', lines: ['Capture the Flag, the Hub Plaza and the Frostfall map are gone, so there are fewer, busier modes', 'Your color is now only picked in Customize'] },
@@ -3262,7 +3271,7 @@ let shake = 0, recoilP = 0, vmKick = 0, bobT = 0, landDip = 0, fovKick = 0, dmgF
 let score = 0, streak = 0, lastKill = -99, mult = 1, frags = 0, deaths = 0, ggLv = 0, myTeam = 0;
 let respawnAt = 0;
 // shared match state; the host writes it, everyone else mirrors it from the host's presence
-const GS = { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, pph: 0, ptm: 0, hunt: [], prn: 0, wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0 };
+const GS = { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0 };
 let prevGS = JSON.parse(JSON.stringify(GS));
 
 // ================= physics =================
@@ -3388,7 +3397,7 @@ function updatePlayer(dt) {
   player.dashCd = Math.max(0, player.dashCd - dt); player.pulseCd = Math.max(0, player.pulseCd - dt); player.invuln = Math.max(0, player.invuln - dt);
   if (!coop() && mode !== 'royale' && time - player.lastDmgT > 4 && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 15 * dt);
   const wish = player.downed || playerFrozen() ? pWish.set(0, 0, 0) : wishDir(pWish);
-  const spd = (ads ? 6 : 9.5) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.6 : 1);
+  const spd = (ads ? 6 : 9.5) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.6 : 1) * (mode === 'mission' && GS.mcar === myId ? 0.82 : 1);
   updateRift(dt);
   if (player.dashT > 0) player.dashT -= dt;
   else if (player.onGround) { v.x = damp(v.x, wish.x * spd, 14, dt); v.z = damp(v.z, wish.z * spd, 14, dt); }
@@ -3666,7 +3675,7 @@ function wsAdapter(name) {
   const pm = new Map(); let id = null, ws = null, alive = true, mine = {};
   function connect() {
     try { ws = new WebSocket(base + '/ws'); } catch { return; }
-    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); ws.send(JSON.stringify({ t: 'clan', op: 'get' })); if (Object.keys(myMaps).length) ws.send(JSON.stringify({ t: 'mapmine', ids: Object.keys(myMaps) })); ws.send(JSON.stringify({ t: 'join', room: name })); for (const k of Object.keys(LBD)) ws.send(JSON.stringify({ t: 'lb', board: k, entries: lbPayload(true, k) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
+    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); { const k = store.get('linktok', null); if (k && Array.isArray(k.g)) ws.send(JSON.stringify({ t: 'link', op: 'restore', g: k.g, sig: k.sig })); } ws.send(JSON.stringify({ t: 'clan', op: 'get' })); if (Object.keys(myMaps).length) ws.send(JSON.stringify({ t: 'mapmine', ids: Object.keys(myMaps) })); ws.send(JSON.stringify({ t: 'join', room: name })); for (const k of Object.keys(LBD)) ws.send(JSON.stringify({ t: 'lb', board: k, entries: lbPayload(true, k) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
     ws.onmessage = e => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'hello') id = m.id;
@@ -3677,7 +3686,8 @@ function wsAdapter(name) {
       else if (m.t === 'pay' || m.t === 'ack') onPayMessage(m, o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
       else if (/^(gift|giftack|trade|tradeacc|tradedone|tradeno)$/.test(m.t)) onTrade(m);
       else if (/^map/.test(m.t)) onMaps(m);
-      else if (m.t === 'linked') walHello(o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
+      else if (m.t === 'linked') { if (Array.isArray(m.g) && typeof m.sig === 'string') store.set('linktok', { g: m.g, sig: m.sig }); walHello(o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }); }
+      else if (/^link/.test(m.t)) onLink(m);
       else if (m.t === 'wal') walRecv(m);
       else if (/^clan/.test(m.t)) onClan(m);
       else if (m.t === 'whois' || m.t === 'invite' || m.t === 'profile' || m.t === 'invsent') onSocial(m);
@@ -5209,6 +5219,8 @@ const TYPES = {
   reaper: { hp: 2000, speed: 9, scale: 2.6, color: new THREE.Color(2.8, 2.3, 0.9), pts: 2500, dist: 10, boss: 1 },
   wyrm: { hp: 2600, speed: 12, scale: 2.6, color: new THREE.Color(0.7, 2.2, 3.0), pts: 2500, dist: 26, boss: 1 },
   overmind: { hp: 2300, speed: 2, scale: 3.5, color: new THREE.Color(3.0, 0.55, 2.3), pts: 2500, dist: 22, boss: 1, homing: 1 },
+  pylon: { hp: 450, speed: 0, scale: 1.2, color: new THREE.Color(2.9, 0.6, 0.4), pts: 300 },
+  elite: { hp: 1100, speed: 9, scale: 1.5, color: new THREE.Color(3.0, 2.1, 0.3), pts: 1200, dist: 15 },
 };
 const isBoss = e => !!(e && TYPES[e.type] && TYPES[e.type].boss);
 // Boss Raid cycles through these, one per round; every lap through the list they all come back stronger
@@ -5784,7 +5796,7 @@ function makeOvermindVis(e) {
     },
   }, 0.7);
 }
-const BOSS_VIS = { titan: makeTitanVis, queen: makeQueenVis, qclone: makeQueenVis, colossus: makeColossusVis, voideye: makeVoidEyeVis, reaper: makeReaperVis, wyrm: makeWyrmVis, overmind: makeOvermindVis };
+const BOSS_VIS = { titan: makeTitanVis, queen: makeQueenVis, qclone: makeQueenVis, colossus: makeColossusVis, voideye: makeVoidEyeVis, reaper: makeReaperVis, wyrm: makeWyrmVis, overmind: makeOvermindVis, pylon: makePylonVis };
 
 function makeDroneVis(e) {
   if (BOSS_VIS[e.type]) return BOSS_VIS[e.type](e);
@@ -5797,7 +5809,7 @@ function makeDroneVis(e) {
   const ring2 = new THREE.Mesh(DG.ring, glowMat); ring2.scale.setScalar(0.8); ring2.rotation.y = Math.PI / 2; g.add(ring2);
   for (const s of [-1, 1]) { const f = new THREE.Mesh(DG.fin, coreMat); f.position.x = s * 0.7; f.castShadow = true; g.add(f); }
   if (e.type === 'poisoner') for (let k = 0; k < 3; k++) { const dr = new THREE.Mesh(DG.eye, glowMat); dr.position.set((k - 1) * 0.3, -0.7 - (k % 2) * 0.15, 0); dr.scale.set(0.6, 1, 0.6); g.add(dr); }
-  if (e.type === 'charger') for (let k = 0; k < 4; k++) { const sp = new THREE.Mesh(DG.spike, glowMat); const an = k * Math.PI / 2; sp.position.set(Math.cos(an) * 0.6, Math.sin(an) * 0.6, 0); sp.rotation.z = an - Math.PI / 2; g.add(sp); }
+  if (e.type === 'charger' || e.type === 'elite') for (let k = 0; k < 4; k++) { const sp = new THREE.Mesh(DG.spike, glowMat); const an = k * Math.PI / 2; sp.position.set(Math.cos(an) * 0.6, Math.sin(an) * 0.6, 0); sp.rotation.z = an - Math.PI / 2; g.add(sp); }
   const hitbox = new THREE.Mesh(DG.hit, glowMat); hitbox.visible = false; hitbox.userData.ent = e.id; g.add(hitbox);
   g.scale.setScalar(T.scale); g.position.copy(e.pos); scene.add(g);
   const xray = new THREE.Mesh(DG.hit, xrayMat); xray.scale.setScalar(0.85); xray.renderOrder = 999; xray.visible = false; g.add(xray);
@@ -5836,7 +5848,7 @@ function syncEntVis(e, dt) {
   e.flash = Math.max(0, e.flash - dt * 7);
   if (e.kind === 'drone') {
     const v = e.vis; v.g.position.copy(e.pos);
-    const marked = (e.markUntil || 0) > time;
+    const marked = (e.markUntil || 0) > time || e.type === 'elite';
     if (marked && !v.mark) { v.mark = new THREE.Mesh(markGeo, markMat); v.mark.renderOrder = 999; scene.add(v.mark); } else if (!marked && v.mark) { scene.remove(v.mark); v.mark = null; }
     if (v.mark) { v.mark.position.set(e.pos.x, e.pos.y + TYPES[e.type].scale * 1.4 + 0.9, e.pos.z); v.mark.rotation.y += dt * 3; }
     if (v.anim) { v.xray.visible = time < teamFx.wallUntil || marked; v.anim(e, dt); return; }
@@ -5915,7 +5927,7 @@ function resetMatchWorld() {
   for (const id of [...peers.keys()]) removePeer(id);
   stopPodium(); clearSprays();
   H.D = null; H.M = null; H.P = null;
-  Object.assign(GS, { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, pph: 0, ptm: 0, hunt: [], prn: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: mode === 'infect' ? INF_PRE : 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0 });
+  Object.assign(GS, { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: mode === 'infect' ? INF_PRE : 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0 });
   H.I = { pre: INF_PRE, alive: new Map(), last: '' }; H.R = null;
   prevGS = JSON.parse(JSON.stringify(GS));
   H.ob = []; H.bs = []; H.ek = []; H.ev = []; H.bd = {}; H.seen.clear(); H.W = { queue: [], spawnT: 0, timer: 3 };
@@ -5932,6 +5944,7 @@ function hostDamageEnt(e, dmg, attackerId, weapon) {
 }
 function hostKillEnt(e, attackerId, weapon) {
   const pts = e.kind === 'drone' ? TYPES[e.type].pts : 100;
+  if (mode === 'mission' && !GS.mres && missionSwarm(e) && curStep()?.t === 'purge') GS.mp++;
   if (e.kind === 'drone') { if (e.type === 'qclone') cloneShatter(e, attackerId); e.alive = false; removeEnt(e, true); }
   else {
     e.alive = false; e.hp = 0; e.d = (e.d || 0) + 1; e.respawnT = mode === 'duel' || mode === 'royale' ? 1e9 : 1.6;
@@ -6286,6 +6299,7 @@ function cloneShatter(e, attackerId) {
   const a = allActors().find(x => x.id === attackerId); if (a) bossFan(e, e.pos.clone(), a, 3, 0.08, 26, 9);
 }
 function hostOrb(e, from, vel, dmg, ring) {
+  dmg = Math.round(dmg * (e.dmul || 1));
   const ti = DTYPES.indexOf(e.type);
   spawnOrbs(from, vel, dmg, ti, e.id, ring);
   hostPush(H.ob, [r1(from.x), r1(from.y), r1(from.z), r1(vel.x), r1(vel.y), r1(vel.z), dmg, ti, e.id, ring || 0], 6);
@@ -6346,6 +6360,9 @@ const dTo = new V3(), dWant = new V3(), dOff = new V3();
 function hostUpdateDrone(e, dt, hs) {
   if (isBoss(e)) return hostUpdateBoss(e, dt, hs);
   if (e.type === 'qclone') return hostQueenClone(e, dt, hs);
+  if (e.type === 'pylon') return hostPylon(e, dt, hs);
+  // elites blink to a new spot every few seconds
+  if (e.type === 'elite' && (e.blinkT = (e.blinkT ?? 7) - dt) <= 0) { const a = rand(0, 6.28), r = rand(18, 42); burst(e.pos, 30, TYPES.elite.color, 9, 0.5, 0.12, 0); e.pos.set(Math.cos(a) * r, rand(6, 12), Math.sin(a) * r); e.vel.set(0, 0, 0); e.blinkT = rand(6, 9); }
   const T = TYPES[e.type]; e.t += dt;
   if (e.stunT > 0) { e.stunT -= dt; e.charge = 0; e.fireT = Math.max(e.fireT, 0.6); e.vel.multiplyScalar(0.9); e.pos.y += Math.sin(time * 40) * 0.01; return; }
   if (e.pullT > 0) { e.pullT -= dt; e.vel.set(0, 0, 0); e.fireT = Math.max(e.fireT, 1); e.pos.lerp(e.pullTo, 1 - Math.exp(-7 * dt)); collideSphere(e.pos, 0.95 * T.scale); return; }
@@ -6374,7 +6391,7 @@ function hostUpdateDrone(e, dt, hs) {
     want.y = (e.hoverY + Math.sin(e.t * 1.7) * 0.7 - e.pos.y) * 2;
     e.fireT -= dt;
     e.charge = e.fireT < 0.45 ? 1 - e.fireT / 0.45 : 0;
-    if (e.fireT <= 0) { if (tgt && dist < 55) hostFireOrb(e, tgt); e.fireT = (e.type === 'warden' ? rand(2.2, 3) : e.type === 'poisoner' ? rand(1.05, 1.8) : rand(1.6, 2.8)) * (GS.wv > 6 ? 0.8 : 1); }
+    if (e.fireT <= 0) { if (tgt && dist < 55) hostFireOrb(e, tgt); e.fireT = (e.type === 'warden' ? rand(2.2, 3) : e.type === 'elite' ? rand(1.1, 1.6) : e.type === 'poisoner' ? rand(1.05, 1.8) : rand(1.6, 2.8)) * (GS.wv > 6 ? 0.8 : 1); }
   }
   if (deploys.length && insideDep('antigrav', e.pos, 9)) { want.multiplyScalar(0.35); want.y += 2; }
   const k = e.type === 'charger' ? 4 : 2.5;
@@ -6389,11 +6406,11 @@ function hostUpdateDrone(e, dt, hs) {
   if (e.pos.y < 1.2) e.pos.y = 1.2;
 }
 function hostFireOrb(e, tgt) {
-  const speed = e.type === 'warden' ? 17 : 21;
+  const speed = e.type === 'warden' ? 17 : e.type === 'elite' ? 24 : 21;
   const pc = new V3().copy(tgt.pos).setY(tgt.pos.y + 1.1);
   pc.addScaledVector(tgt.vel || new V3(), (e.pos.distanceTo(pc) / speed) * 0.45);
   const base = pc.sub(e.pos).normalize();
-  const n = e.type === 'warden' ? 3 : 1, ti = DTYPES.indexOf(e.type), dmg = e.type === 'warden' ? 14 : e.type === 'poisoner' ? 6 : 10;
+  const n = e.type === 'warden' || e.type === 'elite' ? 3 : 1, ti = DTYPES.indexOf(e.type), dmg = e.type === 'warden' ? 14 : e.type === 'elite' ? 12 : e.type === 'poisoner' ? 6 : e.type === 'pylon' ? 9 : 10;
   for (let k = 0; k < n; k++) {
     const dir = base.clone().applyAxisAngle(new V3(0, 1, 0), (k - (n - 1) / 2) * 0.14);
     dir.x += rand(-0.03, 0.03); dir.y += rand(-0.03, 0.03); dir.normalize();
@@ -6649,10 +6666,11 @@ function mirrorHost(hd) {
   const base = clientSeen.host !== hostId;
   const maxSeq = l => Array.isArray(l) && l.length ? Math.max(...l.map(x => +x[0] || 0)) : 0;
   if (base) { clientSeen.host = hostId; for (const k of ['ob', 'bs', 'ek', 'ev']) clientSeen[k] = maxSeq(hd[k]); clientSeen.bd = (hd.bd && hd.bd[peerKey(myId)]?.[0]) || 0; prevGS = null; }
-  for (const k of ['wv', 'wst', 'ph', 'pw', 'pwid', 'gm', 'it', 'ip', 'bhp', 'bp', 'wt', 'wr', 'dr', 'drs', 'dtm', 'mi', 'mst', 'mp', 'mc', 'mt', 'mh', 'mres', 'mpos', 'pph', 'ptm', 'prn', 'rph', 'rsd', 'rtm', 'zs', 'zk', 'ztm', 'ral']) if (hd[k] !== undefined && hd[k] !== null) GS[k] = hd[k];
+  for (const k of ['wv', 'wst', 'ph', 'pw', 'pwid', 'gm', 'it', 'ip', 'bhp', 'bp', 'wt', 'wr', 'dr', 'drs', 'dtm', 'mi', 'mst', 'mp', 'mc', 'mt', 'mh', 'mres', 'mpos', 'mcar', 'pph', 'ptm', 'prn', 'rph', 'rsd', 'rtm', 'zs', 'zk', 'ztm', 'ral']) if (hd[k] !== undefined && hd[k] !== null) GS[k] = hd[k];
   for (const k of ['zc', 'zt']) if (Array.isArray(hd[k]) && hd[k].length === 3) GS[k] = hd[k].map(v => +v || 0);
   if (Array.isArray(hd.inf)) GS.inf = hd.inf.slice(0, 32).map(String);
   if (Array.isArray(hd.dp)) GS.dp = hd.dp.slice(0, 2).map(String); if (Array.isArray(hd.ds)) GS.ds = [+hd.ds[0] || 0, +hd.ds[1] || 0];
+  if (Array.isArray(hd.mdp) && hd.mdp.length === 3) GS.mdp = hd.mdp.map(v => +v || 0);
   if (Array.isArray(hd.mhk)) GS.mhk = [0, 1, 2].map(i => +hd.mhk[i] || 0); if (Array.isArray(hd.hunt)) GS.hunt = hd.hunt.slice(0, 16).map(String);
   if (prevGS === null) prevGS = JSON.parse(JSON.stringify(GS));
   // entities
@@ -6727,7 +6745,10 @@ function onGSChange() {
   if (mode === 'mission') {
     if ((GS.mst !== p.mst || GS.mi !== p.mi) && GS.mst >= 0) { missionVisuals(); const M = MISSIONS[GS.mi], st = curStep(); if (GS.mst === 0) announce(M.name.toUpperCase(), M.brief, '#74ffb5'); else announce(`OBJECTIVE ${GS.mst + 1}/${M.steps.length}`, STEP_NAME[st.t], '#74ffb5'); missionSay(st.say); sfx.wave(); }
     if (GS.mres === 1 && p.mres !== 1 && state !== 'menu') { const M = MISSIONS[GS.mi], first = !isDone(GS.mi), c = first ? M.reward : Math.round(M.reward * 0.4); addCoins(c); if (first) missionDone.push(M.id); store.set('missions2', missionDone); setMission(nextMission(GS.mi)); announce('MISSION COMPLETE', `${M.name} · +${c} coins · next up: ${MISSIONS[nextMission(GS.mi)].name}`, '#74ffb5'); sfx.win(); }
-    if (GS.mres === 2 && p.mres !== 2) { announce('MISSION FAILED', 'Restarting the mission…', '#ff4d6a'); sfx.alert(); }
+    if (GS.mres === 2 && p.mres !== 2) {
+      announce('MISSION FAILED', missionFailWhy(), '#ff4d6a'); sfx.alert();
+      if (curStep()?.t === 'disarm' && GS.mt <= 0) { const b = bombSpot(); explosionFX(b.clone().setY(b.y + 1), new THREE.Color(3, 0.6, 0.2), 4); shockRing(b.clone().setY(b.y + 0.3), new THREE.Color(3, 0.6, 0.2), 30, 1); shake = Math.max(shake, 0.7); }
+    }
     if (!GS.mres && p.mres) { if (player.downed) reviveMe(1, 'Command'); else if (player.alive) player.hp = maxHp(); }
   }
   if (mode === 'prophunt') {
@@ -8495,7 +8516,7 @@ function buildPresence() {
       ? ['d', e.id, DTYPES.indexOf(e.type), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), Math.round(e.hp), Math.round((e.charge || 0) * 10), ...(isBoss(e) || e.type === 'qclone' ? [e.bst | 0, r2(e.yaw || 0)] : [])]
       : ['b', e.id, Math.max(0, BOT_NAMES.indexOf(e.name)), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), r2(e.yaw), Math.round(e.hp), e.team, e.alive ? 1 : 0, WIDS.indexOf(e.wp), e.lv || 0, e.f || 0, e.d || 0]);
     Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
-    if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral });
+    if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, mcar: GS.mcar, mdp: GS.mdp, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral });
   }
   if (mode === 'royale') Object.assign(o, { rs: RL.seed, rk: RY.picked, rco: RY.opened, rx: RY.drops, ri: player.alive ? royaleInvCodes() : RY.lastInv });
   // keep within the 4 KB presence budget
@@ -8585,8 +8606,8 @@ function updateHUD() {
   } else if (mode === 'mission') {
     const M = MISSIONS[GS.mi] || MISSIONS[0], st = curStep(), fmt = v => `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
     setText('hMn', M.name.toUpperCase()); setText('hMo', GS.mst >= 0 ? `${GS.mst + 1}/${M.steps.length}` : '—'); setText('hCoins', wallet.coins.toLocaleString());
-    setText('hint', GS.mres === 1 ? 'MISSION COMPLETE' : GS.mres === 2 ? 'MISSION FAILED · RETRYING' : !st || GS.mst < 0 ? 'WAITING FOR SQUAD' : st.t === 'collect' ? `COLLECT THE CORES · ${GS.mp}/${st.n}` : st.t === 'hack' ? `HACK THE TERMINALS · ${GS.mhk.map(v => Math.round(v) + '%').join(' · ')}` : st.t === 'defend' ? `DEFEND THE REACTOR · ${fmt(GS.mt)} · REACTOR ${GS.mh}%` : st.t === 'survive' ? `SURVIVE · ${fmt(GS.mt)}` : st.t === 'escort' ? `ESCORT THE POWER CELL · ${Math.round(GS.mpos * 100)}% · CELL ${GS.mh}%` : `DEFEAT ${BOSS_INFO[st.boss].name}`);
-    $('hint').style.color = GS.mres === 2 || (GS.mh < 30 && (st?.t === 'defend' || st?.t === 'escort')) ? '#ff4d6a' : '#74ffb5';
+    setText('hint', GS.mres === 1 ? 'MISSION COMPLETE' : GS.mres === 2 ? 'MISSION FAILED · RETRYING' : !st || GS.mst < 0 ? 'WAITING FOR SQUAD' : missionHint(st));
+    $('hint').style.color = GS.mres === 2 || missionDanger(st) ? '#ff4d6a' : '#74ffb5';
   } else if (mode === 'prophunt') {
     const acts = allActors(), props = acts.filter(a => !GS.hunt.includes(a.id) && a.alive).length, fmt = v => `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
     setText('hPl', String(props)); setText('hTm', fmt(GS.ptm || 0)); setText('hPr', amHunter() ? 'HUNTER' : myPropType ? PROP_LIB[myPropType][0].toUpperCase() : 'PROP');
@@ -9287,76 +9308,80 @@ const MISSIONS = [
   // ---------- Chapter 1: Signal ----------
   { id: 'first', ch: 'Chapter 1 · Signal', d: 1, reward: 150, name: 'First Contact', brief: 'Drones hit our relay station and scattered its data. Get it back.', steps: [
     { t: 'collect', n: 5, say: 'Five data cores fell across the arena. Grab them all.' },
-    { t: 'defend', time: 45, say: 'They\'re going for the reactor! Keep it alive for 45 seconds.' }] },
+    { t: 'defend', time: 40, say: 'They\'re going for the reactor! Keep it alive for 40 seconds.' }] },
   { id: 'signal', ch: 'Chapter 1 · Signal', d: 1, reward: 180, name: 'Signal Lost', brief: 'Our long-range signal is down. Bring it back online.', steps: [
     { t: 'hack', n: 3, say: 'Hack the three terminals. Stand next to one to hack it, and more of you hack faster.' },
-    { t: 'survive', time: 50, say: 'Signal restored... and every drone in the sky heard it. Survive!' }] },
+    { t: 'carry', n: 2, say: 'Now carry the signal boosters to the uplink. Whoever holds one moves slower and every drone wants them!' }] },
   { id: 'haul', ch: 'Chapter 1 · Signal', d: 2, reward: 220, name: 'The Long Haul', brief: 'A fresh power cell needs to reach the reactor in one piece.', steps: [
     { t: 'escort', say: 'Stay close to the power cell to keep it moving. Don\'t let the drones wreck it.' },
-    { t: 'defend', time: 40, say: 'It\'s plugged in. Protect the reactor while it charges!' }] },
+    { t: 'purge', n: 14, say: 'The drones that chased it are still here. Wipe out 14 of them!' }] },
   { id: 'mirror', ch: 'Chapter 1 · Signal', d: 2, reward: 320, name: 'Mirror, Mirror', boss: 1, brief: 'Something keeps copying our signal back at us.', steps: [
-    { t: 'collect', n: 6, say: 'Pick up the six mirror shards before they vanish.' },
-    { t: 'hack', n: 3, say: 'Use the terminals to trace where the reflections are coming from.' },
+    { t: 'rings', n: 8, time: 14, add: 6, say: 'Chase the reflection! Run through the rings in order before the clock runs out.' },
+    { t: 'destroy', n: 3, say: 'Shoot down the three mirror generators. They shoot back!' },
     { t: 'boss', boss: 'queen', say: 'It\'s the Mirror Queen! Find the real one and take her down.' }] },
   // ---------- Chapter 2: Embers ----------
   { id: 'hotzone', ch: 'Chapter 2 · Embers', d: 2, reward: 240, name: 'Hot Zone', mix: ['charger', 'charger', 'scout'], brief: 'The arena floor is heating up. Something big is waking under it.', steps: [
     { t: 'collect', n: 5, say: 'Grab the coolant cells before the heat cooks them.' },
     { t: 'survive', time: 45, say: 'Chargers are pouring out of the vents. Hold on!' }] },
-  { id: 'firebreak', ch: 'Chapter 2 · Embers', d: 2, reward: 260, name: 'Firebreak', mix: ['charger', 'scout', 'scout'], brief: 'Cut the fire off before it spreads to the whole arena.', steps: [
-    { t: 'hack', n: 3, say: 'Turn on the sprinkler terminals. All three of them.' },
-    { t: 'defend', time: 45, say: 'The coolant pump is running on the reactor. Don\'t let them shut it down!' }] },
+  { id: 'firebreak', ch: 'Chapter 2 · Embers', d: 2, reward: 260, name: 'Firebreak', mix: ['charger', 'scout', 'scout'], brief: 'Someone planted fire bombs all over the arena.', steps: [
+    { t: 'disarm', n: 3, fuse: 32, say: 'Fire bombs! Stand on each one to disarm it before its fuse runs out. One at a time, go!' },
+    { t: 'defend', time: 40, say: 'The coolant pump is running on the reactor. Don\'t let them shut it down!' }] },
   { id: 'inferno', ch: 'Chapter 2 · Embers', d: 3, reward: 360, name: 'Inferno Rising', boss: 1, mix: ['charger', 'scout'], brief: 'The heat has a source. It walks.', steps: [
+    { t: 'capture', n: 3, hold: 12, say: 'Seal the three lava vents. Stand in each zone, and keep the drones out of it!' },
     { t: 'escort', say: 'Move the cryo charge into position. Stay with it!' },
     { t: 'boss', boss: 'colossus', say: 'The ground is splitting... it\'s the Inferno Colossus! Hit the core in its chest and jump its stomps!' }] },
   // ---------- Chapter 3: Deep Freeze ----------
   { id: 'coldsnap', ch: 'Chapter 3 · Deep Freeze', d: 3, reward: 280, name: 'Cold Snap', mix: ['scout', 'poisoner'], brief: 'Temperatures are crashing. Ice is forming in mid-air.', steps: [
-    { t: 'survive', time: 50, say: 'A cold front just rolled in, and the drones came with it. Survive!' },
-    { t: 'collect', n: 6, say: 'Gather the heat cores to keep the base from freezing over.' }] },
+    { t: 'carry', n: 3, say: 'Carry the heat cores to the reactor one by one before the base freezes over.' },
+    { t: 'survive', time: 50, say: 'A cold front just rolled in, and the drones came with it. Survive!' }] },
   { id: 'thinice', ch: 'Chapter 3 · Deep Freeze', d: 3, reward: 300, name: 'Thin Ice', mix: ['scout', 'poisoner', 'charger'], brief: 'Something huge is circling above the clouds.', steps: [
     { t: 'hack', n: 3, say: 'Hack the radar terminals so we can track it.' },
-    { t: 'escort', say: 'Get the heater to the reactor before everything freezes solid.' }] },
+    { t: 'hunt', n: 2, say: 'Radar found two elite ice hunters. They teleport around, so keep after them!' }] },
   { id: 'frostbite', ch: 'Chapter 3 · Deep Freeze', d: 4, reward: 400, name: 'Frostbite', boss: 1, mix: ['scout', 'poisoner'], brief: 'It\'s coming down.', steps: [
-    { t: 'defend', time: 40, say: 'The heater is running. Protect the reactor!' },
+    { t: 'destroy', n: 4, say: 'Four ice pylons are calling it down. Destroy them!' },
+    { t: 'defend', time: 35, say: 'The heater is running. Protect the reactor!' },
     { t: 'boss', boss: 'wyrm', say: 'The Frost Wyrm! When it lands, aim for the glowing wing joints!' }] },
   // ---------- Chapter 4: The Watcher ----------
   { id: 'blindspot', ch: 'Chapter 4 · The Watcher', d: 4, reward: 320, name: 'Blind Spot', mix: ['scout', 'scout', 'poisoner', 'warden'], brief: 'Our cameras keep going dark. Something is watching us back.', steps: [
-    { t: 'collect', n: 6, say: 'Pick up the camera drives before they get wiped.' },
-    { t: 'hack', n: 3, say: 'Reboot the cameras. Hack all three terminals.' }] },
+    { t: 'capture', n: 3, hold: 14, say: 'Take back the camera zones. Stand in them, and clear out any drone that comes close.' },
+    { t: 'collect', n: 6, say: 'Pick up the camera drives before they get wiped.' }] },
   { id: 'static', ch: 'Chapter 4 · The Watcher', d: 4, reward: 340, name: 'Static', mix: ['poisoner', 'poisoner', 'scout'], brief: 'Strange static is scrambling everything.', steps: [
-    { t: 'escort', say: 'Move the signal jammer into place.' },
-    { t: 'survive', time: 50, say: 'The jammer is up. Poisoners incoming, so stay near the medic!' }] },
+    { t: 'rings', n: 10, time: 14, add: 5, say: 'Run the jammer route. Hit every ring before the static catches up!' },
+    { t: 'purge', n: 20, say: 'The jammer is up. Now clear out 20 drones. Poisoners incoming, so stay near the medic!' }] },
   { id: 'eyestorm', ch: 'Chapter 4 · The Watcher', d: 5, reward: 440, name: 'Eye of the Storm', boss: 1, mix: ['scout', 'poisoner'], brief: 'We found what\'s been watching.', steps: [
+    { t: 'hunt', n: 2, say: 'Two elite watcher drones are its eyes. Hunt them down!' },
     { t: 'hack', n: 3, say: 'Open the shutters around the arena.' },
     { t: 'boss', boss: 'voideye', say: 'The Void Eye! Only shoot it while the eye is open, and jump its laser!' }] },
   // ---------- Chapter 5: Borrowed Time ----------
-  { id: 'overtime', ch: 'Chapter 5 · Borrowed Time', d: 5, reward: 360, name: 'Overtime', mix: ['charger', 'scout', 'warden'], brief: 'Our clocks are running backwards. Hold the line until we know why.', steps: [
-    { t: 'survive', time: 60, say: 'Time is acting weird. Just stay alive!' },
-    { t: 'defend', time: 40, say: 'They\'re after the reactor again. Defend it!' }] },
+  { id: 'overtime', ch: 'Chapter 5 · Borrowed Time', d: 5, reward: 360, name: 'Overtime', mix: ['charger', 'scout', 'warden'], brief: 'Our clocks are running backwards, and somebody is planting time bombs.', steps: [
+    { t: 'disarm', n: 4, fuse: 28, say: 'Time bombs! Disarm all four before they go off. Each one is somewhere new.' },
+    { t: 'survive', time: 50, say: 'Time is acting weird. Just stay alive!' }] },
   { id: 'rewind', ch: 'Chapter 5 · Borrowed Time', d: 5, reward: 380, name: 'Rewind', mix: ['charger', 'charger', 'scout', 'warden'], brief: 'Pieces of the old clock tower keep appearing.', steps: [
-    { t: 'collect', n: 6, say: 'Grab the clock gears. Quick, before time skips again.' },
-    { t: 'escort', say: 'Bring the gear core to the reactor.' }] },
+    { t: 'rings', n: 10, time: 13, add: 5, say: 'Race the clock hands! Hit every ring before time skips.' },
+    { t: 'carry', n: 3, say: 'Carry the clock gears to the reactor. Cover whoever is holding one!' }] },
   { id: 'clockwork', ch: 'Chapter 5 · Borrowed Time', d: 6, reward: 480, name: 'Clockwork', boss: 1, mix: ['charger', 'scout'], brief: 'Tick. Tock.', steps: [
     { t: 'hack', n: 3, say: 'Wind the three clock terminals.' },
-    { t: 'defend', time: 30, say: 'The clock is striking midnight. Protect the reactor!' },
+    { t: 'disarm', n: 3, fuse: 26, say: 'The clock is striking midnight and it planted bombs. Disarm them!' },
     { t: 'boss', boss: 'reaper', say: 'The Clockwork Reaper! Dodge the dash, then hit it while it recovers!' }] },
   // ---------- Chapter 6: Iron Titan ----------
   { id: 'heavymetal', ch: 'Chapter 6 · Iron Titan', d: 6, reward: 400, name: 'Heavy Metal', mix: ['warden', 'scout', 'charger'], brief: 'Wardens are escorting something heavy into the arena.', steps: [
     { t: 'escort', say: 'Move the EMP charge. It\'s slow, so cover it!' },
-    { t: 'hack', n: 3, say: 'Arm the EMP. All three terminals.' }] },
+    { t: 'destroy', n: 5, say: 'The EMP knocked their shields out. Destroy all five armour generators!' }] },
   { id: 'lastline', ch: 'Chapter 6 · Iron Titan', d: 6, reward: 420, name: 'Last Line', mix: ['warden', 'warden', 'poisoner', 'charger'], brief: 'This is the biggest drone army we\'ve seen.', steps: [
-    { t: 'defend', time: 50, say: 'Every drone is coming for the reactor. Hold the line!' },
-    { t: 'survive', time: 40, say: 'The reactor is safe. Now just survive!' }] },
+    { t: 'defend', time: 45, say: 'Every drone is coming for the reactor. Hold the line!' },
+    { t: 'purge', n: 28, say: 'The reactor is safe. Now break their army: take out 28 drones!' }] },
   { id: 'titanfall', ch: 'Chapter 6 · Iron Titan', d: 7, reward: 520, name: 'Titanfall', boss: 1, mix: ['scout', 'charger', 'poisoner'], brief: 'Their leader is here.', steps: [
-    { t: 'collect', n: 6, say: 'Collect the armor-piercing cores.' },
+    { t: 'capture', n: 3, hold: 14, say: 'Take the three landing zones before it touches down.' },
+    { t: 'hunt', n: 3, say: 'Its three lieutenants are guarding it. Hunt them!' },
     { t: 'boss', boss: 'titan', say: 'THE TITAN! Shoot the glowing core when it swings around!' }] },
   // ---------- Finale ----------
   { id: 'core', ch: 'Finale', d: 8, reward: 800, name: 'Core Meltdown', boss: 1, mix: ['scout', 'charger', 'poisoner', 'warden'], brief: 'Every boss was taking orders from somewhere. This is it.', steps: [
-    { t: 'hack', n: 3, say: 'Unlock the core vault. Hack all three terminals.' },
-    { t: 'escort', say: 'Bring the core charge to the reactor.' },
-    { t: 'defend', time: 45, say: 'The reactor is overloading their signal. Hold the line!' },
+    { t: 'carry', n: 3, say: 'Carry the three core keys to the reactor.' },
+    { t: 'destroy', n: 5, say: 'The vault is guarded by five generators. Destroy them!' },
+    { t: 'disarm', n: 3, fuse: 24, say: 'It\'s trying to blow the arena. Disarm the bombs!' },
     { t: 'boss', boss: 'overmind', say: 'The Overmind was behind it all. End this!' }] },
 ];
-const STEP_NAME = { collect: 'COLLECT THE CORES', defend: 'DEFEND THE REACTOR', hack: 'HACK THE TERMINALS', survive: 'SURVIVE', escort: 'ESCORT THE POWER CELL', boss: 'DEFEAT THE BOSS' };
+const STEP_NAME = { collect: 'COLLECT THE CORES', defend: 'DEFEND THE REACTOR', hack: 'HACK THE TERMINALS', survive: 'SURVIVE', escort: 'ESCORT THE POWER CELL', boss: 'DEFEAT THE BOSS', destroy: 'DESTROY THE GENERATORS', hunt: 'HUNT THE ELITES', rings: 'RUN THE RINGS', carry: 'DELIVER THE CORES', capture: 'CAPTURE THE ZONES', disarm: 'DISARM THE BOMBS', purge: 'WIPE OUT THE SWARM' };
 const missionDone = (() => { let d = store.get('missions2', null); if (!Array.isArray(d)) { const old = store.get('missions', []), ids = ['first', 'signal', 'haul', 'mirror', 'core']; d = Array.isArray(old) ? old.map(i => ids[i]).filter(Boolean) : []; store.set('missions2', d); } return d; })();
 const isDone = i => !!MISSIONS[i] && missionDone.includes(MISSIONS[i].id);
 const missionUnlocked = i => i === 0 || isDone(i - 1) || isDone(i);
@@ -9373,6 +9398,11 @@ function missionSpots() {
   MPOS.terms = [0.52, 2.62, 4.71].map(a => freeSpot(Math.cos(a) * 30, Math.sin(a) * 30));
   MPOS.reactor = freeSpot(0, 26);
   MPOS.path = [[-46, -6], [-32, 16], [-16, 30], [0, 26]].map(([x, z]) => { const p = freeSpot(x, z); p.y += 4; return p; });
+  // generators to shoot down, zones to hold, bombs to disarm, rings to run through
+  MPOS.gens = [0, 1, 2, 3, 4, 5].map(k => { const p = freeSpot(Math.cos(k * 1.047 + 0.79) * 42, Math.sin(k * 1.047 + 0.79) * 42); p.y += 2.6; return p; });
+  MPOS.zones = [1.57, 3.4, 5.2, 0.2].map(a => freeSpot(Math.cos(a) * 22, Math.sin(a) * 22));
+  MPOS.bombs = [[-38, 10], [30, -30], [8, 44], [-20, -40], [44, 14], [-44, -22]].map(([x, z]) => freeSpot(x, z));
+  MPOS.rings = Array.from({ length: 12 }, (_, k) => { const a = k * 1.4, r = k % 2 ? 40 : 20, p = freeSpot(Math.cos(a) * r, Math.sin(a) * r); p.y += 1.6; return p; });
   MPOS.done = true; return MPOS;
 }
 function pathAt(t) {
@@ -9380,6 +9410,12 @@ function pathAt(t) {
   return P[i].clone().lerp(P[i + 1], f - i);
 }
 const curStep = () => (MISSIONS[GS.mi] || MISSIONS[0]).steps[GS.mst] || null;
+// which spot each one-at-a-time objective is using right now
+const bombSpot = () => { const B = missionSpots().bombs; return B[(GS.mp + GS.mi) % B.length]; };
+const zoneSpot = () => { const Z = missionSpots().zones; return Z[GS.mp % Z.length]; };
+const ringSpot = i => { const R = missionSpots().rings; return R[i % R.length]; };
+const carryCore = () => { const S = missionSpots(), far = S.cores.filter(c => c.distanceTo(S.reactor) > 30); return (far.length ? far : S.cores)[(GS.mp + GS.mi) % (far.length || S.cores.length)]; };
+const missionSwarm = e => e.kind === 'drone' && !isBoss(e) && e.type !== 'qclone' && e.type !== 'pylon' && e.type !== 'elite';
 function hostMission(dt) {
   const M = H.M || (H.M = { t: 0, spawnT: 2, hp: 1, max: 1, downT: 0 });
   const hs = humans(), alive = hs.filter(a => a.alive);
@@ -9388,16 +9424,19 @@ function hostMission(dt) {
   M.downT = hs.length && !alive.length ? M.downT + dt : 0;
   if (M.downT > 1.5) return missionEnd(false, M);
   const st = curStep(); if (!st) return;
-  // drones keep coming during every step (bosses bring their own help)
-  if (st.t !== 'boss') {
+  const MD = MISSIONS[GS.mi], d = MD.d || 1;
+  // drones keep coming during every step: fewer while a boss is out, more when the job is to thin them out
+  {
+    const boss = st.t === 'boss', cap = boss ? 1 + Math.floor(d / 3) + hs.length : 2 + d + 2 * hs.length + (st.t === 'purge' ? 3 : 0);
+    const live = [...ents.values()].filter(missionSwarm).length;
     M.spawnT -= dt;
-    const MD = MISSIONS[GS.mi], d = MD.d || 1, cap = 2 + d + 2 * hs.length, live = [...ents.values()].filter(e => e.kind === 'drone').length;
     if (M.spawnT <= 0 && live < cap) {
       const r = Math.random(), type = MD.mix ? (d >= 4 && r < 0.1 ? 'warden' : pick(MD.mix)) : (d >= 3 && r < 0.12 ? 'warden' : d >= 2 && r < 0.3 ? 'poisoner' : r < 0.55 ? 'charger' : 'scout');
-      hostSpawnDrone(type); M.spawnT = Math.max(0.6, 2.7 - d * 0.25) / Math.sqrt(hs.length || 1);
+      hostSpawnDrone(type); M.spawnT = Math.max(0.6, 2.7 - d * 0.25) / Math.sqrt(hs.length || 1) * (boss ? 2.5 : st.t === 'purge' ? 0.6 : 1);
     }
   }
   const S = missionSpots(), near = (p, r, yr = 3) => alive.filter(a => Math.hypot(a.pos.x - p.x, a.pos.z - p.z) < r && Math.abs(a.pos.y - p.y) < yr);
+  const timer = () => { M.t -= dt; GS.mt = Math.max(0, Math.ceil(M.t)); };
   if (st.t === 'collect') {
     S.cores.slice(0, st.n).forEach((p, i) => { if (!(GS.mc & (1 << i)) && near(p, 2.2).length) { GS.mc |= 1 << i; GS.mp++; } });
     if (GS.mp >= st.n) missionNext(M);
@@ -9406,34 +9445,92 @@ function hostMission(dt) {
     GS.mp = GS.mhk.filter(v => v >= 100).length;
     if (GS.mp >= 3) missionNext(M);
   } else if (st.t === 'defend' || st.t === 'survive') {
-    M.t -= dt; GS.mt = Math.max(0, Math.ceil(M.t));
+    timer();
     if (M.t <= 0) missionNext(M);
   } else if (st.t === 'escort') {
     const p = pathAt(GS.mpos);
     if (near(p, 9, 8).length) GS.mpos = Math.min(1, GS.mpos + dt * 2.3 / 75);
     if (GS.mpos >= 1) missionNext(M);
+  } else if (st.t === 'destroy') {
+    // generators shoot back; the step ends when the last one is down
+    GS.mp = st.n - [...ents.values()].filter(e => e.type === 'pylon').length;
+    if (GS.mp >= st.n) missionNext(M);
+  } else if (st.t === 'hunt') {
+    // one elite at a time; it teleports around the arena
+    if (M.elite && !ents.has(M.elite)) { M.elite = null; GS.mp++; M.huntT = 4; }
+    if (GS.mp >= st.n) return missionNext(M);
+    if (!M.elite && (M.huntT -= dt) <= 0) M.elite = spawnElite(d, hs.length);
+  } else if (st.t === 'rings') {
+    // anyone in the squad can take the next ring; each ring buys a few more seconds
+    timer();
+    if (alive.some(a => tA.copy(a.pos).setY(a.pos.y + 1).distanceTo(ringSpot(GS.mp)) < 3.4)) { GS.mp++; M.t += st.add || 6; GS.mt = Math.ceil(M.t); }
+    if (GS.mp >= st.n) missionNext(M); else if (M.t <= 0) missionEnd(false, M);
+  } else if (st.t === 'carry') {
+    // walk over the core to pick it up; it drops where the carrier goes down
+    const car = GS.mcar ? alive.find(a => a.id === GS.mcar) : null, up = S.reactor;
+    if (car) {
+      M.carPos = car.pos.clone();
+      if (Math.hypot(car.pos.x - up.x, car.pos.z - up.z) < 4 && Math.abs(car.pos.y - up.y) < 4) {
+        GS.mp++; GS.mcar = '';
+        if (GS.mp >= st.n) return missionNext(M);
+        const c = carryCore(); GS.mdp = [r1(c.x), r1(c.y), r1(c.z)];
+      }
+    } else if (GS.mcar) { const p = M.carPos || up; GS.mdp = [r1(p.x), r1(p.y), r1(p.z)]; GS.mcar = ''; M.grabT = 1; }
+    else if ((M.grabT = (M.grabT || 0) - dt) <= 0) {
+      const c = tA.fromArray(GS.mdp), who = alive.find(a => Math.hypot(a.pos.x - c.x, a.pos.z - c.z) < 2.2 && Math.abs(a.pos.y - c.y) < 3);
+      if (who) GS.mcar = who.id;
+    }
+  } else if (st.t === 'capture') {
+    // the zone only fills while you're in it and no drone is hanging over it
+    const z = zoneSpot(), inZ = near(z, 6, 5).length, foes = [...ents.values()].some(e => e.kind === 'drone' && e.alive && Math.hypot(e.pos.x - z.x, e.pos.z - z.z) < 8);
+    GS.mc = inZ && foes ? 1 : 0;
+    if (inZ && !foes) GS.mpos = Math.min(1, GS.mpos + dt / (st.hold || 14) * Math.sqrt(inZ));
+    else if (!inZ) GS.mpos = Math.max(0, GS.mpos - dt / 40);
+    if (GS.mpos >= 1) { GS.mp++; GS.mpos = 0; if (GS.mp >= st.n) missionNext(M); }
+  } else if (st.t === 'disarm') {
+    // one bomb at a time, each somewhere new, each with its own fuse
+    timer();
+    const n = near(bombSpot(), 2.8).length;
+    GS.mhk[0] = n ? Math.min(100, GS.mhk[0] + dt * 100 / 4 * Math.sqrt(n)) : Math.max(0, GS.mhk[0] - dt * 25);
+    if (GS.mhk[0] >= 100) { GS.mp++; GS.mhk[0] = 0; if (GS.mp >= st.n) return missionNext(M); M.t = st.fuse || 30; GS.mt = Math.ceil(M.t); }
+    else if (M.t <= 0) missionEnd(false, M);
+  } else if (st.t === 'purge') {
+    if (GS.mp >= st.n) missionNext(M);
   } else if (st.t === 'boss') {
     if (![...ents.values()].some(e => isBoss(e))) missionNext(M);
   }
 }
 function missionStep(i, M) {
-  const st = MISSIONS[GS.mi].steps[i], n = Math.max(1, humans().length);
-  GS.mst = i; GS.mp = 0; GS.mc = 0; GS.mhk = [0, 0, 0]; GS.mpos = 0; GS.mres = 0;
-  M.t = st.time || 0; GS.mt = Math.ceil(M.t); M.spawnT = 3;
+  const MD = MISSIONS[GS.mi], st = MD.steps[i], n = Math.max(1, humans().length), d = MD.d || 1;
+  GS.mst = i; GS.mp = 0; GS.mc = 0; GS.mhk = [0, 0, 0]; GS.mpos = 0; GS.mres = 0; GS.mcar = ''; M.elite = null; M.huntT = 2; M.carPos = null; M.grabT = 0;
+  M.t = st.t === 'disarm' ? st.fuse || 30 : st.time || 0; GS.mt = Math.ceil(M.t); M.spawnT = 3;
   M.max = M.hp = (st.t === 'defend' ? 1600 : 1100) * (1 + 0.4 * (n - 1)); GS.mh = 100;
-  if (st.t === 'boss') {
-    const d = MISSIONS[GS.mi].d || 1, type = st.boss, hp = Math.round(TYPES[type].hp * (0.7 + 0.08 * d) * (1 + 0.6 * (n - 1)));
-    const e = { id: newId('t'), kind: 'drone', type, pos: new V3(0, 34, 0), hp, alive: true, L: 0, aggr: 1 + d * 0.06 };
-    bossInit(e); addEnt(e); initSim(e); e.fireT = 3; e.ringT = 7; e.sumT = 12; GS.bhp = hp; GS.bp = 1;
+  if (st.t === 'carry') { const c = carryCore(); GS.mdp = [r1(c.x), r1(c.y), r1(c.z)]; }
+  if (st.t === 'destroy') for (let k = 0; k < st.n; k++) {
+    const p = missionSpots().gens[(k + GS.mi) % 6], hp = Math.round(TYPES.pylon.hp * (1 + 0.5 * (n - 1)) * (1 + 0.08 * d));
+    const e = { id: newId('d'), kind: 'drone', type: 'pylon', pos: p.clone(), hp, alive: true }; addEnt(e); initSim(e); e.fireT = rand(1.5, 3);
   }
+  if (st.t === 'boss') {
+    // mission bosses fight like Boss Raid's second lap: the extra attacks, and the health they'd have at their place in the raid
+    const type = st.boss, L = d >= 7 ? 2 : 1, k = Math.max(0, BOSS_ORDER.indexOf(type));
+    const hp = Math.round(TYPES[type].hp * (1 + 0.35 * k) * (1 + 0.06 * d) * (1 + 0.6 * (n - 1)));
+    const e = { id: newId('t'), kind: 'drone', type, pos: new V3(0, 34, 0), hp, alive: true, L, aggr: (1 + 0.25 * L) * (1.05 + 0.03 * d), dmul: 1.15 + 0.04 * d };
+    bossInit(e); addEnt(e); initSim(e); e.fireT = 3; e.ringT = 7; e.sumT = 10; GS.bhp = hp; GS.bp = 1;
+  }
+}
+function spawnElite(d, n) {
+  const a = rand(0, Math.PI * 2), r = rand(28, 44), hp = Math.round(TYPES.elite.hp * (1 + 0.6 * (n - 1)) * (1 + 0.1 * d));
+  const e = { id: newId('d'), kind: 'drone', type: 'elite', pos: new V3(Math.cos(a) * r, rand(7, 12), Math.sin(a) * r), hp, alive: true };
+  addEnt(e); initSim(e); e.blinkT = 7; GS.bhp = hp; return e.id;
 }
 function missionNext(M) { const steps = MISSIONS[GS.mi].steps; if (GS.mst + 1 < steps.length) missionStep(GS.mst + 1, M); else missionEnd(true, M); }
 function missionEnd(ok, M) { GS.mres = ok ? 1 : 2; M.t = ok ? 9 : 6; for (const e of [...ents.values()]) if (e.kind === 'drone') removeEnt(e, true); }
-// the reactor and the power cell soak up drone fire
+// the reactor and the power cell soak up drone fire; whoever carries a core gets hunted
 function missionTarget() {
   const st = mode === 'mission' && !GS.mres ? curStep() : null; if (!st) return null;
   if (st.t === 'defend') return { id: 'obj', name: 'Reactor', pos: missionSpots().reactor.clone().setY(missionSpots().reactor.y + 1), vel: new V3(), alive: true };
   if (st.t === 'escort') return { id: 'obj', name: 'Power cell', pos: pathAt(GS.mpos), vel: new V3(), alive: true };
+  if (st.t === 'carry' && GS.mcar) return allActors().find(a => a.id === GS.mcar && a.alive) || null;
   return null;
 }
 function objHitFx(p, c) {
@@ -9441,14 +9538,21 @@ function objHitFx(p, c) {
   const pf = panFor(p); tone(300, 140, 0.08, 0.08 * Math.max(0.3, pf.v), 'square', pf.pan);
 }
 function missionHit(dmg) { const M = H.M; if (!M || GS.mres) return; M.hp -= dmg; GS.mh = Math.max(0, Math.round(M.hp / M.max * 100)); if (M.hp <= 0) missionEnd(false, M); }
-// what everyone sees: cores, terminals, the reactor, the power cell
+// why the mission failed, for the banner
+function missionFailWhy() {
+  const st = curStep(); if (!st) return 'Restarting the mission…';
+  const why = st.t === 'disarm' && GS.mt <= 0 ? 'A bomb went off' : st.t === 'rings' && GS.mt <= 0 ? 'Out of time' : st.t === 'defend' && GS.mh <= 0 ? 'The reactor was destroyed' : st.t === 'escort' && GS.mh <= 0 ? 'The power cell was destroyed' : 'The squad went down';
+  return `${why} · restarting the mission…`;
+}
+// what everyone sees: cores, terminals, the reactor, the power cell, rings, zones and bombs
 let MO = null, mlogT = 0;
 function missionVisuals() {
   if (MO) { scene.remove(MO.g); MO.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); MO = null; }
   const st = mode === 'mission' && GS.mst >= 0 ? curStep() : null; if (!st) return;
-  const S = missionSpots(), g = new THREE.Group(); scene.add(g); MO = { g, st, cores: [], terms: [], ring: [] };
+  const S = missionSpots(), g = new THREE.Group(); scene.add(g); MO = { g, st, cores: [], terms: [], ring: [], rings: [] };
   const glow = c => new THREE.MeshBasicMaterial({ color: c });
-  if (st.t === 'collect') for (let i = 0; i < st.n; i++) { const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 0), glow(new THREE.Color(0.5, 2.6, 2.9))); m.position.copy(S.cores[i]).setY(S.cores[i].y + 1.3); g.add(m); const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 30, 6, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 2), transparent: true, opacity: 0.35, depthWrite: false })); beam.position.copy(m.position).setY(m.position.y + 15); g.add(beam); MO.cores.push([m, beam]); }
+  const beamAt = (p, c, parent = g) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 30, 6, 1, true), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.35, depthWrite: false })); b.position.copy(p).setY(p.y + 15); parent.add(b); return b; };
+  if (st.t === 'collect') for (let i = 0; i < st.n; i++) { const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 0), glow(new THREE.Color(0.5, 2.6, 2.9))); m.position.copy(S.cores[i]).setY(S.cores[i].y + 1.3); g.add(m); MO.cores.push([m, beamAt(m.position, new THREE.Color(0.4, 1.6, 2))]); }
   if (st.t === 'hack') S.terms.forEach((p, i) => {
     const t = new THREE.Group(); t.position.copy(p); g.add(t);
     t.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.3, 0.8).translate(0, 0.65, 0), new THREE.MeshStandardMaterial({ color: 0x2a2a3a, metalness: 0.6, roughness: 0.4 })));
@@ -9456,12 +9560,13 @@ function missionVisuals() {
     const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 3.5, 48, 1, 0, Math.PI * 2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2, 2.6), transparent: true, opacity: 0.6, side: THREE.DoubleSide })); ring.position.y = 0.05; t.add(ring);
     MO.terms.push({ t, sc, ring });
   });
-  if (st.t === 'defend' || st.t === 'escort') {
+  if (st.t === 'defend' || st.t === 'escort' || st.t === 'carry') {
     const r = new THREE.Group(); r.position.copy(S.reactor); g.add(r);
     r.add(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 0.8, 20).translate(0, 0.4, 0), new THREE.MeshStandardMaterial({ color: 0x2a2a3a, metalness: 0.7, roughness: 0.35 })));
     const core = new THREE.Mesh(new THREE.SphereGeometry(0.75, 20, 14), glow(new THREE.Color(2.9, 1.6, 0.4))); core.position.y = 1.7; r.add(core);
     for (let k = 0; k < 2; k++) { const ring = new THREE.Mesh(new THREE.TorusGeometry(1.2 + k * 0.3, 0.06, 6, 40), glow(new THREE.Color(2.9, 1.2, 0.3))); ring.position.y = 1.7; r.add(ring); MO.ring.push(ring); }
     MO.reactor = r; MO.core = core;
+    if (st.t === 'carry') { MO.core.material.color.setRGB(0.4, 2.2, 2.9); for (const ring of MO.ring) ring.material.color.setRGB(0.4, 1.8, 2.9); beamAt(S.reactor, new THREE.Color(0.4, 1.8, 2.6)); }
   }
   if (st.t === 'escort') {
     const c = new THREE.Group(); g.add(c);
@@ -9469,6 +9574,32 @@ function missionVisuals() {
     const cell = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.6, 16).rotateX(Math.PI / 2), glow(new THREE.Color(0.5, 2.8, 1.4))); cell.position.y = 0.6; c.add(cell);
     const beam = new THREE.Mesh(new THREE.ConeGeometry(1.4, 4, 20, 1, true).translate(0, -2.4, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.8, 1.2), transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide })); c.add(beam);
     MO.cart = c;
+  }
+  if (st.t === 'carry') {
+    const c = new THREE.Group(); g.add(c);
+    c.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.6, 0), glow(new THREE.Color(3.0, 2.2, 0.4))));
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.05, 6, 32), glow(new THREE.Color(3.0, 1.8, 0.3))); c.add(halo);
+    MO.carry = c; MO.carryBeam = beamAt(new V3(), new THREE.Color(2.4, 1.6, 0.3));
+  }
+  if (st.t === 'rings') for (let i = 0; i < st.n; i++) {
+    const p = ringSpot(i), r = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.16, 8, 40), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.6, 1.2), transparent: true, opacity: 0.9 }));
+    r.position.copy(p); r.lookAt(i + 1 < st.n ? ringSpot(i + 1) : S.reactor); g.add(r); MO.rings.push(r);
+  }
+  if (st.t === 'capture') {
+    const z = new THREE.Group(); g.add(z);
+    const wall = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 3, 48, 1, true).translate(0, 1.5, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.4, 1), transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
+    const edge = new THREE.Mesh(new THREE.RingGeometry(5.8, 6, 64).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.4, 1), side: THREE.DoubleSide }));
+    const fill = new THREE.Mesh(new THREE.CircleGeometry(6, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.4, 1), transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
+    edge.position.y = 0.06; fill.position.y = 0.05; z.add(wall, edge, fill);
+    MO.zone = { z, wall, edge, fill };
+  }
+  if (st.t === 'disarm') {
+    const b = new THREE.Group(); g.add(b);
+    b.add(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 1.0, 12).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: 0x2a2630, metalness: 0.6, roughness: 0.4 })));
+    for (const s of [-1, 1]) b.add(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.9, 10).translate(s * 0.62, 0.45, 0), new THREE.MeshStandardMaterial({ color: 0x8a2a2a, roughness: 0.6 })));
+    const light = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), glow(new THREE.Color(3, 0.3, 0.2))); light.position.y = 1.15; b.add(light);
+    const prog = new THREE.Mesh(new THREE.RingGeometry(2.4, 2.8, 48, 1, 0, Math.PI * 2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.5, 0.3), transparent: true, opacity: 0.6, side: THREE.DoubleSide })); prog.position.y = 0.05; b.add(prog);
+    MO.bomb = { b, light, prog, beam: beamAt(new V3(), new THREE.Color(2.6, 0.4, 0.3)) };
   }
 }
 function updateMission(dt) {
@@ -9478,21 +9609,95 @@ function updateMission(dt) {
   for (let i = 0; i < MO.cores.length; i++) { const [m, b] = MO.cores[i], got = !!(GS.mc & (1 << i)); m.visible = b.visible = !got; m.rotation.y += dt * 2; m.position.y = missionSpots().cores[i].y + 1.3 + Math.sin(time * 2 + i) * 0.2; }
   MO.terms.forEach((T, i) => { const v = (GS.mhk[i] || 0) / 100; T.sc.material.color.setRGB(v >= 1 ? 0.4 : 0.4 + v * 2.4, v >= 1 ? 2.8 : 1.8, v >= 1 ? 0.6 : 2.6 - v * 2); T.ring.material.opacity = v >= 1 ? 0.15 : 0.35 + Math.sin(time * 4) * 0.2; });
   for (const r of MO.ring) { r.rotation.x += dt * 1.3; r.rotation.y += dt * 0.9; }
-  if (MO.core) { MO.core.scale.setScalar(0.7 + 0.3 * (GS.mh / 100) + Math.sin(time * 5) * 0.05); const hit = time - (MO.hitT || -9) < 0.12; MO.core.material.color.setRGB(hit ? 3 : 2.9, hit ? 0.3 : 0.4 + 1.2 * GS.mh / 100, hit ? 0.3 : 0.4 * GS.mh / 100); }
+  if (MO.core && MO.st.t !== 'carry') { MO.core.scale.setScalar(0.7 + 0.3 * (GS.mh / 100) + Math.sin(time * 5) * 0.05); const hit = time - (MO.hitT || -9) < 0.12; MO.core.material.color.setRGB(hit ? 3 : 2.9, hit ? 0.3 : 0.4 + 1.2 * GS.mh / 100, hit ? 0.3 : 0.4 * GS.mh / 100); }
   if (MO.cart) { const hit = time - (MO.hitT || -9) < 0.12; MO.cart.children[1].material.color.setRGB(hit ? 3 : 0.5 + (1 - GS.mh / 100) * 2.4, hit ? 0.3 : 2.8 * GS.mh / 100 + 0.3, hit ? 0.3 : 1.4 * GS.mh / 100); }
   if (MO.cart) { const p = pathAt(GS.mpos); MO.cart.position.lerp(p, 1 - Math.exp(-6 * dt)); MO.cart.rotation.y += dt * 0.3; }
+  if (MO.carry) {
+    const who = GS.mcar ? (GS.mcar === myId ? { pos: player.pos } : allActors().find(a => a.id === GS.mcar)) : null;
+    const p = who ? tA.copy(who.pos).setY(who.pos.y + 2.7) : tA.fromArray(GS.mdp).setY(GS.mdp[1] + 1.3 + Math.sin(time * 2) * 0.2);
+    if (who && GS.mcar !== myId) MO.carry.position.lerp(p, 1 - Math.exp(-12 * dt)); else MO.carry.position.copy(p);
+    MO.carry.visible = GS.mcar !== myId; MO.carry.rotation.y += dt * 2; MO.carry.children[1].rotation.x += dt * 1.5;
+    MO.carryBeam.visible = !GS.mcar; MO.carryBeam.position.set(p.x, p.y + 15, p.z);
+  }
+  MO.rings.forEach((r, i) => { r.visible = i >= GS.mp && i <= GS.mp + 1; const cur = i === GS.mp; r.material.opacity = cur ? 0.95 : 0.25; r.scale.setScalar(cur ? 1 + Math.sin(time * 6) * 0.05 : 0.8); r.material.color.setRGB(cur ? 0.4 : 0.6, cur ? 2.8 : 1.4, cur ? 1.2 : 2.4); });
+  if (MO.zone) {
+    const Z = MO.zone, c = GS.mc ? [3, 0.5, 0.4] : [0.4, 2.4, 1];
+    Z.z.position.copy(zoneSpot()); Z.fill.scale.setScalar(Math.max(0.02, GS.mpos));
+    for (const m of [Z.wall, Z.edge, Z.fill]) m.material.color.setRGB(...c);
+    Z.wall.material.opacity = 0.16 + Math.sin(time * 3) * 0.06;
+  }
+  if (MO.bomb) {
+    const B = MO.bomb, p = bombSpot(), k = clamp(GS.mt / ((MO.st.fuse || 30)), 0, 1);
+    B.b.position.copy(p); B.beam.position.set(p.x, p.y + 15, p.z);
+    B.light.visible = Math.sin(time * (6 + (1 - k) * 22)) > 0;
+    B.prog.scale.setScalar(0.35 + 0.65 * (1 - (GS.mhk[0] || 0) / 100)); B.prog.material.color.setRGB(3 - 2.6 * (GS.mhk[0] || 0) / 100, 0.5 + 2.2 * (GS.mhk[0] || 0) / 100, 0.3);
+    if (B.light.visible && !B.on && player.alive) { const pf = panFor(p); tone(1800, 1800, 0.04, 0.05 * Math.max(0.25, pf.v), 'square', pf.pan); }
+    B.on = B.light.visible;
+  }
   if (mlogT && time > mlogT) { $('mlog').hidden = true; mlogT = 0; }
 }
 function missionSay(text) { $('mlog').innerHTML = `<b>COMMAND</b> ${esc(text)}`; $('mlog').hidden = false; mlogT = time + 7; tone(1200, 1600, 0.08, 0.05, 'square'); tone(1600, 1200, 0.08, 0.05, 'square', 0, 0.1); }
 // where to point the objective marker
 function missionMarker() {
   const st = curStep(); if (!st || GS.mres) return null;
-  const S = missionSpots();
+  const S = missionSpots(), nearestEnt = type => { let b = null, bd = 1e9; for (const e of ents.values()) if (e.type === type && e.alive) { const d = e.pos.distanceTo(player.pos); if (d < bd) { bd = d; b = e.pos; } } return b; };
   if (st.t === 'collect') { let b = null, bd = 1e9; for (let i = 0; i < st.n; i++) if (!(GS.mc & (1 << i))) { const d = S.cores[i].distanceTo(player.pos); if (d < bd) { bd = d; b = S.cores[i]; } } return b && [b, 'CORE']; }
   if (st.t === 'hack') { let b = null, bd = 1e9; S.terms.forEach((p, i) => { if (GS.mhk[i] < 100) { const d = p.distanceTo(player.pos); if (d < bd) { bd = d; b = p; } } }); return b && [b, 'TERMINAL']; }
   if (st.t === 'defend') return [S.reactor, 'REACTOR'];
   if (st.t === 'escort') return [pathAt(GS.mpos), 'POWER CELL'];
+  if (st.t === 'destroy') { const p = nearestEnt('pylon'); return p && [p, 'GENERATOR']; }
+  if (st.t === 'hunt') { const p = nearestEnt('elite'); return p && [p, 'TARGET']; }
+  if (st.t === 'rings') return [ringSpot(GS.mp).clone().setY(ringSpot(GS.mp).y - 2), `RING ${GS.mp + 1}`];
+  if (st.t === 'carry') { if (GS.mcar) return [S.reactor, GS.mcar === myId ? 'UPLINK' : 'UPLINK · COVER THE CARRIER']; return [new V3().fromArray(GS.mdp), 'CORE']; }
+  if (st.t === 'capture') return [zoneSpot(), 'ZONE'];
+  if (st.t === 'disarm') return [bombSpot(), 'BOMB'];
   return null;
+}
+// the objective line under the scoreboard
+function missionHint(st) {
+  const fmt = v => `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
+  switch (st.t) {
+    case 'collect': return `COLLECT THE CORES · ${GS.mp}/${st.n}`;
+    case 'hack': return `HACK THE TERMINALS · ${GS.mhk.map(v => Math.round(v) + '%').join(' · ')}`;
+    case 'defend': return `DEFEND THE REACTOR · ${fmt(GS.mt)} · REACTOR ${GS.mh}%`;
+    case 'survive': return `SURVIVE · ${fmt(GS.mt)}`;
+    case 'escort': return `ESCORT THE POWER CELL · ${Math.round(GS.mpos * 100)}% · CELL ${GS.mh}%`;
+    case 'destroy': return `DESTROY THE GENERATORS · ${GS.mp}/${st.n}`;
+    case 'hunt': { const e = [...ents.values()].find(x => x.type === 'elite' && x.alive); return `HUNT THE ELITES · ${GS.mp}/${st.n}${e ? ` · TARGET ${clamp(Math.round(e.hp / (GS.bhp || e.hp) * 100), 0, 100)}%` : ' · TRACKING…'}`; }
+    case 'rings': return `RUN THE RINGS · ${GS.mp}/${st.n} · ${fmt(GS.mt)}`;
+    case 'carry': return GS.mcar === myId ? `YOU HAVE THE CORE · GET IT TO THE UPLINK · ${GS.mp}/${st.n}` : `${GS.mcar ? 'COVER THE CARRIER' : 'GRAB THE CORE'} · ${GS.mp}/${st.n} DELIVERED`;
+    case 'capture': return `HOLD ZONE ${Math.min(GS.mp + 1, st.n)}/${st.n} · ${Math.round(GS.mpos * 100)}%${GS.mc ? ' · CONTESTED: CLEAR THE DRONES' : ''}`;
+    case 'disarm': return `DISARM BOMB ${Math.min(GS.mp + 1, st.n)}/${st.n} · FUSE ${fmt(GS.mt)} · ${Math.round(GS.mhk[0] || 0)}%`;
+    case 'purge': return `WIPE OUT THE SWARM · ${GS.mp}/${st.n}`;
+    default: return `DEFEAT ${BOSS_INFO[st.boss].name}`;
+  }
+}
+const missionDanger = st => !!st && (((st.t === 'defend' || st.t === 'escort') && GS.mh < 30) || (st.t === 'disarm' && GS.mt <= 10) || (st.t === 'rings' && GS.mt <= 5) || (st.t === 'capture' && GS.mc));
+// mission generators: they don't move, but they shoot whoever is closest
+function hostPylon(e, dt, hs) {
+  e.t += dt; e.fireT -= dt; e.charge = e.fireT < 0.5 ? clamp(1 - e.fireT / 0.5, 0, 1) : 0;
+  if (e.fireT > 0) return;
+  let tgt = null, bd = 50 * 50;
+  for (const a of hs) if (a.alive && !inSmoke(a.pos)) { const d = a.pos.distanceToSquared(e.pos); if (d < bd) { bd = d; tgt = a; } }
+  if (tgt) hostFireOrb(e, tgt);
+  e.fireT = rand(1.8, 2.6);
+}
+function makePylonVis(e) {
+  const K = bossKit(e), { S, B, G, add, hit } = K;
+  const coreMat = S({ color: 0x23202e, metalness: 0.85, roughness: 0.3 }), glowMat = B(TYPES.pylon.color.clone());
+  add(G(new THREE.CylinderGeometry(1.1, 1.4, 0.6, 8)), coreMat, 0, -2.3, 0);
+  add(G(new THREE.CylinderGeometry(0.35, 0.5, 3.6, 8)), coreMat, 0, -0.4, 0);
+  for (let k = 0; k < 3; k++) { const f = add(G(new THREE.BoxGeometry(0.12, 2.4, 0.8)), coreMat, Math.cos(k * 2.09) * 0.55, -0.9, Math.sin(k * 2.09) * 0.55); f.rotation.y = -k * 2.09; }
+  const crystal = add(G(new THREE.OctahedronGeometry(0.8, 0)), glowMat, 0, 1.9, 0);
+  const rings = [0, 1].map(k => add(G(new THREE.TorusGeometry(1.1 + k * 0.35, 0.06, 6, 32)), glowMat, 0, 1.9, 0));
+  hit(1.1, 0, 1.9, 0); hit(0.9, 0, 0, 0); hit(1.2, 0, -1.9, 0);
+  finishBoss(e, K, {
+    coreMat, glowMat,
+    anim(e, dt) {
+      crystal.rotation.y += dt * 1.5; rings[0].rotation.x += dt * 2; rings[1].rotation.y += dt * 1.6;
+      coreMat.emissive.setScalar(e.flash * 1.5); crystal.scale.setScalar(1 + (e.charge || 0) * 0.5);
+    },
+  }, 2.4);
 }
 function renderMissions() {
   const el = $('missionList'); if (!el) return;
@@ -10309,12 +10514,14 @@ $('myProf').addEventListener('click', () => openProfile(PID, settings.name));
 $('profBack').addEventListener('click', () => setMenuTab(profView?.from || 'friends'));
 function openProfile(pid, n) {
   if (!PID_OK.test(String(pid))) return;
+  if (pid === PID) netSend({ t: 'link', op: 'info' });
   profView = { pid, n: n || '', from: menuTab === 'prof' ? 'friends' : menuTab, p: pid === PID ? myProfile() : profCache[pid] || null, loaded: pid === PID };
   setMenuTab('prof'); renderProfile();
   if (pid !== PID) netSend({ t: 'profget', pid });
 }
 function renderProfile() {
   if (!profView) return;
+  $('pfLink').hidden = profView.pid !== PID; if (profView.pid === PID) renderLinkBox();
   const me = profView.pid === PID, P = me ? myProfile() : profView.p, st = P?.st || {}, info = frInfo[profView.pid];
   $('pfName').textContent = (P && P.n) || profView.n || 'Pilot'; $('pfId').textContent = profView.pid;
   const pr = info?.on ? parseRoom(info.room) : null;
@@ -10334,6 +10541,32 @@ function renderProfile() {
   }
   $('pfNote').textContent = P ? (me ? 'Your look and stats are shared with friends while you\'re online on the website.' : '') : !social() ? 'Profiles need the website version.' : profView.loaded ? 'This player hasn\'t shared a profile yet. It shows up once they play on the website with this update.' : 'Loading…';
 }
+// ---------- linking accounts: each account types in the other's ID, then the server joins them ----------
+let linkData = null;
+function onLink(m) {
+  if (m.t === 'linkinfo') linkData = m;
+  else if (m.t === 'linkst') { const t = m.err || m.ok || ''; $('lkMsg').textContent = t; $('lkMsg').style.color = m.err ? '#ff6b81' : '#74ffb5'; if (t) toast(t); if (m.ok && /linked/i.test(m.ok)) $('lkTo').value = ''; }
+  else if (m.t === 'linkreq' && PID_OK.test(m.from)) toast(`${m.n || m.from} wants to link accounts with you. Open your Profile to confirm`);
+  if (menuTab === 'prof' && profView?.pid === PID) renderLinkBox();
+}
+function renderLinkBox() {
+  $('lkMine').textContent = PID;
+  const el = $('lkList'); el.textContent = '';
+  const row = (html, ...bs) => { const r = document.createElement('div'); r.className = 'lkrow'; const t = document.createElement('span'); t.innerHTML = html; r.appendChild(t); if (bs.length) { const b = document.createElement('div'); b.className = 'btnrow'; b.append(...bs); r.appendChild(b); } el.appendChild(r); };
+  if (!social()) { row('Linking accounts needs the website version.'); return; }
+  const D = linkData; if (!D) return;
+  if (D.g) row(`<b>Linked accounts</b> (sharing coins and items)<br>${D.g.map(x => `<code>${esc(x.pid)}</code>${x.n ? ` ${esc(x.n)}` : ''}${x.pid === PID ? ' · this one' : x.on ? ' · online' : ''}`).join('<br>')}`);
+  for (const r of D.inc || []) row(`<b>${esc(r.n || 'Someone')}</b> <code>${esc(r.pid)}</code> wants to link with this account`, btn('CONFIRM', () => netSend({ t: 'link', op: 'req', to: r.pid })), btn('NO', () => netSend({ t: 'link', op: 'no', to: r.pid })));
+  for (const r of D.out || []) row(`Waiting for <code>${esc(r.pid)}</code> to type in this account's ID`, btn('CANCEL', () => netSend({ t: 'link', op: 'no', to: r.pid })));
+}
+$('lkGo').addEventListener('click', () => {
+  const to = 'P-' + String($('lkTo').value || '').trim().replace(/^p-/i, '').toLowerCase();
+  const err = !PID_OK.test(to) ? 'That doesn\'t look like a player ID. They look like P-abc123xyz0.' : to === PID ? 'That\'s this account\'s ID. Type the ID of your other account.' : !social() ? 'Linking accounts needs the website version.' : '';
+  if (err) { $('lkMsg').textContent = err; $('lkMsg').style.color = '#ff6b81'; return; }
+  netSend({ t: 'link', op: 'req', to });
+});
+$('lkTo').addEventListener('keydown', e => { if (e.key === 'Enter') $('lkGo').click(); });
+$('pidlink').addEventListener('click', () => openProfile(PID, settings.name));
 // party: everyone in your current room
 function renderParty() {
   $('ptRoom').textContent = settings.room.toUpperCase();

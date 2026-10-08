@@ -31,15 +31,92 @@ function parseCreators(raw) {
 const CREATORS = { ...DEFAULT_CREATORS, ...parseCreators(process.env.CREATOR_CODES) };
 const byPid = new Map(); // player ID -> Set(client)
 // Linked accounts: one person's player IDs on different devices share one wallet (coins + cosmetics) and creator-code payouts.
-// The first ID in each group is the main one. Add more groups here.
+// The first ID in each group is the main one. Players link their own accounts from their Profile: each account types in
+// the other's ID, and once both have asked, the two are joined. Groups live here, in data/links.json, and in a signed
+// token every linked device keeps, so links survive the host wiping its disk (set LINK_SECRET in the host's env so the
+// tokens stay valid across redeploys).
 const LINKS = [
   ['P-ngk4h530nz', 'P-k6s7z2dfih'], // Harry (creator code HARRYBALLS)
 ];
+const LINK_MAX = 4, LINKS_FILE = path.join(__dirname, 'data', 'links.json');
+const LINK_SECRET = process.env.LINK_SECRET || (() => {
+  const f = path.join(__dirname, 'data', 'link_secret');
+  try { const s = fs.readFileSync(f, 'utf8').trim(); if (s.length >= 32) return s; } catch {}
+  const s = crypto.randomBytes(32).toString('hex');
+  try { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, s); } catch {}
+  return s;
+})();
 const groupOf = pid => LINKS.find(g => g.includes(pid)) || null;
 const sameGroup = (a, b) => a === b || (!!groupOf(a) && groupOf(a) === groupOf(b));
 const membersOf = pid => groupOf(pid) || [pid];
 // first online client for a player ID or any of its linked IDs
 function clientFor(pid) { for (const id of membersOf(pid)) { const set = byPid.get(id); if (set && set.size) return set.values().next().value; } return null; }
+const linkSig = g => crypto.createHmac('sha256', LINK_SECRET).update(g.join(',')).digest('hex').slice(0, 40);
+let linksDirty = false;
+try { for (const g of JSON.parse(fs.readFileSync(LINKS_FILE, 'utf8'))) if (Array.isArray(g) && g.length >= 2 && g.length <= LINK_MAX && g.every(p => PID_RE.test(p)) && !g.some(groupOf)) LINKS.push(g); } catch {}
+setInterval(() => { if (!linksDirty) return; linksDirty = false; try { fs.mkdirSync(path.dirname(LINKS_FILE), { recursive: true }); fs.writeFileSync(LINKS_FILE, JSON.stringify(LINKS)); } catch {} }, 5000);
+// tell every online device in a group that it's linked (and hand it the signed token)
+function linkAnnounce(g) {
+  const msg = JSON.stringify({ t: 'linked', main: g[0], g, sig: linkSig(g) });
+  for (const id of g) for (const c of byPid.get(id) || []) send(c.ws, msg);
+}
+// join two accounts; returns an error message, or '' when it worked
+function linkJoin(a, b) {
+  const ga = groupOf(a), gb = groupOf(b);
+  if (ga && ga === gb) return 'These accounts are already linked';
+  if (ga && gb) return 'Both accounts are already linked to other accounts';
+  const g = [...new Set([...(ga || gb || []), a, b])];
+  if (g.length > LINK_MAX) return `You can link up to ${LINK_MAX} accounts together`;
+  if (ga) LINKS.splice(LINKS.indexOf(ga), 1); if (gb) LINKS.splice(LINKS.indexOf(gb), 1);
+  LINKS.push(g); linksDirty = true; linkAnnounce(g);
+  return '';
+}
+const LINKREQ = new Map(); // 'from>to' -> expiry time
+const LINKREQ_MS = 15 * 60 * 1000;
+function linkInfo(pid) {
+  const now = Date.now(), inc = [], out = [];
+  for (const [k, exp] of LINKREQ) { if (exp < now) { LINKREQ.delete(k); continue; } const [f, t] = k.split('>'); if (t === pid) inc.push({ pid: f, n: PROF.get(f)?.n || seen.get(f)?.name || '' }); if (f === pid) out.push({ pid: t, n: PROF.get(t)?.n || seen.get(t)?.name || '' }); }
+  const g = groupOf(pid);
+  return { t: 'linkinfo', g: g ? g.map(p => ({ pid: p, n: PROF.get(p)?.n || seen.get(p)?.name || '', on: byPid.has(p) && byPid.get(p).size > 0 })) : null, inc, out, max: LINK_MAX };
+}
+function linkMessage(client, m) {
+  const pid = client.pid, reply = o => send(client.ws, JSON.stringify(o));
+  if (m.op === 'info') return reply(linkInfo(pid));
+  if (m.op === 'req' || m.op === 'no') {
+    const to = typeof m.to === 'string' ? m.to : '';
+    if (!PID_RE.test(to)) return reply({ t: 'linkst', err: 'That doesn\'t look like a player ID' });
+    if (m.op === 'no') { LINKREQ.delete(`${to}>${pid}`); LINKREQ.delete(`${pid}>${to}`); return reply(linkInfo(pid)); }
+    if (to === pid) return reply({ t: 'linkst', err: 'That\'s this account\'s own ID. Type the ID of your other account' });
+    if (sameGroup(pid, to)) return reply({ t: 'linkst', err: 'These accounts are already linked' });
+    const back = LINKREQ.get(`${to}>${pid}`);
+    if (back && back > Date.now()) {
+      // both accounts asked: link them
+      LINKREQ.delete(`${to}>${pid}`); LINKREQ.delete(`${pid}>${to}`);
+      const err = linkJoin(pid, to);
+      for (const id of [pid, to]) for (const c of byPid.get(id) || []) send(c.ws, JSON.stringify(err ? { t: 'linkst', err } : { t: 'linkst', ok: 'Accounts linked! Coins and items are now shared.' }));
+      for (const id of membersOf(pid)) for (const c of byPid.get(id) || []) send(c.ws, JSON.stringify(linkInfo(id)));
+      return;
+    }
+    if ([...LINKREQ.keys()].filter(k => k.startsWith(pid + '>')).length >= 5) return reply({ t: 'linkst', err: 'Too many open link requests. Wait a few minutes' });
+    LINKREQ.set(`${pid}>${to}`, Date.now() + LINKREQ_MS);
+    const n = PROF.get(pid)?.n || seen.get(pid)?.name || '';
+    for (const c of byPid.get(to) || []) { send(c.ws, JSON.stringify({ t: 'linkreq', from: pid, n })); send(c.ws, JSON.stringify(linkInfo(to))); }
+    reply({ t: 'linkst', ok: `Step 1 done. Now open Profile on your other account (${to}) within 15 minutes and type in this account's ID: ${pid}` });
+    return reply(linkInfo(pid));
+  }
+  if (m.op === 'restore' && Array.isArray(m.g) && typeof m.sig === 'string') {
+    // a device brings back a link the server forgot (its disk was wiped); the signature proves the server made it
+    const g = m.g.slice(0, LINK_MAX + 1).map(String);
+    if (g.length < 2 || g.length > LINK_MAX || !g.every(p => PID_RE.test(p)) || !g.includes(pid) || new Set(g).size !== g.length) return;
+    const want = linkSig(g); if (m.sig.length !== want.length || !crypto.timingSafeEqual(Buffer.from(m.sig), Buffer.from(want))) return;
+    const have = [...new Set(g.map(groupOf).filter(Boolean))];
+    if (have.length === 1 && have[0].length === g.length) return; // already known
+    if (have.some(h => h.some(p => !g.includes(p)))) return; // something newer already covers these accounts
+    for (const h of have) LINKS.splice(LINKS.indexOf(h), 1);
+    LINKS.push(g); linksDirty = true;
+    if (!have.length || have.some(h => h.length !== g.length)) linkAnnounce(g);
+  }
+}
 // Shared wallets, keyed by the group's main ID. Kept in memory: after a restart the devices re-seed it from their
 // last confirmed copy (the highest version wins), then replay any changes the server never confirmed.
 const WAL = new Map();
@@ -270,7 +347,7 @@ wss.on('connection', ws => {
       byPid.get(m.pid).add(client);
       seen.set(m.pid, { ...(seen.get(m.pid) || {}), last: Date.now() });
       sendGifts(client);
-      if (groupOf(m.pid)) send(ws, JSON.stringify({ t: 'linked', main: groupOf(m.pid)[0] }));
+      { const g = groupOf(m.pid); if (g) send(ws, JSON.stringify({ t: 'linked', main: g[0], g, sig: linkSig(g) })); }
     } else if (m.t === 'mappub' && client.pid && m.map && typeof m.map === 'object') {
       const mm = m.map, objs = cleanMapObjs(mm.objs), name = String(mm.name || '').replace(/[ -]/g, '').trim().slice(0, 24);
       if (name.length < 3 || objs.length < 5) { send(ws, JSON.stringify({ t: 'maperr', msg: 'Maps need a name and at least 5 things' })); return; }
@@ -304,6 +381,8 @@ wss.on('connection', ws => {
       const to = clientFor(m.to); if (to) send(to.ws, JSON.stringify(out));
     } else if (m.t === 'clan' && client.pid) {
       clanMessage(client, m);
+    } else if (m.t === 'link' && client.pid) {
+      linkMessage(client, m);
     } else if (m.t === 'wal' && client.pid) {
       walMessage(client, m);
     } else if (m.t === 'pay' && client.pid && typeof m.id === 'string' && m.id.length < 80) {
