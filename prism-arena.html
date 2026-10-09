@@ -2492,7 +2492,7 @@ function buildRoyale() {
     block(x, z, w + 0.4, 0.3, d + 0.4, h, null);
     const sh = new THREE.Shape([new THREE.Vector2(-w / 2 - 0.4, 0), new THREE.Vector2(w / 2 + 0.4, 0), new THREE.Vector2(0, Math.min(w, d) * 0.3)]);
     solidG.push(tint(new THREE.ExtrudeGeometry(sh, { depth: d + 0.8, bevelEnabled: false }).translate(x, h + 0.3, z - d / 2 - 0.4), roofC));
-    flat(2, new THREE.PlaneGeometry(w - 0.8, d - 0.8).rotateX(-Math.PI / 2).translate(x, 0.025, z), 0x8a6a48);
+    flat(2, new THREE.PlaneGeometry(w - 1.0, d - 1.0).rotateX(-Math.PI / 2).translate(x, 0.025, z), 0x8a6a48);
     spot(x + rr(-w / 5, w / 5), z + rr(-d / 5, d / 5)); spot(x + rr(-w / 5, w / 5), z + rr(-d / 5, d / 5));
     if (withChest) {
       const back = [1, 0, 3, 2][door], bx = back === 2 ? x - w / 2 + 1 : back === 3 ? x + w / 2 - 1 : x, bz = back === 0 ? z - d / 2 + 1 : back === 1 ? z + d / 2 - 1 : z;
@@ -2627,11 +2627,12 @@ function buildRoyale() {
       // a wall across the house (front room / back rooms), and one splitting the back into two rooms
       wallRun(true, xl + t / 2, xr - t / 2, wz(lm), H, it, [door(x + w * 0.22, 1.2)], y, inner);
       runZ(x - w * 0.05, lm + it / 2, lb - t / 2, H, it, [door((lm + lb) / 2, 1.1)], y, inner);
-      { const fc = o.floor || 0x8a6a48, fy = y + 0.03, x0 = x - w / 2 + 0.35, x1 = x + w / 2 - 0.35;
+      { const fc = o.floor || 0x8a6a48, fy = y + 0.03, x0 = x - w / 2 + 0.4, x1 = x + w / 2 - 0.4;
         if (f === 1) {
-          flat(2, new THREE.PlaneGeometry(x1 - holeX, d - 0.7).rotateX(-Math.PI / 2).translate((holeX + x1) / 2, fy, z), fc);
-          const [a, b] = zr(holeL, d / 2 - 0.35); flat(2, new THREE.PlaneGeometry(holeX - x0, b - a).rotateX(-Math.PI / 2).translate((x0 + holeX) / 2, fy, (a + b) / 2), fc);
-        } else flat(2, new THREE.PlaneGeometry(w - 0.7, d - 0.7).rotateX(-Math.PI / 2).translate(x, fy, z), fc); }
+          softG.push(tint(new THREE.PlaneGeometry(x1 - holeX, d - 0.8).rotateX(-Math.PI / 2).translate((holeX + x1) / 2, fy + 0.01, z), fc));
+          const [a, b] = zr(holeL, d / 2 - 0.4); softG.push(tint(new THREE.PlaneGeometry(holeX - x0, b - a).rotateX(-Math.PI / 2).translate((x0 + holeX) / 2, fy + 0.01, (a + b) / 2), fc));
+        } else if (f) softG.push(tint(new THREE.PlaneGeometry(w - 0.8, d - 0.8).rotateX(-Math.PI / 2).translate(x, fy + 0.01, z), fc));
+        else flat(2, new THREE.PlaneGeometry(w - 0.8, d - 0.8).rotateX(-Math.PI / 2).translate(x, fy, z), fc); }
       // a room's worth of furniture
       if (f === 0) { cblock(x + w * 0.28, wz(lf + 1.1), 2.2, 0.8, 0.9, 0, 0x6a4a8a); cblock(x - w * 0.28, wz((lm + lb) / 2), 1.4, 0.8, 0.9, 0, 0x8a6a48); cblock(x + w * 0.24, wz(lb - 0.6), w * 0.32, 1.0, 0.7, 0, 0xc8c8d0); }
       else for (const s of [-1, 1]) { cblock(x + s * w * 0.27, wz(lb - 1.3), 1.5, 0.5, 2.1, y, s < 0 ? 0xb8c8e8 : 0xe8b8c8); cblock(x + s * w * 0.27, wz(lb - 0.45), 1.3, 0.2, 0.4, y + 0.5, 0xffffff); }
@@ -2639,8 +2640,9 @@ function buildRoyale() {
       if (f === 0 && floors > 1) {
         // stairs up the left wall of the front room, and a hole in the floor above them
         for (let k = 0; k < 9; k++) cblock(sx, wz(lf + 0.85 + k * 0.5), 1.2, 0.4 * (k + 1), 0.5, 0, inner);
-        cblock((holeX + x + w / 2) / 2, z, x + w / 2 - holeX, 0.3, d, H, inner);
-        const [a, b] = zr(holeL, d / 2); cblock((x - w / 2 + holeX) / 2, (a + b) / 2, holeX - (x - w / 2), 0.3, b - a, H, inner);
+        // the ceiling stays inside the outer walls, so it never fights with them on the outside of the house
+        cblock((holeX + x + w / 2 - t) / 2, z, x + w / 2 - t - holeX, 0.3, d - 2 * t, H, inner);
+        const [a, b] = zr(holeL, d / 2 - t); cblock((x - w / 2 + t + holeX) / 2, (a + b) / 2, holeX - (x - w / 2 + t), 0.3, b - a, H, inner);
         runZ(holeX + 0.06, lf + 0.4, holeL - 1.2, 1.0, 0.12, [], H + 0.3, 0x5a4030);
       }
     }
@@ -2819,8 +2821,8 @@ function buildRoyale() {
   }
   for (const m of mergeChunks(solidG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); }
   for (const m of mergeChunks(softG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); }
-  flatG.forEach((list, k) => { if (!list.length) return; const mat = vcMat.clone(); Object.assign(mat, { polygonOffset: true, polygonOffsetFactor: -2 * (k + 1), polygonOffsetUnits: -6 * (k + 1) }); for (const m of mergeChunks(list, mat)) { m.receiveShadow = true; scene.add(m); } });
-  const roadM = new THREE.Mesh(mergeGeometries(roadG), new THREE.MeshStandardMaterial({ color: 0x9a7a52, roughness: 1, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -9 })); roadM.receiveShadow = true; scene.add(roadM);
+  flatG.forEach((list, k) => { if (!list.length) return; const mat = vcMat.clone(); Object.assign(mat, { polygonOffset: true, polygonOffsetFactor: -(k + 1), polygonOffsetUnits: -3 * (k + 1) }); for (const m of mergeChunks(list, mat)) { m.receiveShadow = true; scene.add(m); } });
+  const roadM = new THREE.Mesh(mergeGeometries(roadG), new THREE.MeshStandardMaterial({ color: 0x9a7a52, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2.5, polygonOffsetUnits: -7.5 })); roadM.receiveShadow = true; scene.add(roadM);
   finalizeWorld();
 }
 if (CMAP) buildCustomWorld(CMAP);
