@@ -8,7 +8,6 @@ const path = require('path');
 const crypto = require('crypto');
 
 const GAME_FILE = path.join(__dirname, 'prism-arena.html');
-const SONG_MAKER_FILE = path.join(__dirname, 'song-maker.html');
 const PORT = process.env.PORT || 3000;
 const MAX_ROOM = 12;
 // Battle Royale rooms hold up to 50 players (plus a couple of spare slots)
@@ -300,9 +299,6 @@ const server = http.createServer((req, res) => {
   if (url === '/' || url === '/index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
     res.end(page());
-  } else if (url === '/song-maker') {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
-    res.end(fs.readFileSync(SONG_MAKER_FILE));
   } else if (url === '/leaderboard') {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(JSON.stringify(lbTop().map(({ n, w, s }) => ({ name: n, wave: w, score: s }))));

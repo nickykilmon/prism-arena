@@ -407,12 +407,11 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
 @media (max-width:600px){.stkdays{grid-template-columns:repeat(4,1fr)}}
 .mpnow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:13px}
 .mpctl{display:flex;gap:6px}
-.mprow{display:grid;grid-template-columns:34px 1fr auto auto;align-items:center;gap:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;margin-top:4px;background:var(--panel)}
+.mprow{display:grid;grid-template-columns:34px 1fr auto 34px;align-items:center;gap:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;margin-top:4px;background:var(--panel)}
 .mprow.on{border-color:var(--cyan)}.mprow small{color:var(--dim);font-size:11px}
 .mpplay,.mpfav{background:none;border:1px solid var(--line);border-radius:50%;width:30px;height:30px;color:inherit;cursor:pointer;font-size:13px;padding:0}
 .mpfav.on{color:#ff6fb5;border-color:#ff6fb5}
 .mponly{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:13px}
-.mpbtns{display:flex;gap:4px}.mpadd{display:flex;gap:6px;margin-top:10px}.mpadd input{flex:1;min-width:0}.mphelp{display:block;color:var(--dim);font-size:12px;margin-top:4px}.mphelp a{color:var(--cyan)}
 .modal{position:fixed;inset:0;z-index:9;background:rgba(6,4,14,.7);display:flex;align-items:center;justify-content:center;padding:16px}
 .mbox{background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:14px;width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:10px}
 .mhead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--display);letter-spacing:.06em}
@@ -1135,7 +1134,6 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
-  { id: 'song-maker', date: '2026-10-09', title: 'Make Your Own Songs', lines: ['New Song Maker (open it from Settings → Music player): pick a style like Fire House, Dubstep or Hardstyle, then click squares to make your own beat, bassline, chords and melody', 'Click "Put it in the game", copy the code, and paste it into Settings → Music player → Add a song. Your songs play in the shuffle with the others'] },
   { id: 'br-bots-storm', date: '2026-10-08', title: 'Smarter Bots & a Nastier Storm', lines: ['Battle Royale bots are much better: most are medium skill and about one in four is hard. They spot you from much further away, find guns sooner (often rare or better), go after whoever shoots them, and heal up between fights', 'The storm hurts more every circle: 2 damage a second in the first, up to 30 in the last'] },
   { id: 'jets', date: '2026-10-08', title: 'Walk-In Jets', lines: ['Battle Royale: the Airport jets are much bigger, and you can climb the stairs and walk inside. Rows of seats, overhead bins, windows, and a cockpit with a chest. The hangar is bigger too, with its own jet inside'] },
   { id: 'big-island', date: '2026-10-08', title: 'Bigger Island, Supply Drops & Daily Rewards', lines: ['Battle Royale: the island is way bigger, so it takes a while to get between places. You drop from higher up to glide further', 'Four new places: the Airport (runway, jets, a hangar and a control tower), the Mountain (climb the terraces, explore the crystal cave), the Harbor (container stacks, a crane, a warehouse and a boat) and the Mall (two floors of shops, escalators and a food court)', 'Supply drops: a crate parachutes into the next circle every couple of minutes with epic and legendary guns. Look for the blue beam', 'Daily login streak: claim coins every day you play. Day 7 is a mystery crate with an item you don\'t own', 'Music player in Settings: play any song, skip, and heart your favourites', '15 new skins in the shop today: Cap\'n Saltbeard, Shogun Steel, Arcanos the Wise, Zorbo and Prickly Pete have their own models, plus Aurora, Marble, Denim, Graffiti, Checkered Flag, Honeycomb, Snakeskin, Stained Glass, Thunderstorm and Koi Pond'] },
@@ -3596,127 +3594,6 @@ function wobble(n, t, dur, rate, v = 1) {
   g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.16 * v, t + 0.01); g.gain.setValueAtTime(0.16 * v, t + dur - 0.02); g.gain.linearRampToValueAtTime(0.0001, t + dur);
   fl.connect(g); g.connect(B.syn); const d = c.createGain(); d.gain.value = 0.25 * v; g.connect(d); d.connect(B.shape);
 }
-// ===== SONG ENGINE: this block is the same in prism-arena.html and song-maker.html. Change both together. =====
-// A song: speed, key, 4 chords (one per bar), a 1-bar drum, bass and chord pattern, a 4-bar melody and a layout of sections.
-// Patterns are strings with one character per 16th note: '.' is nothing, '-' holds the note before, anything else plays.
-const SONG_TAG = 'PRISMSONG1:';
-const SONG_SCALES = { minor: [0, 2, 3, 5, 7, 8, 10], major: [0, 2, 4, 5, 7, 9, 11] };
-const SONG_SECS = ['intro', 'build', 'drop', 'break', 'outro'];
-const SONG_SOUNDS = { kick: ['punch', 'deep', 'hard'], bass: ['bounce', 'pluck', 'sub', 'reese', 'wobble', 'hard'], chords: ['stab', 'pad', 'pluck', 'saw'], lead: ['pluck', 'saw', 'bell', 'hard'] };
-const SONG_DR = ['kick', 'clap', 'snare', 'hat', 'ohat'];
-const SONG_MIX = ['kick', 'drums', 'bass', 'chords', 'lead'];
-const songRoot = sg => sg.key <= 8 ? 48 + sg.key : 36 + sg.key;
-const songDeg = (sg, d) => SONG_SCALES[sg.scale][((d % 7) + 7) % 7] + 12 * Math.floor(d / 7);
-const songBars = sg => sg.arr.reduce((n, a) => n + a.bars, 0);
-const songLen = (p, i, end) => { let k = i + 1; while (k < end && p[k] === '-') k++; return k - i; };
-function cleanSong(o) {
-  if (!o || typeof o !== 'object') return null;
-  const num = (v, lo, hi, d) => Number.isFinite(+v) && v !== null && v !== '' ? Math.min(hi, Math.max(lo, Math.round(+v))) : d;
-  const pick = (v, list) => list.includes(v) ? v : list[0];
-  const ties = s => { let r = '', p = '.'; for (const c of s) { const k = c === '-' && p === '.' ? '.' : c; r += k; p = k; } return r; };
-  const pat = (v, n, re) => typeof v === 'string' && v.length === n && re.test(v) ? ties(v) : '.'.repeat(n);
-  const sg = { v: 1, name: (typeof o.name === 'string' ? o.name : '').replace(/[\u0000-\u001f<>&"]/g, '').trim().slice(0, 32) || 'My Song',
-    bpm: num(o.bpm, 70, 190, 126), key: num(o.key, 0, 11, 9), scale: pick(o.scale, ['minor', 'major']),
-    prog: [0, 1, 2, 3].map(i => num(Array.isArray(o.prog) ? o.prog[i] : 0, 0, 6, 0)), pump: o.pump === 0 ? 0 : 1, wob: num(o.wob, 1, 8, 2),
-    kick: pick(o.kick, SONG_SOUNDS.kick), bass: pick(o.bass, SONG_SOUNDS.bass), chords: pick(o.chords, SONG_SOUNDS.chords), lead: pick(o.lead, SONG_SOUNDS.lead),
-    dr: {}, bp: pat(o.bp, 16, /^[.\-158]+$/), cp: pat(o.cp, 16, /^[.\-x]+$/), lp: pat(o.lp, 64, /^[.\-0-9a-d]+$/), mix: {}, arr: [] };
-  for (const k of SONG_DR) sg.dr[k] = o.dr && typeof o.dr[k] === 'string' && /^[.x]{16}$/.test(o.dr[k]) ? o.dr[k] : '.'.repeat(16);
-  for (const k of SONG_MIX) sg.mix[k] = o.mix && Number.isFinite(+o.mix[k]) ? Math.min(1.5, Math.max(0, Math.round(+o.mix[k] * 100) / 100)) : 1;
-  for (const a of Array.isArray(o.arr) ? o.arr.slice(0, 40) : []) if (a && typeof a === 'object')
-    sg.arr.push({ t: pick(a.t, SONG_SECS), bars: num(a.bars, 1, 32, 8), on: typeof a.on === 'string' ? 'kdbcl'.split('').filter(k => a.on.includes(k)).join('') : 'kdbcl', fx: a.fx === 0 ? 0 : 1 });
-  if (!sg.arr.length) sg.arr.push({ t: 'drop', bars: 16, on: 'kdbcl', fx: 1 });
-  return sg;
-}
-function encodeSong(sg) { let s = ''; for (const b of new TextEncoder().encode(JSON.stringify(sg))) s += String.fromCharCode(b); return SONG_TAG + btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
-function decodeSong(code) {
-  try {
-    code = String(code).trim(); if (code.length > 30000) return null;
-    if (code.startsWith('{')) return cleanSong(JSON.parse(code));
-    const i = code.indexOf(SONG_TAG); if (i < 0) return null;
-    const b = atob(code.slice(i + SONG_TAG.length).replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/'));
-    return cleanSong(JSON.parse(new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0)))));
-  } catch { return null; }
-}
-function songKick(t, kind, v) {
-  const c = A.ctx, B = MUS.bus, o = c.createOscillator(), g = c.createGain(), hard = kind === 'hard', deep = kind === 'deep';
-  o.frequency.setValueAtTime(hard ? 260 : deep ? 125 : 170, t); o.frequency.exponentialRampToValueAtTime(hard ? 50 : deep ? 38 : 45, t + (hard ? 0.08 : deep ? 0.16 : 0.11));
-  g.gain.setValueAtTime((hard ? 1.6 : deep ? 1.15 : 1) * v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (hard ? 0.5 : deep ? 0.6 : 0.36));
-  o.connect(g); g.connect(hard ? B.shape : B.drums); o.start(t); o.stop(t + 0.65);
-  if (!deep) noise(0.012, 0.3 * v, 4000, 'highpass', 1, 0, 0, null, B.drums, t);
-}
-function songBass(sg, n, t, d, st, v) {
-  switch (sg.bass) {
-    case 'sub': sub(n, t, d, 0.8 * v); break;
-    case 'pluck': mv({ det: [-8, 8], f: midi(n + 12), t, dur: Math.max(d, st * 1.5), cut: 1100, cut2: 200, vol: 0.24 * v }); sub(n, t, d, 0.4 * v); break;
-    case 'bounce': mv({ type: 'square', det: [-10, 10], f: midi(n + 12), t, dur: d, sus: 1, r: 0.03, cut: 3200, cut2: 380, ct: Math.min(d, st * 2), q: 5, vol: 0.13 * v }); sub(n, t, d, 0.45 * v); break;
-    case 'reese': mv({ det: [-25, 25], f: midi(n + 12), t, dur: d, sus: 1, r: 0.05, cut: 350, cut2: 1600, ct: d * 0.8, q: 3, vol: 0.2 * v }); sub(n, t, d, 0.6 * v); break;
-    case 'wobble': wobble(n, t, d, sg.wob * sg.bpm / 60, v); sub(n, t, d, 0.4 * v); break;
-    default: mv({ det: [-10, 10], f: midi(n + 24), f2: midi(n + 12), gt: Math.min(d, st * 1.5), t, dur: d, cut: 2500, cut2: 400, vol: 0.2 * v, to: MUS.bus.shape });
-  }
-}
-function songChords(sg, ch, t, d, cut, v) {
-  if (sg.chords === 'pad') mpad(ch, t, d, cut * 0.7, v);
-  else if (sg.chords === 'stab') stab(ch, t, d, cut, v);
-  else if (sg.chords === 'saw') stab([...ch, ch[1] + 12], t, d, cut * 1.3, 1.1 * v);
-  else for (const n of [...ch, ch[0] + 12]) mv({ type: 'triangle', det: [-7, 7], f: midi(n + 12), t, dur: Math.max(d, 0.25), vol: 0.06 * v, cut: cut * 1.2, cut2: 700, rv: 0.3, dl: 0.3 });
-}
-function songLead(sg, n, t, d, st, v) {
-  const f = midi(n), long = d > st * 2.5;
-  if (sg.lead === 'pluck') mv({ type: 'triangle', det: [-8, 8], f, t, dur: d * 1.5, vol: 0.08 * v, cut: 5000, cut2: 900, rv: 0.3, dl: 0.35 });
-  else if (sg.lead === 'bell') { mv({ type: 'sine', f, t, dur: d + st * 3, vol: 0.09 * v, rv: 0.35, dl: 0.3 }); mv({ type: 'triangle', f: f * 2, t, dur: d * 0.6 + st, vol: 0.03 * v, rv: 0.3 }); }
-  else mv({ det: sg.lead === 'hard' ? [-10, 0, 10] : [-12, 0, 12], f, t, dur: long ? d : d * 1.2 + st * 0.2, sus: long ? 1 : 0, r: 0.12, vol: 0.075 * v, cut: sg.lead === 'hard' ? 6000 : 4200, q: 2, rv: 0.25, dl: 0.25, to: sg.lead === 'hard' ? MUS.bus.shape : MUS.bus.syn });
-}
-function songRiser(sg, t, dur) {
-  mv({ noise: 1, t, dur, a: dur * 0.95, sus: 1, r: 0.03, vol: 0.14, ft: 'bandpass', cut: 300, cut2: 9000, ct: dur, q: 2.5, to: MUS.bus.drums });
-  const r = songRoot(sg); mv({ f: midi(r), f2: midi(r + 24), gt: dur, t, dur, a: dur * 0.9, sus: 1, r: 0.03, vol: 0.035, cut: 700, cut2: 7000, ct: dur, rv: 0.4 });
-}
-function songAt(sg, bar) { let b = bar; for (const a of sg.arr) { if (b < a.bars) return { a, sb: b }; b -= a.bars; } const a = sg.arr[sg.arr.length - 1]; return { a, sb: a.bars - 1 }; }
-// plays one 16th note; loop = the Song Maker's beat loop (every part on, no build or drop effects)
-function songStep(sg, t, st, bar, s, loop) {
-  const { a, sb } = loop ? { a: { t: 'drop', bars: 4, on: 'kdbcl', fx: 0 }, sb: bar % 4 } : songAt(sg, bar);
-  const sec = a.t, sl = a.bars, on = a.on, M = sg.mix, prog = sl > 1 ? sb / (sl - 1) : 1;
-  const build = sec === 'build' && a.fx, silent = build && sb === sl - 1 && s >= 12; // the breath before the drop
-  const d0 = sg.prog[bar % 4], root = songRoot(sg), ch = [0, 2, 4].map(k => root + songDeg(sg, d0 + k)), bn = root - 24 + songDeg(sg, d0);
-  if (a.fx && sec === 'drop' && s === 0) { if (sb === 0) DR.impact(t); else if (sb % 8 === 0) DR.crash(t); }
-  if (build) {
-    if (sb === 0 && s === 0) songRiser(sg, t, sl * 16 * st);
-    const every = sb < sl / 2 ? 4 : sb < sl - 2 ? 2 : 1;
-    if (!silent && s % every === 0) DR.snare(t, (0.2 + prog * 0.6) * Math.max(0.3, M.drums));
-  }
-  if (silent) return;
-  if (on.includes('k') && sg.dr.kick[s] === 'x' && M.kick > 0.01) {
-    songKick(t, sg.kick, M.kick);
-    if (sg.pump) { let g = 1; while (g < 16 && sg.dr.kick[(s + g) % 16] !== 'x') g++; duck(t, Math.min(g, 6) * st * 0.9); }
-  }
-  if (on.includes('d') && M.drums > 0.01) {
-    const D = sg.dr, v = M.drums;
-    if (D.clap[s] === 'x') DR.clap(t, 0.9 * v);
-    if (D.snare[s] === 'x') DR.snare(t, v);
-    if (D.hat[s] === 'x') DR.hat(t, (s % 4 === 2 ? 0.9 : 0.55) * v);
-    if (D.ohat[s] === 'x') DR.hat(t, 0.9 * v, true);
-  }
-  const bc = sg.bp[s];
-  if (on.includes('b') && bc !== '.' && bc !== '-' && M.bass > 0.01)
-    songBass(sg, bn + (bc === '5' ? songDeg(sg, d0 + 4) - songDeg(sg, d0) : bc === '8' ? 12 : 0), t, songLen(sg.bp, s, 16) * st, st, M.bass);
-  if (on.includes('c') && sg.cp[s] === 'x' && M.chords > 0.01) {
-    const cut = sec === 'intro' ? 500 + prog * 2500 : sec === 'build' ? 1200 + prog * 4500 : sec === 'drop' ? 4200 : sec === 'break' ? 2400 : 1800;
-    songChords(sg, ch, t, songLen(sg.cp, s, 16) * st, cut, M.chords * (sec === 'outro' ? 0.7 : 1));
-  }
-  const li = (bar % 4) * 16 + s, lc = sg.lp[li];
-  if (on.includes('l') && lc !== '.' && lc !== '-' && M.lead > 0.01)
-    songLead(sg, root + 12 + songDeg(sg, parseInt(lc, 16)), t, songLen(sg.lp, li, 64) * st, st, M.lead * (sec === 'drop' || sec === 'build' ? 1 : 0.75));
-}
-// ===== END SONG ENGINE =====
-// songs made in the Song Maker (/song-maker). Paste a song code into OFFICIAL_SONGS to give it to everyone.
-const OFFICIAL_SONGS = [];
-const SONG_MAKER_URL = /^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) ? '/song-maker' : null;
-function addSongTrack(sg, mine) {
-  let name = sg.name, k = 2; while (TRACKS.some(t => t.name === name)) name = `${sg.name} (${k++})`;
-  const T = { name, style: 'custom', bpm: sg.bpm, root: songRoot(sg), prog: [0], seed: 1, custom: sg, mine }; TRACKS.push(T); return T;
-}
-for (const c of OFFICIAL_SONGS) { const sg = decodeSong(c); if (sg) addSongTrack(sg, null); }
-const mySongs = (store.get('songs', []) || []).filter(c => typeof c === 'string' && decodeSong(c)).slice(0, 30);
-for (const c of mySongs) addSongTrack(decodeSong(c), c);
 function newTrack() {
   const favs = mfavOnly ? TRACKS.map((_, k) => k).filter(k => mfav.has(TRACKS[k].name)) : [];
   let pool = favs.length ? favs.filter(k => k !== MUS.trk) : TRACKS.map((_, k) => k).filter(k => !MUS.hist.includes(k) && k !== MUS.trk);
@@ -3739,7 +3616,6 @@ function lead(T, ch, t, st, s, v) {
   else mv({ det: [-12, 0, 12], f: midi(n), t, dur: st * m.len * 1.4, vol: 0.075 * v, cut: T.style === 'hard' ? 6000 : 4200, q: 2, rv: 0.25, dl: 0.25, to: T.style === 'hard' ? MUS.bus.shape : MUS.bus.syn });
 }
 function musStep(T, t, st) {
-  if (T.custom) return songStep(T.custom, t, st, MUS.bar, MUS.s);
   const B = MUS.bus, s = MUS.s, bar = MUS.bar, beat = st * 4, sty = T.style, half = sty === 'dubstep' || sty === 'future';
   let sec = 'outro', sb = 0, sl = 4; { let b = bar; for (const [n, len] of ARR) { if (b < len) { sec = n; sb = b; sl = len; break; } b -= len; } }
   const cb = T.cb || 1, d0 = T.prog[Math.floor(bar / cb) % T.prog.length];
@@ -3792,7 +3668,7 @@ function schedMusic() {
   B.lp.frequency.setTargetAtTime(state === 'playing' || state === 'dead' ? 18000 : 1000, A.ctx.currentTime, 0.4);
   if (A.next < A.ctx.currentTime - 0.3) A.next = A.ctx.currentTime + 0.05; // the tab slept: don't play the backlog
   while (A.next < A.ctx.currentTime + 0.2) {
-    if (MUS.trk < 0 || MUS.bar >= (TRACKS[MUS.trk].custom ? songBars(TRACKS[MUS.trk].custom) : ARR_LEN) || MUS.skip) { MUS.skip = false; newTrack(); }
+    if (MUS.trk < 0 || MUS.bar >= ARR_LEN || MUS.skip) { MUS.skip = false; newTrack(); }
     const T = TRACKS[MUS.trk], st = 60 / T.bpm / 4;
     if (A.musicOn) musStep(T, A.next, st);
     A.next += st;
@@ -11911,41 +11787,22 @@ setTimeout(() => { if (streakState().ready && state === 'menu') openStreak(); },
 // ================= music player (Settings) =================
 const mfav = new Set(store.get('mfav', []).filter(n => TRACKS.some(t => t.name === n)));
 let mfavOnly = !!store.get('mfavonly', false);
-const STYLE_NAME = { house: 'House', dubstep: 'Dubstep', dnb: 'Drum & Bass', future: 'Future Bass', hard: 'Hardstyle', melodic: 'Melodic', trance: 'Trance', custom: 'Song Maker' };
+const STYLE_NAME = { house: 'House', dubstep: 'Dubstep', dnb: 'Drum & Bass', future: 'Future Bass', hard: 'Hardstyle', melodic: 'Melodic', trance: 'Trance' };
 function playTrack(i) { MUS.want = i; MUS.skip = true; if (!A.musicOn) setMusic(true); initAudio(); setTimeout(renderMusicPlayer, 300); }
 function renderMusicPlayer() {
   const el = $('mplayer'); if (!el) return;
-  const cur = MUS.trk, code = $('mpcode') ? $('mpcode').value : '';
+  const cur = MUS.trk;
   el.innerHTML = `<div class="mpnow"><span>${A.musicOn ? (cur >= 0 ? `♪ NOW PLAYING · <b>${esc(TRACKS[cur].name)}</b>` : '♪ Click anywhere in the game to start the music') : '♪ Music is off'}</span><span class="mpctl"><button class="ghost" data-mp="next">⏭ NEXT</button><button class="ghost" data-mp="toggle">${A.musicOn ? 'MUSIC OFF' : 'MUSIC ON'}</button></span></div>`
-    + TRACKS.map((t, i) => `<div class="mprow${i === cur && A.musicOn ? ' on' : ''}"><button class="mpplay" data-mp="play" data-i="${i}" title="Play">${i === cur && A.musicOn ? '▮▮' : '▶'}</button><b>${esc(t.name)}</b><small>${STYLE_NAME[t.style]} · ${t.bpm} BPM</small><span class="mpbtns">${t.mine ? `<button class="mpfav" data-mp="del" data-i="${i}" title="Remove this song">✕</button>` : ''}<button class="mpfav${mfav.has(t.name) ? ' on' : ''}" data-mp="fav" data-i="${i}" title="Favourite">${mfav.has(t.name) ? '♥' : '♡'}</button></span></div>`).join('')
-    + `<label class="mponly"><input type="checkbox" data-mp="only"${mfavOnly ? ' checked' : ''}> Only play my favourites${mfav.size ? '' : ' (heart a song first)'}</label>`
-    + `<div class="mpadd"><input id="mpcode" type="text" placeholder="Paste a song code from the Song Maker" aria-label="Song code"><button class="ghost" data-mp="add">ADD</button></div>`
-    + `<small class="mphelp">${SONG_MAKER_URL ? `Make your own house and EDM songs in the <a href="${SONG_MAKER_URL}" target="_blank" rel="noopener">Song Maker</a>, then paste the code here.` : 'Make your own songs in the Song Maker on the Prism Arena website, then paste the code here.'}</small>`;
-  $('mpcode').value = code;
+    + TRACKS.map((t, i) => `<div class="mprow${i === cur && A.musicOn ? ' on' : ''}"><button class="mpplay" data-mp="play" data-i="${i}" title="Play">${i === cur && A.musicOn ? '▮▮' : '▶'}</button><b>${esc(t.name)}</b><small>${STYLE_NAME[t.style]} · ${t.bpm} BPM</small><button class="mpfav${mfav.has(t.name) ? ' on' : ''}" data-mp="fav" data-i="${i}" title="Favourite">${mfav.has(t.name) ? '♥' : '♡'}</button></div>`).join('')
+    + `<label class="mponly"><input type="checkbox" data-mp="only"${mfavOnly ? ' checked' : ''}> Only play my favourites${mfav.size ? '' : ' (heart a song first)'}</label>`;
 }
 $('mplayer').addEventListener('click', e => {
   const b = e.target.closest('[data-mp]'); if (!b) return; const i = +b.dataset.i;
   if (b.dataset.mp === 'play') playTrack(i);
   else if (b.dataset.mp === 'next') { nextSong(); initAudio(); setTimeout(renderMusicPlayer, 300); }
   else if (b.dataset.mp === 'toggle') { setMusic(!A.musicOn); initAudio(); renderMusicPlayer(); }
-  else if (b.dataset.mp === 'add') {
-    const c = $('mpcode').value.trim(), sg = decodeSong(c);
-    if (!sg) { toast("That song code doesn't work. Copy it again from the Song Maker"); return; }
-    if (mySongs.length >= 30) { toast('You have 30 songs already. Remove one first'); return; }
-    mySongs.push(c); store.set('songs', mySongs); const T = addSongTrack(sg, c);
-    $('mpcode').value = ''; toast(`Added "${T.name}"`); playTrack(TRACKS.indexOf(T)); renderMusicPlayer();
-  }
-  else if (b.dataset.mp === 'del') {
-    const T = TRACKS[i]; if (!T || !T.mine) return;
-    mySongs.splice(mySongs.indexOf(T.mine), 1); store.set('songs', mySongs);
-    if (mfav.delete(T.name)) store.set('mfav', [...mfav]);
-    TRACKS.splice(i, 1); MUS.hist = []; MUS.want = null;
-    if (MUS.trk === i) { MUS.trk = -1; MUS.skip = true; } else if (MUS.trk > i) MUS.trk--;
-    toast(`Removed "${T.name}"`); renderMusicPlayer();
-  }
   else if (b.dataset.mp === 'fav') { const n = TRACKS[i].name; if (mfav.has(n)) mfav.delete(n); else mfav.add(n); store.set('mfav', [...mfav]); renderMusicPlayer(); }
 });
-$('mplayer').addEventListener('keydown', e => { if (e.target.id === 'mpcode') { e.stopPropagation(); if (e.key === 'Enter') e.target.parentNode.querySelector('[data-mp=add]').click(); } });
 $('mplayer').addEventListener('change', e => { if (e.target.dataset.mp === 'only') { mfavOnly = e.target.checked; store.set('mfavonly', mfavOnly); } });
 renderMusicPlayer();
 window.__prism = { get info() { return { flying: grenades.map(n => n.kind + ':' + n.fuse.toFixed(1) + '@' + n.g.position.toArray().map(v => v.toFixed(1)).join(',')), cls: settings.cls, curW, gadgets: nadeCount, qcd: +player.pulseCd.toFixed(1), jetFuel: +jetFuel.toFixed(2), deploys: deploys.map(d => d.kind + (d.uses != null ? ':' + d.uses : '')), rally: teamFx.rallyUntil > time, wall: teamFx.wallUntil > time, py: +player.pos.y.toFixed(1), calls: renderer.info.render.calls, tris: renderer.info.render.triangles, q: settings.quality, dpr: renderer.getPixelRatio(), cam: camera.position.toArray().map(v => +v.toFixed(1)), fov: +camera.fov.toFixed(1), show: showcase ? [showcase.av.visible, showcase.av.position.toArray()] : null, menuTab, netKind, roomName, conn: !!conn, connected: !!(conn && conn.connected()), connId: conn && conn.myId(), state, mode, isHost, myId, hostId, peers: peers.size, ents: [...ents.values()].map(e => [e.kind, e.name || e.type, e.alive, Math.round(e.hp), e.lv || 0, e.f || 0]), ggLv, frags, deaths, score, hp: Math.round(player.hp), GS: JSON.parse(JSON.stringify(GS)) }; } };
