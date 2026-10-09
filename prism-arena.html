@@ -395,6 +395,23 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
 #invite b{color:var(--amber)}
 #tradeOffer{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:8;background:var(--panel-solid);border:1px solid var(--good);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:14px;max-width:min(560px,92vw)}
 #tradeOffer b{color:var(--good)}
+.stkbtn{margin:6px 0 2px;font-size:12px;padding:6px 12px}
+.stkbtn.hot{border-color:#ff8a2a;color:#ffbf6b;animation:stkp 1.2s ease-in-out infinite}
+@keyframes stkp{0%,100%{box-shadow:0 0 8px rgba(255,138,42,.35)}50%{box-shadow:0 0 22px rgba(255,138,42,.8)}}
+.stkdays{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.stkday{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:var(--display)}
+.stkday small{font-size:10px;color:var(--dim)}.stkday b{font-size:24px}.stkday span{font-size:13px;font-weight:700}
+.stkday.done{opacity:.5}.stkday.now{border-color:#ff8a2a;box-shadow:0 0 0 1px #ff8a2a,0 0 16px rgba(255,138,42,.4)}
+.stkday.crate{background:linear-gradient(160deg,rgba(255,200,74,.2),var(--panel))}
+.stkday i{position:absolute;top:4px;right:6px;font-style:normal;color:#74ffb5}
+@media (max-width:600px){.stkdays{grid-template-columns:repeat(4,1fr)}}
+.mpnow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:13px}
+.mpctl{display:flex;gap:6px}
+.mprow{display:grid;grid-template-columns:34px 1fr auto 34px;align-items:center;gap:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;margin-top:4px;background:var(--panel)}
+.mprow.on{border-color:var(--cyan)}.mprow small{color:var(--dim);font-size:11px}
+.mpplay,.mpfav{background:none;border:1px solid var(--line);border-radius:50%;width:30px;height:30px;color:inherit;cursor:pointer;font-size:13px;padding:0}
+.mpfav.on{color:#ff6fb5;border-color:#ff6fb5}
+.mponly{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:13px}
 .modal{position:fixed;inset:0;z-index:9;background:rgba(6,4,14,.7);display:flex;align-items:center;justify-content:center;padding:16px}
 .mbox{background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:14px;width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:10px}
 .mhead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--display);letter-spacing:.06em}
@@ -500,6 +517,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
 <div id="menu" class="overlay">
   <div class="slab">
     <div class="eyebrow" id="menuEyebrow">Live sky arena · up to 8 players</div>
+    <button class="ghost stkbtn" id="stkBtn">🔥</button>
     <h1>PRISM<br>ARENA</h1>
     <div class="tabs" id="tabs"><button data-tab="play" class="sel">PLAY</button><button data-tab="shop">SHOP <span class="coin" id="coinTab">0</span></button><button data-tab="custom">CUSTOMIZE</button><button data-tab="lb">LEADERBOARD</button><button data-tab="friends">FRIENDS <span class="badge" id="frBadge" hidden></span></button><button data-tab="set">SETTINGS</button><button id="fsBtn" class="fsbtn" title="Fullscreen (P)" aria-label="Fullscreen">⛶</button></div>
     <div class="pane" id="playPane">
@@ -636,6 +654,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="field"><label for="vmaster">Master volume<span class="v" id="vmasterV"></span></label><input type="range" id="vmaster" min="0" max="1" step="0.05"></div>
         <div class="field"><label for="vmusic">Music<span class="v" id="vmusicV"></span></label><input type="range" id="vmusic" min="0" max="1" step="0.05"></div>
         <div class="field"><label for="vsfx">Sound effects<span class="v" id="vsfxV"></span></label><input type="range" id="vsfx" min="0" max="1" step="0.05"></div>
+        <div class="field" style="grid-column:1/-1"><label>Music player</label><div id="mplayer"></div></div>
         <div class="field check"><label><input type="checkbox" id="chaton">Show chat</label></div>
       </div>
       <div class="sect" style="margin-bottom:-4px">Account</div>
@@ -666,6 +685,11 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
 <div id="podTxt" hidden></div>
 <div id="joinCard"></div>
 <div id="tradeOffer" hidden><span id="toTxt"></span><div class="btnrow"><button class="ghost" id="toYes">ACCEPT</button><button class="ghost" id="toNo">DECLINE</button></div></div>
+<div id="stkBox" class="modal" hidden><div class="mbox">
+  <div class="mhead"><b>🔥 DAILY LOGIN STREAK</b><button class="ghost" id="stkClose">✕</button></div>
+  <p class="note" id="stkSub"></p>
+  <div class="stkdays" id="stkDays"></div>
+  <div class="btnrow" style="justify-content:space-between;align-items:center"><small id="stkMsg"></small><button id="stkClaim" class="ghost">CLAIM</button></div></div></div>
 <div id="mapsBox" class="modal" hidden><div class="mbox">
   <div class="mhead"><b>🌍 COMMUNITY MAPS</b><button class="ghost" id="mapsClose">✕</button></div>
   <div class="mtools"><div class="seg" id="mapTabs"><button data-t="all">NEWEST</button><button data-t="top">MOST PLAYED</button><button data-t="official">OFFICIAL</button><button data-t="mine">MY MAPS</button></div><input id="mapSearch" placeholder="Search maps or creators" autocomplete="off"><button class="ghost" id="mapsEditor">🛠 MAKE A MAP</button></div>
@@ -1110,6 +1134,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'big-island', date: '2026-10-08', title: 'Bigger Island, Supply Drops & Daily Rewards', lines: ['Battle Royale: the island is way bigger, so it takes a while to get between places. You drop from higher up to glide further', 'Four new places: the Airport (runway, jets, a hangar and a control tower), the Mountain (climb the terraces, explore the crystal cave), the Harbor (container stacks, a crane, a warehouse and a boat) and the Mall (two floors of shops, escalators and a food court)', 'Supply drops: a crate parachutes into the next circle every couple of minutes with epic and legendary guns. Look for the blue beam', 'Daily login streak: claim coins every day you play. Day 7 is a mystery crate with an item you don\'t own', 'Music player in Settings: play any song, skip, and heart your favourites', '15 new skins in the shop today: Cap\'n Saltbeard, Shogun Steel, Arcanos the Wise, Zorbo and Prickly Pete have their own models, plus Aurora, Marble, Denim, Graffiti, Checkered Flag, Honeycomb, Snakeskin, Stained Glass, Thunderstorm and Koi Pond'] },
   { id: 'towers-music', date: '2026-10-08', title: 'Office Towers & New Music', lines: ['Battle Royale: the City skyscrapers are now office towers you can explore. Walk in through the doors or land on the roof, and take the stairs up and down every floor', 'Houses no longer have a see-through strip where the two floors meet', 'All-new music: 7 EDM tracks in different styles (house, dubstep, drum & bass, future bass, hardstyle, melodic and trance) with build-ups and drops. Music is muffled in the menus and opens up in a match. Press N to skip a song'] },
   { id: 'br-fixes-1', date: '2026-10-08', title: 'Battle Royale Fixes', lines: ['Upstairs floors no longer cover the stairwell, so you can see the way back down', 'Coloured floors in towns no longer flicker green', 'Dirt roads no longer run through the City', 'The seasonal area moves to a different part of the island every season'] },
   { id: 'missions-v2', date: '2026-10-08', title: 'Missions Overhaul & Account Linking', lines: ['Missions have 7 new kinds of objective: disarm bombs before the fuse runs out, run through rings against the clock, carry cores to the uplink, capture zones, shoot down generators that shoot back, hunt elite drones that teleport, and wipe out the swarm', 'Every mission now has a different mix of objectives', 'Mission bosses are much harder: they use their Boss Raid second-lap attacks, have more health, hit harder, and drones keep coming during the fight', 'Profile: link two accounts yourself. Type the other account\'s ID on both accounts and they merge into one shared wallet'] },
@@ -1355,6 +1380,21 @@ const SUITS = {
   darkknight: { name: 'The Dark Knight', price: 2400, pv: 'linear-gradient(90deg,transparent 40%,#ff2a2a 40% 60%,transparent 60%) 0 22%/100% 4% no-repeat,radial-gradient(circle at 50% 8%,#c41e1e 0 7%,transparent 8%),linear-gradient(180deg,#2a2a32,#101014)' },
   skultrooper: { name: 'Skul Trooper', price: 2200, pv: 'radial-gradient(circle at 42% 24%,#111 0 4%,transparent 5%),radial-gradient(circle at 58% 24%,#111 0 4%,transparent 5%),radial-gradient(circle at 50% 26%,#f2f0e6 0 16%,transparent 17%),repeating-linear-gradient(0deg,#111 0 8px,#e8e6dc 8px 11px)' },
   meowsclez: { name: 'Meowsclez', price: 2200, pv: 'radial-gradient(circle at 40% 24%,#ffd23a 0 3%,transparent 4%),radial-gradient(circle at 60% 24%,#ffd23a 0 3%,transparent 4%),radial-gradient(circle at 50% 26%,#c8c8d2 0 16%,transparent 17%),linear-gradient(180deg,transparent 45%,#c8c8d2 45% 75%,#2a4a9a 75%)' },
+  aurora: { name: 'Aurora', price: 900, pv: 'linear-gradient(170deg,#071026 0 20%,#3dffb0 35%,#071026 50%,#b06bff 65%,#071026 85%)' },
+  marble: { name: 'Marble', price: 700, pv: 'linear-gradient(120deg,transparent 40%,#a8a8b0 41% 42%,transparent 43%),linear-gradient(60deg,transparent 60%,#c9a24a 61% 61.6%,transparent 62%),#f2f0ec' },
+  denim: { name: 'Denim', price: 400, pv: 'linear-gradient(0deg,transparent 30%,#e8a33a 30% 33%,transparent 33%),repeating-linear-gradient(45deg,#2f4f7f 0 3px,#3f6496 3px 5px)' },
+  graffiti: { name: 'Graffiti', price: 800, pv: 'radial-gradient(circle at 30% 30%,#ff2bd6 0 14%,transparent 15%),radial-gradient(circle at 70% 60%,#2bfff1 0 16%,transparent 17%),radial-gradient(circle at 40% 80%,#ffd23a 0 10%,transparent 11%),#8a8a90' },
+  checker: { name: 'Checkered Flag', price: 500, pv: 'repeating-conic-gradient(#111 0 25%,#f4f4f4 0 50%) 0 0/16px 16px' },
+  honeycomb: { name: 'Honeycomb', price: 650, pv: 'radial-gradient(circle,#ffd25a 0 42%,#8a5210 46% 54%,transparent 56%) 0 0/14px 14px,#e8a020' },
+  snakeskin: { name: 'Snakeskin', price: 750, pv: 'radial-gradient(circle at 50% 100%,#8fd05a 0 40%,#2f6a2a 42% 60%,transparent 62%) 0 0/12px 10px,#1f4a1c' },
+  stainedglass: { name: 'Stained Glass', price: 1100, pv: 'linear-gradient(45deg,transparent 48%,#0c0a10 48% 52%,transparent 52%),linear-gradient(-45deg,transparent 48%,#0c0a10 48% 52%,transparent 52%),conic-gradient(#c41e3a 0 25%,#2f6fe0 0 50%,#ffd23a 0 75%,#3dbf5a 0)' },
+  thunder: { name: 'Thunderstorm', price: 1000, pv: 'linear-gradient(115deg,transparent 45%,#fff38a 46% 50%,transparent 51%),radial-gradient(circle at 30% 30%,#5a6a8a,#1a2030)' },
+  koi: { name: 'Koi Pond', price: 850, pv: 'radial-gradient(ellipse at 35% 40%,#ff7a2a 0 12%,transparent 13%),radial-gradient(ellipse at 65% 65%,#fff 0 10%,#ff7a2a 11% 14%,transparent 15%),radial-gradient(circle at 75% 25%,#3f9a3a 0 10%,transparent 11%),#1f7a8c' },
+  saltbeard: { name: 'Cap\'n Saltbeard', price: 2000, pv: 'radial-gradient(ellipse at 50% 12%,#16161a 0 22%,transparent 23%),radial-gradient(circle at 50% 30%,#e8b08a 0 12%,transparent 13%),radial-gradient(ellipse at 50% 44%,#16161a 0 11%,transparent 12%),linear-gradient(180deg,transparent 50%,#a8202a 50%)' },
+  ronin: { name: 'Shogun Steel', price: 2200, pv: 'radial-gradient(circle at 50% 12%,#d9b44a 0 6%,transparent 7%),radial-gradient(ellipse at 50% 26%,#b01e2a 0 13%,transparent 14%),repeating-linear-gradient(180deg,#2a2a34 0 8px,#b01e2a 8px 12px)' },
+  arcanos: { name: 'Arcanos the Wise', price: 2200, pv: 'conic-gradient(from 160deg at 50% 0%,transparent 0 20deg,#3a2a8a 20deg 40deg,transparent 40deg),radial-gradient(ellipse at 50% 45%,#f2f2f4 0 12%,transparent 13%),radial-gradient(circle,#ffd23a 0 2px,transparent 3px) 0 0/14px 14px,#3a2a8a' },
+  zorbo: { name: 'Zorbo', price: 1800, pv: 'radial-gradient(ellipse at 40% 28%,#0a0a0e 0 6%,transparent 7%),radial-gradient(ellipse at 60% 28%,#0a0a0e 0 6%,transparent 7%),radial-gradient(ellipse at 50% 26%,#6adf5a 0 22%,transparent 23%),linear-gradient(180deg,transparent 50%,#c8ccd8 50%)' },
+  pricklypete: { name: 'Prickly Pete', price: 1800, pv: 'radial-gradient(ellipse at 50% 14%,#e8c06a 0 34%,transparent 35%),radial-gradient(circle,#f4f0d6 0 1.5px,transparent 2px) 0 0/10px 10px,#3f9a4a' },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
 const FINISHES = {
@@ -1695,6 +1735,81 @@ const wallaTex = () => canvasTex('walla', x => {
   x.beginPath(); x.moveTo(128, 104); x.lineTo(128, 200); for (const y of [118, 142, 166]) { x.moveTo(112, y); x.lineTo(144, y); } x.stroke();
 });
 const BLIGHT = new THREE.Color(0.45, 2.4, 0.2), TOXIC_P = new THREE.Color(0.25, 1.6, 0.08);
+// ---------- textures for the October skins ----------
+const auroraTex = () => canvasTex('aurora', x => {
+  x.fillStyle = '#071026'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 70; i++) { x.fillStyle = `rgba(255,255,255,${Math.random() * 0.8})`; x.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 1.5); }
+  x.globalCompositeOperation = 'lighter';
+  for (let r = 0; r < 6; r++) {
+    const y0 = 30 + r * 38, c = r % 2 ? '176,107,255' : '61,255,176';
+    for (let w = 0; w < 3; w++) { x.strokeStyle = `rgba(${c},${0.22 - w * 0.06})`; x.lineWidth = 10 + w * 12; x.beginPath(); for (let px = 0; px <= 256; px += 8) { const py = y0 + Math.sin(px / 40 + r) * 14 + Math.sin(px / 17 + r * 2) * 5; px ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke(); }
+  }
+});
+const marbleTex = () => canvasTex('marble', x => {
+  x.fillStyle = '#f2f0ec'; x.fillRect(0, 0, 256, 256);
+  const vein = (col, w, n) => { x.strokeStyle = col; x.lineWidth = w; for (let k = 0; k < n; k++) { let px = Math.random() * 256, py = Math.random() * 256; x.beginPath(); x.moveTo(px, py); for (let s = 0; s < 40; s++) { px += Math.random() * 12 - 4; py += Math.random() * 12 - 6; x.lineTo(px, py); } x.stroke(); } };
+  vein('rgba(140,140,150,.55)', 2.2, 9); vein('rgba(120,120,130,.35)', 1, 14); vein('rgba(201,162,74,.8)', 1.2, 4);
+});
+const denimTex = () => canvasTex('denim', x => {
+  x.fillStyle = '#2f4f7f'; x.fillRect(0, 0, 256, 256);
+  for (let i = -256; i < 256; i += 4) { x.strokeStyle = i % 8 ? 'rgba(90,130,190,.35)' : 'rgba(20,35,60,.35)'; x.lineWidth = 2; x.beginPath(); x.moveTo(i, 0); x.lineTo(i + 256, 256); x.stroke(); }
+  for (let i = 0; i < 1600; i++) { x.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 1); }
+  x.strokeStyle = '#e8a33a'; x.lineWidth = 2; x.setLineDash([6, 4]); for (const y of [40, 46, 168, 174]) { x.beginPath(); x.moveTo(0, y); x.lineTo(256, y); x.stroke(); } x.setLineDash([]);
+});
+const graffitiTex = () => canvasTex('graffiti', x => {
+  x.fillStyle = '#8a8a90'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2500; i++) { const v = Math.random() * 40 | 0; x.fillStyle = `rgba(${v},${v},${v},.18)`; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
+  const C = ['#ff2bd6', '#2bfff1', '#ffd23a', '#7dff4a', '#ff6a2b', '#8a5aff'];
+  for (let i = 0; i < 9; i++) { const c = C[i % C.length], px = Math.random() * 256, py = Math.random() * 256, r = 16 + Math.random() * 26; const g = x.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, c); g.addColorStop(0.7, c); g.addColorStop(1, 'transparent'); x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill(); x.fillStyle = c; for (let d = 0; d < 3; d++) x.fillRect(px - r / 2 + Math.random() * r, py + r * 0.6, 3, 10 + Math.random() * 24); }
+  x.font = '900 46px Impact, sans-serif'; x.lineWidth = 5; x.textAlign = 'center';
+  for (const [t, px, py, c, a] of [['PRISM', 128, 90, '#ffd23a', -0.2], ['GG', 70, 200, '#2bfff1', 0.15], ['W', 200, 210, '#ff2bd6', -0.1]]) { x.save(); x.translate(px, py); x.rotate(a); x.strokeStyle = '#111'; x.strokeText(t, 0, 0); x.fillStyle = c; x.fillText(t, 0, 0); x.restore(); }
+});
+const checkerTex = () => canvasTex('checker', x => { for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { x.fillStyle = (i + j) % 2 ? '#111114' : '#f4f4f4'; x.fillRect(i * 32, j * 32, 32, 32); } }, 2);
+const honeyTex = () => canvasTex('honeycomb', x => {
+  x.fillStyle = '#8a5210'; x.fillRect(0, 0, 256, 256);
+  const r = 16, h = r * Math.sqrt(3);
+  for (let row = -1; row < 10; row++) for (let col = -1; col < 11; col++) {
+    const cx = col * r * 1.5, cy = row * h + (col % 2 ? h / 2 : 0), g = x.createRadialGradient(cx - 4, cy - 4, 1, cx, cy, r);
+    g.addColorStop(0, '#ffe08a'); g.addColorStop(0.6, '#f0a820'); g.addColorStop(1, '#c87a10'); x.fillStyle = g;
+    x.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; x.lineTo(cx + Math.cos(a) * (r - 2), cy + Math.sin(a) * (r - 2)); } x.closePath(); x.fill();
+  }
+});
+const snakeTex = () => canvasTex('snakeskin', x => {
+  x.fillStyle = '#1f4a1c'; x.fillRect(0, 0, 256, 256);
+  for (let row = 0; row < 17; row++) for (let col = 0; col < 18; col++) {
+    const cx = col * 16 + (row % 2 ? 8 : 0), cy = row * 16, g = x.createRadialGradient(cx, cy + 4, 1, cx, cy + 4, 11);
+    const band = Math.abs(((col + row * 0.5) % 6) - 3) < 1; g.addColorStop(0, band ? '#d8c86a' : '#8fd05a'); g.addColorStop(1, band ? '#5a4a1a' : '#2f6a2a'); x.fillStyle = g;
+    x.beginPath(); x.ellipse(cx, cy + 4, 9, 8, 0, 0, Math.PI); x.fill(); x.strokeStyle = 'rgba(10,30,10,.6)'; x.lineWidth = 1; x.stroke();
+  }
+});
+const stainedTex = () => canvasTex('stained', x => {
+  const C = ['#c41e3a', '#2f6fe0', '#ffd23a', '#3dbf5a', '#8a5aa8', '#ff8a2a', '#2bd6d6'], P = [];
+  for (let i = 0; i <= 6; i++) for (let j = 0; j <= 6; j++) P.push([i * 256 / 6 + (i % 6 ? Math.random() * 20 - 10 : 0), j * 256 / 6 + (j % 6 ? Math.random() * 20 - 10 : 0)]);
+  const p = (i, j) => P[i * 7 + j];
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) for (const tri of [[p(i, j), p(i + 1, j), p(i + 1, j + 1)], [p(i, j), p(i + 1, j + 1), p(i, j + 1)]]) {
+    x.fillStyle = C[Math.floor(Math.random() * C.length)]; x.beginPath(); tri.forEach(([a, b]) => x.lineTo(a, b)); x.closePath(); x.fill();
+    x.strokeStyle = '#0c0a10'; x.lineWidth = 5; x.stroke();
+  }
+});
+const thunderTex = () => canvasTex('thunder', x => {
+  const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#2a3248'); g.addColorStop(1, '#141824'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 26; i++) { const px = Math.random() * 256, py = Math.random() * 256, r = 18 + Math.random() * 30, c = x.createRadialGradient(px, py, 0, px, py, r); c.addColorStop(0, 'rgba(120,135,170,.5)'); c.addColorStop(1, 'rgba(120,135,170,0)'); x.fillStyle = c; x.fillRect(px - r, py - r, r * 2, r * 2); }
+});
+const boltTex = () => canvasTex('bolts', x => {
+  x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256);
+  for (let b = 0; b < 4; b++) { let px = 30 + b * 62 + Math.random() * 20, py = 0; x.strokeStyle = '#fff6a8'; x.lineWidth = 4; x.shadowColor = '#fff6a8'; x.shadowBlur = 12; x.beginPath(); x.moveTo(px, py); while (py < 256) { px += Math.random() * 30 - 15; py += 14 + Math.random() * 16; x.lineTo(px, py); } x.stroke(); }
+});
+const koiTex = () => canvasTex('koi', x => {
+  x.fillStyle = '#1f7a8c'; x.fillRect(0, 0, 256, 256);
+  x.strokeStyle = 'rgba(180,240,255,.25)'; x.lineWidth = 2; for (let i = 0; i < 10; i++) { const px = Math.random() * 256, py = Math.random() * 256; for (let r = 6; r < 30; r += 8) { x.beginPath(); x.arc(px, py, r, 0, 7); x.stroke(); } }
+  for (let i = 0; i < 4; i++) { const px = Math.random() * 256, py = Math.random() * 256; x.fillStyle = '#3f9a3a'; x.beginPath(); x.arc(px, py, 18, 0.3, Math.PI * 2 - 0.3); x.lineTo(px, py); x.fill(); }
+  for (let i = 0; i < 6; i++) {
+    const px = 30 + Math.random() * 196, py = 30 + Math.random() * 196, a = Math.random() * 6.28; x.save(); x.translate(px, py); x.rotate(a);
+    x.fillStyle = i % 2 ? '#ff7a2a' : '#f4f4f4'; x.beginPath(); x.ellipse(0, 0, 20, 8, 0, 0, 7); x.fill();
+    x.beginPath(); x.moveTo(-16, 0); x.lineTo(-30, -9); x.lineTo(-30, 9); x.closePath(); x.fill();
+    x.fillStyle = i % 2 ? '#f4f4f4' : '#ff5a1a'; x.beginPath(); x.ellipse(4, -1, 7, 4, 0.3, 0, 7); x.fill(); x.restore();
+  }
+});
 function suitMaterial(id, col, glowCol) {
   switch (id) {
     case 'chrome': return new THREE.MeshStandardMaterial({ color: 0xe9ecf7, metalness: 1, roughness: 0.06 });
@@ -1767,6 +1882,16 @@ function suitMaterial(id, col, glowCol) {
     case 'overmind': return new THREE.MeshStandardMaterial({ color: 0x3a3048, metalness: 0.85, roughness: 0.3 });
     case 'austen': return new THREE.MeshPhysicalMaterial({ color: 0xb84a2c, roughness: 0.35, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.3 });
     case 'diamond': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0, clearcoat: 1, clearcoatRoughness: 0, iridescence: 1, iridescenceIOR: 2.4, iridescenceThicknessRange: [100, 900], flatShading: true, emissive: 0x30304a, emissiveIntensity: 0.4 });
+    case 'aurora': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: auroraTex(), emissive: 0xffffff, emissiveMap: auroraTex(), emissiveIntensity: 0.9, roughness: 0.35 });
+    case 'marble': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: marbleTex(), roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.08 });
+    case 'denim': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: denimTex(), roughness: 0.95 });
+    case 'graffiti': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: graffitiTex(), roughness: 0.75 });
+    case 'checker': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: checkerTex(), roughness: 0.35, metalness: 0.1 });
+    case 'honeycomb': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: honeyTex(), roughness: 0.25, clearcoat: 1, emissive: 0x3a2000 });
+    case 'snakeskin': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: snakeTex(), roughness: 0.35, metalness: 0.15 });
+    case 'stainedglass': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: stainedTex(), emissive: 0xffffff, emissiveMap: stainedTex(), emissiveIntensity: 0.45, roughness: 0.1, clearcoat: 1 });
+    case 'thunder': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: thunderTex(), emissive: 0xfff6a8, emissiveMap: boltTex(), emissiveIntensity: 2.2, roughness: 0.6 });
+    case 'koi': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: koiTex(), roughness: 0.2, clearcoat: 0.8 });
     default: return new THREE.MeshStandardMaterial({ color: col, metalness: 0.45, roughness: 0.35 });
   }
 }
@@ -1848,7 +1973,7 @@ function addCoins(n) {
 }
 
 // ================= world =================
-const ARENA_R = ROYALE ? 260 : 58;
+const ARENA_R = ROYALE ? 460 : 58;
 const colliders = [], worldMeshes = [], decor = [];
 function boxGeo(w, h, d) {
   const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv;
@@ -2506,10 +2631,10 @@ function buildRoyale() {
   const ground = new THREE.Mesh(new THREE.CircleGeometry(ARENA_R, 120).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.95 }));
   ground.receiveShadow = true; scene.add(ground);
   // named places
-  const POI = [['PRISM POINT', 0, 0, 26], ['OLD TOWN', -135, 30, 34], ['PINE WOODS', 40, 160, 38], ['CRYSTAL QUARRY', 150, -100, 28], ['RED BARN FARM', -110, -145, 32], ['LOOKOUT', 180, 60, 14], ['NEW TOWN', 55, -180, 32], ['THE RUINS', -180, 115, 28], ['SUNNY RANCH', 130, 160, 26], ['DUSTY CAMP', -40, 95, 20], ['CITY', 85, -25, 46], ['MAPLE TOWN', -70, -55, 40]];
+  const POI = [['PRISM POINT', 0, 0, 26], ['OLD TOWN', -236, 53, 34], ['PINE WOODS', 70, 280, 38], ['CRYSTAL QUARRY', 263, -175, 28], ['RED BARN FARM', -192, -254, 32], ['LOOKOUT', 315, 105, 14], ['NEW TOWN', 96, -315, 32], ['THE RUINS', -315, 201, 28], ['SUNNY RANCH', 228, 280, 26], ['DUSTY CAMP', -70, 166, 20], ['CITY', 149, -44, 46], ['MAPLE TOWN', -122, -96, 40], ['AIRPORT', 56, 126, 70], ['MOUNTAIN', -376, 80, 60], ['HARBOR', 245, -303, 55], ['THE MALL', -107, 54, 42]];
   RL.pois = POI;
-  const SZN_AT = { halloween: [-195, -40], christmas: [-72, 197], valentine: [207, -36], easter: [-100, 143], summer: [-36, -207], thanksgiving: [119, 83], blackhistory: [-25, -143], pride: [17, -98], none: [-195, -40] }[SEASON || 'none'] || [-195, -40];
-  const NOROAD = [[85, -25, 49], [-70, -55, 43], [SZN_AT[0], SZN_AT[1], 48]];
+  const SZN_AT = { halloween: [-341, -70], christmas: [-126, 345], valentine: [362, -63], easter: [-175, 250], summer: [-63, -362], thanksgiving: [208, 145], blackhistory: [-44, -250], pride: [30, -171], none: [-341, -70] }[SEASON || 'none'] || [-341, -70];
+  const NOROAD = [[149, -44, 49], [-122, -96, 43], [SZN_AT[0], SZN_AT[1], 48], [56, 126, 74], [-376, 80, 64], [245, -303, 60], [-107, 54, 40]];
   const roadAround = (x0, z0, x1, z1) => {
     const L = Math.hypot(x1 - x0, z1 - z0), dx = (x1 - x0) / L, dz = (z1 - z0) / L, cuts = [];
     for (const [cx, cz, r] of NOROAD) { const t = (cx - x0) * dx + (cz - z0) * dz, h = Math.hypot(x0 + dx * t - cx, z0 + dz * t - cz); if (h < r) { const s = Math.sqrt(r * r - h * h); cuts.push([t - s, t + s]); } }
@@ -2528,7 +2653,7 @@ function buildRoyale() {
   spot(3, -3, 1.2); spot(-3, 3, 1.2);
   for (let k = 0; k < 4; k++) { const a = k / 4 * Math.PI * 2 + 0.785, x = Math.cos(a) * 22, z = Math.sin(a) * 22; block(x, z, k % 2 ? 1 : 6, 1.4, k % 2 ? 6 : 1, 0, null); spot(x * 1.12, z * 1.12); }
   // Old Town: houses round a little square
-  { const cx = -135, cz = 30;
+  { const cx = -236, cz = 53;
     [[-14, -15], [0, -17], [14, -15], [-17, 1], [17, 1], [-14, 17], [0, 19], [14, 17]].forEach(([dx, dz], i) => {
       const door = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 2 : 3) : (dz > 0 ? 0 : 1);
       house(cx + dx, cz + dz, rr(8, 10), rr(7, 9), door, rp(ROOFS), 3.4, i % 2 === 0);
@@ -2536,7 +2661,7 @@ function buildRoyale() {
     block(cx, cz, 3, 0.8, 3, 0, amberGlow); spot(cx + 4, cz); spot(cx - 4, cz); spot(cx, cz + 4); crate(cx + 6, cz - 6); crate(cx - 6, cz + 6, 1.2);
   }
   // Pine Woods: a cabin in a thick forest
-  { const cx = 40, cz = 160;
+  { const cx = 70, cz = 280;
     house(cx, cz, 7, 6, 0, 0x6a4a2a, 3.2, true);
     chest(cx + 12, cz - 8, 0.5); chest(cx - 14, cz + 6, 2.2);
     const keep = [[cx, cz, 6], [cx + 12, cz - 8, 2], [cx - 14, cz + 6, 2]];
@@ -2547,14 +2672,14 @@ function buildRoyale() {
     }
   }
   // Crystal Quarry: a ring of boulders around glowing crystals
-  { const cx = 150, cz = -100;
+  { const cx = 263, cz = -175;
     for (let i = 0; i < 24; i++) { const a = i / 24 * 6.283 + rr(-0.1, 0.1), r = rr(15, 24); rock(cx + Math.cos(a) * r, cz + Math.sin(a) * r, rr(1.6, 3.4)); }
     for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + 0.4, r = rr(5, 11); rock(cx + Math.cos(a) * r, cz + Math.sin(a) * r, rr(0.9, 1.6)); }
     for (let k = 0; k < 5; k++) { const a = k / 5 * 6.283, x = cx + Math.cos(a) * 8, z = cz + Math.sin(a) * 8; crystal(x, 2.6, z, rr(0.8, 1.3), k % 2 ? 0x9feaff : 0xff6fb5); spot(x * 0.97 + cx * 0.03, z * 0.97 + cz * 0.03); }
     chest(cx, cz, 0); chest(cx + 3, cz + 12, 1); spot(cx - 4, cz - 3); spot(cx + 4, cz - 5);
   }
   // Red Barn Farm: a barn, a silo and a fenced field
-  { const cx = -110, cz = -145;
+  { const cx = -192, cz = -254;
     house(cx, cz, 14, 10, 1, 0x9a2a22, 6, true);
     block(cx + 11, cz - 2, 4, 11, 4, 0, null); solidG.push(tint(new THREE.ConeGeometry(2.9, 2.4, 8).translate(cx + 11, 12.2, cz - 2), 0x8a8a92));
     const fx = cx - 4, fz = cz + 19;
@@ -2564,7 +2689,7 @@ function buildRoyale() {
     spot(cx - 4, cz); spot(cx + 4, cz + 2); spot(fx, fz); spot(fx + 6, fz - 4); chest(fx - 8, fz + 5, 0.4);
   }
   // the Lookout: a tower with stairs spiralling up to a chest on top
-  { const cx = 180, cz = 60, top = 14;
+  { const cx = 315, cz = 105, top = 14;
     for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) block(cx + sx * 3.2, cz + sz * 3.2, 0.8, top, 0.8, 0, null);
     block(cx, cz, 8.6, 0.4, 8.6, top, amberGlow);
     for (const [x, z, w, d] of [[cx, cz - 4.2, 8.6, 0.3], [cx, cz + 4.2, 8.6, 0.3], [cx - 4.2, cz, 0.3, 8.6]]) block(x, z, w, 1.1, d, top + 0.4, null);
@@ -2573,7 +2698,7 @@ function buildRoyale() {
     chest(cx - 1.5, cz, Math.PI / 2, top + 0.4); spot(cx + 2, cz + 2, top + 0.4); spot(cx + 2, cz - 2, top + 0.4); spot(cx - 7, cz - 7); spot(cx + 8, cz + 8);
   }
   // New Town: a ring of houses round a well
-  { const cx = 55, cz = -180;
+  { const cx = 96, cz = -315;
     [[-13, -11], [13, -11], [-15, 7], [15, 7], [0, 16], [0, -15]].forEach(([dx, dz], i) => {
       const door = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 2 : 3) : (dz > 0 ? 0 : 1);
       house(cx + dx, cz + dz, rr(7.5, 9.5), rr(7, 8.5), door, rp(ROOFS), 3.4, i % 2 === 1);
@@ -2581,19 +2706,19 @@ function buildRoyale() {
     block(cx, cz, 2.4, 1, 2.4, 0, cyanGlow); spot(cx + 3.5, cz); spot(cx - 3.5, cz); crate(cx + 5, cz + 4);
   }
   // the Ruins: broken walls and toppled pillars
-  { const cx = -180, cz = 115;
+  { const cx = -315, cz = 201;
     for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283 + rr(-0.2, 0.2), r = rr(8, 22), x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r, along = rnd() < 0.5; block(x, z, along ? rr(3, 8) : 0.8, rr(1.2, 4.5), along ? 0.8 : rr(3, 8), 0, null); if (i % 2) spot(x + 1.5, z + 1.5); }
     for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283, x = cx + Math.cos(a) * 12, z = cz + Math.sin(a) * 12; block(x, z, 1.6, i % 3 === 0 ? 2.2 : 6, 1.6, 0, roseGlow); }
     chest(cx, cz, 0); chest(cx + 15, cz - 6, 1.2); chest(cx - 10, cz + 14, 2.5); crystal(cx, 5, cz, 1.6, 0xb48cff);
   }
   // Sunny Ranch: a farmhouse, a shed and some hay
-  { const cx = 130, cz = 160;
+  { const cx = 228, cz = 280;
     house(cx, cz, 10, 8, 2, 0xc8902e, 3.6, true); house(cx + 14, cz - 6, 6, 5, 3, 0x9a2a22, 3, false);
     for (let i = 0; i < 4; i++) { const x = cx - 12 + rr(-4, 4), z = cz + 10 + rr(-4, 4), h = hayProp(); h.position.set(x, 0, z); h.traverse(k => { if (k.isMesh) k.castShadow = true; }); scene.add(h); colliders.push({ min: new V3(x - 1.2, 0, z - 0.85), max: new V3(x + 1.2, 1.6, z + 0.85) }); }
     block(cx - 4, cz - 12, 22, 1.1, 0.3, 0, null); spot(cx - 8, cz - 6); spot(cx + 6, cz + 8); chest(cx - 14, cz - 2, 1.6);
   }
   // Dusty Camp: tents (huts) round a fire pit
-  { const cx = -40, cz = 95;
+  { const cx = -70, cz = 166;
     for (let k = 0; k < 4; k++) { const a = k / 4 * 6.283 + 0.4; house(cx + Math.cos(a) * 11, cz + Math.sin(a) * 11, 5, 5, k, rp(ROOFS), 2.8, k === 0); }
     block(cx, cz, 2, 0.5, 2, 0, amberGlow); spot(cx + 3, cz + 1); spot(cx - 3, cz - 1);
   }
@@ -2692,7 +2817,7 @@ function buildRoyale() {
     used.push([x, z, Math.max(w, d) * 0.75]);
   };
   // ---------- the City: a grid of streets, office towers and two-storey shops round a plaza ----------
-  { const cx = 85, cz = -25, B = 20, S = 7, off = B + S, span = 3 * B + 4 * S;
+  { const cx = 149, cz = -44, B = 20, S = 7, off = B + S, span = 3 * B + 4 * S;
     flat(0, new THREE.PlaneGeometry(span, span).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x34343a);
     for (const k of [-1.5, -0.5, 0.5, 1.5]) for (let s = -42; s < 42; s += 5) { flat(2, new THREE.PlaneGeometry(2.4, 0.25).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz + k * off), 0xe8c84a); flat(2, new THREE.PlaneGeometry(0.25, 2.4).rotateX(-Math.PI / 2).translate(cx + k * off, 0.045, cz + s), 0xe8c84a); }
     let shop = 0;
@@ -2723,7 +2848,7 @@ function buildRoyale() {
     for (let k = 0; k < 8; k++) spot(cx + rp([-1.5, -0.5, 0.5, 1.5]) * off, cz + rr(-36, 36));
   }
   // ---------- Maple Town: a street of family houses, most of them two storeys ----------
-  { const cx = -70, cz = -55, HC = [0xe8dcc8, 0xc8d8e8, 0xe8c8b8, 0xd8e8c8, 0xf0e6a8, 0xe0d0e8];
+  { const cx = -122, cz = -96, HC = [0xe8dcc8, 0xc8d8e8, 0xe8c8b8, 0xd8e8c8, 0xf0e6a8, 0xe0d0e8];
     flat(1, new THREE.PlaneGeometry(86, 7).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x4a4a50);
     for (let s = -40; s < 42; s += 5) flat(2, new THREE.PlaneGeometry(2.4, 0.22).rotateX(-Math.PI / 2).translate(cx + s, 0.045, cz), 0xf4f4f0);
     let n = 0;
@@ -2737,6 +2862,147 @@ function buildRoyale() {
       n++;
     }
     for (let k = 0; k < 6; k++) spot(cx + rr(-38, 38), cz + rr(-2.5, 2.5));
+  }
+  // ---------- a big single-storey hall: a door in the middle of each side, high windows, a flat roof ----------
+  // o.big opens the whole +z side (hangars), o.doors = [-z, +z, -x, +x] turns doors off
+  const hall = (x, z, w, d, h, col, o = {}) => {
+    const t = 0.4, dw = 4, x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2;
+    const ops = (a0, a1, door) => { const c = (a0 + a1) / 2, l = []; if (door) l.push([c - dw / 2, c + dw / 2, 0, Math.min(h - 0.8, 4.2)]); for (let p = a0 + 2.5; p + 2.4 < a1 - 2; p += 5.5) if (!door || p > c + dw / 2 + 0.8 || p + 2.4 < c - dw / 2 - 0.8) l.push([p, p + 2.4, h - 2.4, h - 0.9]); return l.sort((a, b) => a[0] - b[0]); };
+    const dr = o.doors || [1, 1, 1, 1];
+    wallRun(true, x0, x1, z0 + t / 2, h, t, ops(x0, x1, dr[0]), 0, col);
+    wallRun(true, x0, x1, z1 - t / 2, h, t, o.big ? [[x0 + 1.5, x1 - 1.5, 0, h - 1.6]] : ops(x0, x1, dr[1]), 0, col);
+    wallRun(false, z0 + t, z1 - t, x0 + t / 2, h, t, ops(z0 + t, z1 - t, dr[2]), 0, col);
+    wallRun(false, z0 + t, z1 - t, x1 - t / 2, h, t, ops(z0 + t, z1 - t, dr[3]), 0, col);
+    cblock(x, z, w + 0.4, 0.4, d + 0.4, h, o.roof || 0x5a5a62);
+    flat(2, new THREE.PlaneGeometry(w - 1, d - 1).rotateX(-Math.PI / 2).translate(x, 0.03, z), o.floor || 0x8a8a92);
+    used.push([x, z, Math.max(w, d) * 0.6]);
+  };
+  // solid geometry turned by a multiple of 90°, with a matching collider box
+  const turned = (x, z, yaw) => (geo, c) => { geo.rotateY(yaw).translate(x, 0, z); solidG.push(tint(geo, c)); };
+  const turnedBox = (x, z, yaw, ax0, ax1, y0, y1, az0, az1) => {
+    const cs = Math.round(Math.cos(yaw)), sn = Math.round(Math.sin(yaw)), xs = [], zs = [];
+    for (const lx of [ax0, ax1]) for (const lz of [az0, az1]) { xs.push(lx * cs + lz * sn); zs.push(-lx * sn + lz * cs); }
+    colliders.push({ min: new V3(x + Math.min(...xs), y0, z + Math.min(...zs)), max: new V3(x + Math.max(...xs), y1, z + Math.max(...zs)) });
+  };
+  // a passenger plane (yaw 0: nose towards +x)
+  const plane = (x, z, yaw, s = 1, col = 0xf4f4f8, tail = 0xd8343c) => {
+    const g = turned(x, z, yaw);
+    g(new THREE.CylinderGeometry(1.3 * s, 1.3 * s, 22 * s, 16).rotateZ(Math.PI / 2).translate(0, 2.6 * s, 0), col);
+    g(new THREE.SphereGeometry(1.3 * s, 16, 10).scale(1.8, 1, 1).translate(11 * s, 2.6 * s, 0), col);
+    g(new THREE.ConeGeometry(1.3 * s, 5 * s, 16).rotateZ(Math.PI / 2).translate(-13.5 * s, 2.9 * s, 0), col);
+    g(new THREE.BoxGeometry(16 * s, 0.45 * s, 2.64 * s).translate(0.5 * s, 3.05 * s, 0), 0x2a3a5a);
+    g(new THREE.BoxGeometry(4.6 * s, 0.35 * s, 26 * s).translate(1 * s, 2.0 * s, 0), col);
+    g(new THREE.BoxGeometry(3 * s, 0.25 * s, 9 * s).translate(-13.2 * s, 3.3 * s, 0), col);
+    g(new THREE.BoxGeometry(3.4 * s, 4.2 * s, 0.3 * s).translate(-13.6 * s, 5.2 * s, 0), tail);
+    for (const sz of [-1, 1]) g(new THREE.CylinderGeometry(0.75 * s, 0.75 * s, 3.2 * s, 12).rotateZ(Math.PI / 2).translate(2.2 * s, 1.3 * s, sz * 5.5 * s), 0x8a8a92);
+    for (const [lx, lz] of [[8, 0], [0, -1.6], [0, 1.6]]) g(new THREE.CylinderGeometry(0.35 * s, 0.35 * s, 0.3 * s, 10).rotateX(Math.PI / 2).translate(lx * s, 0.4 * s, lz * s), 0x15151a);
+    turnedBox(x, z, yaw, -12 * s, 12 * s, 1.3 * s, 3.9 * s, -1.3 * s, 1.3 * s);
+    turnedBox(x, z, yaw, -1.3 * s, 3.3 * s, 1.8 * s, 2.2 * s, -13 * s, 13 * s);
+    turnedBox(x, z, yaw, -15.3 * s, -11.9 * s, 3.1 * s, 7.3 * s, -0.3 * s, 0.3 * s);
+  };
+  // ---------- the Airport: a runway with a jet on it, a terminal, a control tower and a hangar ----------
+  { const cx = 56, cz = 126;
+    flat(0, new THREE.PlaneGeometry(130, 46).rotateX(-Math.PI / 2).translate(cx, 0.035, cz - 12), 0x6a6a72);
+    flat(1, new THREE.PlaneGeometry(136, 16).rotateX(-Math.PI / 2).translate(cx, 0.04, cz + 30), 0x34343a);
+    for (let s = -62; s < 64; s += 9) flat(2, new THREE.PlaneGeometry(5, 0.5).rotateX(-Math.PI / 2).translate(cx + s, 0.05, cz + 30), 0xf4f4f0);
+    for (const e of [-1, 1]) { flat(2, new THREE.PlaneGeometry(136, 0.4).rotateX(-Math.PI / 2).translate(cx, 0.05, cz + 30 + e * 7.3), 0xf4f4f0); for (let k = 0; k < 6; k++) flat(2, new THREE.PlaneGeometry(4, 0.6).rotateX(-Math.PI / 2).translate(cx + e * 62, 0.05, cz + 25 + k * 2), 0xf4f4f0); }
+    plane(cx - 18, cz + 30, 0, 1);
+    plane(cx + 30, cz + 2, Math.PI, 0.8, 0xe8ecf4, 0x2f6fe0);
+    // the terminal (two floors and a roof) and the control tower with a glass cab on top
+    tower(cx - 30, cz - 26, 30, 14, 2, 0xe8ecf4);
+    tower(cx + 4, cz - 26, 13, 13, 7, 0xd8dce8);
+    { const top = 0.15 + 7 * 4, r = 6.3; for (const [px, pz, ry] of [[0, -r, 0], [0, r, 0], [-r, 0, Math.PI / 2], [r, 0, Math.PI / 2]]) glassG.push(ni(new THREE.PlaneGeometry(12.6, 2.6)).rotateY(ry).translate(cx + 4 + px, top + 2.3, cz - 26 + pz)); cblock(cx + 4, cz - 26, 13.6, 0.3, 13.6, top + 3.6, 0x4a4a52); for (const [px, pz] of [[-6.3, -6.3], [6.3, -6.3], [-6.3, 6.3], [6.3, 6.3]]) cblock(cx + 4 + px, cz - 26 + pz, 0.3, 2.6, 0.3, top + 1, 0x4a4a52); }
+    // the hangar, wide open towards the runway, with a small jet inside
+    hall(cx + 42, cz - 22, 28, 22, 10, 0x8a9aa8, { big: true, roof: 0x6a7a88 });
+    plane(cx + 42, cz - 22, Math.PI / 2, 0.55, 0xf4f4f8, 0xffc84a);
+    chest(cx + 32, cz - 30, 0); chest(cx + 52, cz - 30, 0); spot(cx + 36, cz - 16); spot(cx + 50, cz - 14);
+    // fuel tanks and baggage carts
+    for (const k of [0, 1]) { const x = cx - 58 + k * 9, z = cz - 16; solidG.push(tint(new THREE.CylinderGeometry(3.2, 3.2, 6, 18).translate(x, 3, z), 0xe8e8ee)); solidG.push(tint(new THREE.CylinderGeometry(3.3, 3.3, 0.4, 18).translate(x, 4.4, z), 0xd8343c)); colliders.push({ min: new V3(x - 3, 0, z - 3), max: new V3(x + 3, 6, z + 3) }); }
+    for (let k = 0; k < 4; k++) { cblock(cx - 4 + k * 4, cz + 2, 3, 1.2, 1.8, 0.3, [0x2f6fe0, 0xffc84a, 0x3dbf5a, 0xd8343c][k]); spot(cx - 4 + k * 4, cz + 4.5); }
+    chest(cx - 18, cz + 22, Math.PI); spot(cx - 25, cz + 22); spot(cx - 10, cz + 38); spot(cx + 20, cz + 12);
+  }
+  // ---------- the Mountain: rocky terraces with stairs up to the summit, and a crystal cave inside ----------
+  { const cx = -376, cz = 80, TH = 4, sizes = [90, 74, 58, 42, 26], cols = [0x7a7468, 0x857f72, 0x948e82, 0xa8a49a, 0xf2f6fa], cave = 15, door = 2.5;
+    sizes.forEach((s, k) => {
+      const h = s / 2, y = k * TH, c = cols[k];
+      if (k > 1) { cblock(cx, cz, s, TH, s, y, c); return; }
+      // the two bottom terraces are hollow: a cave in the middle, and a tunnel in from the east side on the ground
+      cblock(cx, (cz - h + cz - cave) / 2, s, TH, h - cave, y, c);
+      cblock(cx, (cz + cave + cz + h) / 2, s, TH, h - cave, y, c);
+      cblock((cx - h + cx - cave) / 2, cz, h - cave, TH, cave * 2, y, c);
+      if (k === 0) { cblock((cx + cave + cx + h) / 2, (cz - cave + cz - door) / 2, h - cave, TH, cave - door, y, c); cblock((cx + cave + cx + h) / 2, (cz + door + cz + cave) / 2, h - cave, TH, cave - door, y, c); }
+      else cblock((cx + cave + cx + h) / 2, cz, h - cave, TH, cave * 2, y, c);
+    });
+    // stairs up every terrace, on the east face, switching sides as you climb
+    sizes.forEach((s, k) => { const fx = cx + s / 2, sz = cz + (k % 2 ? -20 : 20); for (let i = 0; i < 10; i++) cblock(fx + 6 - (i + 0.5) * 0.6, sz, 0.6, 0.4 * (i + 1), 3.2, k * TH, 0x6a6458); });
+    // boulders on the ledges and the summit
+    for (let k = 0; k < 4; k++) for (let j = 0; j < 4; j++) { const s = sizes[k], a = j * 1.57 + k * 0.6 + 0.4, r = s / 2 - 3.5; solidG.push(tint(new THREE.IcosahedronGeometry(rr(1.2, 2.2), 0).translate(cx + Math.cos(a) * r, (k + 1) * TH + 0.6, cz + Math.sin(a) * r), 0x6a6458)); }
+    { const y = sizes.length * TH; chest(cx, cz - 4, 0, y); crystal(cx + 6, y + 2.5, cz + 6, 1.2, 0x9fd8ff); cblock(cx - 8, cz + 8, 0.3, 6, 0.3, y, 0x4a4a52); softG.push(tint(new THREE.PlaneGeometry(2.6, 1.6).translate(cx - 6.7, y + 5.1, cz + 8), 0xd8343c)); spot(cx - 4, cz + 4, y); spot(cx + 6, cz - 6, y); }
+    // the crystal cave
+    for (const [dx, dz, s, col] of [[-9, -9, 1.6, 0x7fe0ff], [9, -10, 1.2, 0xc08aff], [-10, 8, 1.3, 0xff8ad8], [8, 9, 1.7, 0x7fe0ff], [0, -12, 1, 0xc08aff]]) crystal(cx + dx, s * 1.6, cz + dz, s, col);
+    chest(cx - 4, cz, Math.PI / 2); chest(cx + 4, cz + 6, -Math.PI / 2); spot(cx, cz - 6); spot(cx + 2, cz + 10); spot(cx + 30, cz); spot(cx + 20, cz + 1.5);
+    for (const [dx, dz] of [[52, -30], [52, 30], [-52, 0], [0, 52], [0, -52]]) { tree(cx + dx, cz + dz, rr(1.1, 1.5), 1); spot(cx + dx * 0.95 + 2, cz + dz * 0.95); }
+  }
+  // ---------- the Harbor: stacks of shipping containers, a crane, a warehouse, a lighthouse and a boat ----------
+  { const cx = 245, cz = -303, CC = [0xd8343c, 0x2f6fe0, 0x3dbf5a, 0xffc84a, 0xe8732a, 0x8a5aa8, 0x2a9aa8];
+    flat(0, new THREE.PlaneGeometry(104, 92).rotateX(-Math.PI / 2).translate(cx, 0.035, cz), 0x7a7a80);
+    for (let k = -2; k <= 2; k++) flat(2, new THREE.PlaneGeometry(0.3, 80).rotateX(-Math.PI / 2).translate(cx + k * 18, 0.05, cz), 0xffc84a);
+    // a container: either a closed box or open at one end with loot inside (along x, 6 long)
+    const box = (x, z, y, c, open) => {
+      if (!open) { cblock(x, z, 6, 2.6, 2.5, y, c); return; }
+      cblock(x - 2.9, z, 0.2, 2.6, 2.5, y, c); cblock(x + 0.1, z - 1.15, 5.8, 2.6, 0.2, y, c); cblock(x + 0.1, z + 1.15, 5.8, 2.6, 0.2, y, c); cblock(x + 0.1, z, 5.8, 0.2, 2.5, y + 2.4, c);
+      if (y === 0) { if (rnd() < 0.4) chest(x - 1.8, z, -Math.PI / 2); else spot(x - 1.2, z); }
+    };
+    for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++) {
+      const x = cx - 40 + i * 9, z = cz - 30 + j * 6.5, n = 1 + Math.floor(rnd() * 3);
+      for (let k = 0; k < n; k++) box(x, z, k * 2.6, rp(CC), k === 0 && rnd() < 0.35);
+      if (rnd() < 0.5) spot(x + 3.8, z + 3.2);
+    }
+    // the crane over the stacks
+    { const x = cx - 22, z = cz + 6, Y = 0xffc84a; for (const dz of [-14, 14]) for (const dx of [-3, 3]) cblock(x + dx, z + dz, 1, 20, 1, 0, Y); cblock(x, z - 14, 7, 1, 1, 20, Y); cblock(x, z + 14, 7, 1, 1, 20, Y); cblock(x, z, 1.4, 1.4, 30, 20, Y); cblock(x, z + 4, 3.6, 2.6, 3.6, 21.4, 0x3a3a42); }
+    // the warehouse
+    hall(cx + 28, cz + 22, 30, 20, 8, 0xa86a4a, { roof: 0x5a3a2a, floor: 0x7a7468 });
+    for (let k = 0; k < 6; k++) crate(cx + 18 + (k % 3) * 8, cz + 17 + Math.floor(k / 3) * 10, rr(1.2, 1.6));
+    chest(cx + 38, cz + 28, Math.PI); spot(cx + 24, cz + 22); spot(cx + 34, cz + 16);
+    // the lighthouse (decoration) and a boat tied up at the end of the quay
+    { const x = cx + 42, z = cz - 36; for (let k = 0; k < 6; k++) solidG.push(tint(new THREE.CylinderGeometry(2.6 - k * 0.15, 2.75 - k * 0.15, 4, 18).translate(x, 2 + k * 4, z), k % 2 ? 0xd8343c : 0xf4f4f8)); solidG.push(tint(new THREE.CylinderGeometry(2.2, 2.2, 0.4, 18).translate(x, 24.2, z), 0x2a2a32)); glowG.push(ni(new THREE.CylinderGeometry(1.2, 1.2, 2.2, 14)).translate(x, 25.5, z)); solidG.push(tint(new THREE.ConeGeometry(1.8, 2, 14).translate(x, 27.6, z), 0x2a2a32)); colliders.push({ min: new V3(x - 2.6, 0, z - 2.6), max: new V3(x + 2.6, 28, z + 2.6) }); }
+    { const x = cx - 18, z = cz + 38; cblock(x, z, 18, 2.2, 6, 0, 0xf4f4f8); cblock(x, z, 18.4, 0.5, 6.4, 0, 0x2f6fe0); cblock(x - 2, z, 7, 2.4, 4.4, 2.2, 0xe8e8ee); cblock(x - 2, z, 7.4, 0.3, 4.8, 4.6, 0x2f6fe0); chest(x + 5, z, Math.PI / 2, 2.2); spot(x - 6, z, 2.2); }
+  }
+  // ---------- the Mall: two floors of shops round an atrium, with escalators, a food court and a glass roof ----------
+  { const cx = -107, cz = 54, W = 56, D = 36, FH = 4.5, H = FH - 0.3, t = 0.4, x0 = cx - W / 2, x1 = cx + W / 2, z0 = cz - D / 2, z1 = cz + D / 2, col = 0xeee6d8, AX = 11, AZ = 6;
+    for (let f = 0; f < 2; f++) {
+      const y = f * FH;
+      const side = (a0, a1, door) => { const c = (a0 + a1) / 2; return door ? [[a0 + 2, c - 3.2, 0.6, 3.6], [c - 2.6, c + 2.6, 0, 3.4], [c + 3.2, a1 - 2, 0.6, 3.6]] : [[a0 + 2, a1 - 2, 1.0, 3.6]]; };
+      wallRun(true, x0, x1, z0 + t / 2, H, t, side(x0, x1, !f), y, col);
+      wallRun(true, x0, x1, z1 - t / 2, H, t, side(x0, x1, !f), y, col);
+      wallRun(false, z0 + t, z1 - t, x0 + t / 2, H, t, side(z0 + t, z1 - t, !f), y, col);
+      wallRun(false, z0 + t, z1 - t, x1 - t / 2, H, t, side(z0 + t, z1 - t, !f), y, col);
+      // the floor above (and the roof on top), open over the atrium
+      const sy = y + H, sc = f ? 0x6a6a72 : 0xd8d0c0;
+      cblock(cx, (z0 + cz - AZ) / 2, W, 0.3, cz - AZ - z0, sy, sc); cblock(cx, (cz + AZ + z1) / 2, W, 0.3, z1 - cz - AZ, sy, sc);
+      cblock((x0 + cx - AX) / 2, cz, cx - AX - x0, 0.3, AZ * 2, sy, sc); cblock((cx + AX + x1) / 2, cz, x1 - cx - AX, 0.3, AZ * 2, sy, sc);
+      // upstairs flooring, leaving the atrium open
+      if (f) for (const [px, pz, pw, pd] of [[cx, (z0 + cz - AZ) / 2, W - 0.8, cz - AZ - z0 - 0.4], [cx, (cz + AZ + z1) / 2, W - 0.8, z1 - cz - AZ - 0.4], [(x0 + cx - AX) / 2, cz, cx - AX - x0 - 0.4, AZ * 2], [(cx + AX + x1) / 2, cz, x1 - cx - AX - 0.4, AZ * 2]]) softG.push(tint(new THREE.PlaneGeometry(pw, pd).rotateX(-Math.PI / 2).translate(px, y + 0.04, pz), 0xc8c0b0));
+      else flat(2, new THREE.PlaneGeometry(W - 0.8, D - 0.8).rotateX(-Math.PI / 2).translate(cx, 0.03, cz), 0xd8d0c0);
+      // shops along the front and back: dividing walls, counters, a glowing sign over each
+      for (const [zw, dir] of [[z0 + t, 1], [z1 - t, -1]]) for (let k = 1; k < 6; k++) {
+        const sx = x0 + k * (W / 6);
+        cblock(sx, zw + dir * 4.2, 0.2, H, 8.4, y, 0xd8d0c0);
+        const mx = sx - W / 12; cblock(mx, zw + dir * 6.5, 3, 1, 0.8, y, rp([0x2f6fe0, 0xd8343c, 0x3dbf5a, 0xffc84a, 0x8a5aa8]));
+        glowG.push(ni(new THREE.BoxGeometry(5, 0.5, 0.1)).translate(mx, y + H - 0.5, zw + dir * 8.4));
+        spot(mx, zw + dir * 3, y); if (k === 3 && f === 1 && dir > 0) chest(mx + 2, zw + dir * 2, 0, y);
+      }
+    }
+    // two escalators in the atrium, and railings round the opening upstairs (gaps where the escalators arrive)
+    for (let i = 0; i < 10; i++) { cblock(cx + 4 + (i + 0.5) * 0.7, cz - 3.5, 0.7, 0.45 * (i + 1), 2.6, 0, 0x8a8a92); cblock(cx - 4 - (i + 0.5) * 0.7, cz + 3.5, 0.7, 0.45 * (i + 1), 2.6, 0, 0x8a8a92); }
+    { const R = 0x3a3a42, y = FH; cblock(cx, cz - AZ, AX * 2, 1, 0.12, y, R); cblock(cx, cz + AZ, AX * 2, 1, 0.12, y, R);
+      cblock(cx - AX, cz - 2.5, 0.12, 1, 7, y, R); cblock(cx - AX, cz + 5.6, 0.12, 1, 0.8, y, R);
+      cblock(cx + AX, cz + 2.5, 0.12, 1, 7, y, R); cblock(cx + AX, cz - 5.6, 0.12, 1, 0.8, y, R); }
+    // a glass roof over the atrium, and the food court under it
+    glassG.push(ni(new THREE.PlaneGeometry(AX * 2, AZ * 2)).rotateX(-Math.PI / 2).translate(cx, 2 * FH, cz));
+    for (const [dx, dz] of [[-8, -3.5], [-3, -3.5], [0, 4.5], [8, 3.5]]) { solidG.push(tint(new THREE.CylinderGeometry(0.9, 0.9, 0.1, 14).translate(cx + dx, 0.8, cz + dz), 0xf4f4f8)); solidG.push(tint(new THREE.CylinderGeometry(0.1, 0.1, 0.8, 6).translate(cx + dx, 0.4, cz + dz), 0x4a4a52)); }
+    crystal(cx, 3.2, cz, 1, 0xff9ad8); chest(cx + 5, cz + 1, Math.PI); spot(cx - 3, cz - 2); spot(cx + 6, cz + 4);
+    used.push([cx, cz, 34]);
   }
   // ---------- the seasonal area: its own look and its own weather ----------
   { const [cx, cz] = SZN_AT, SZN = SEASON || 'none';
@@ -2802,16 +3068,16 @@ function buildRoyale() {
   }
   if (glassG.length) scene.add(new THREE.Mesh(mergeGeometries(glassG), new THREE.MeshStandardMaterial({ color: 0x9fd0ff, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0.4, side: THREE.DoubleSide, depthWrite: false })));
   // little huts all over the island
-  for (let i = 0, tries = 0; i < 24 && tries < 900; tries++) {
+  for (let i = 0, tries = 0; i < 60 && tries < 2400; tries++) {
     const a = rnd() * 6.283, r = rr(35, ARENA_R - 25), x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (!free(x, z, 7)) continue;
     house(x, z, rr(5, 6.5), rr(5, 6.5), Math.floor(rnd() * 4), rp(ROOFS), 3, rnd() < 0.5); i++;
   }
   // trees, rocks and crates for cover, then loose loot spots in the open
-  for (let i = 0, tries = 0; i < 240 && tries < 3000; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; tree(x, z, rr(0.9, 1.4), rnd() < 0.3 ? 1 : 0); used.push([x, z, 1.5]); i++; }
-  for (let i = 0, tries = 0; i < 100 && tries < 2000; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 3)) continue; rock(x, z, rr(1, 2.6)); used.push([x, z, 2.5]); i++; }
-  for (let i = 0, tries = 0; i < 55 && tries < 1500; tries++) { const a = rnd() * 6.283, r = rr(20, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; crate(x, z, rr(1.1, 1.6)); if (rnd() < 0.5) crate(x + 1.6, z + rr(-0.5, 0.5), 1.1); spot(x - 1.8, z); used.push([x, z, 2.5]); i++; }
-  for (let i = 0, tries = 0; i < 130 && tries < 2500; tries++) { const a = rnd() * 6.283, r = rr(8, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 1)) continue; spot(x, z); used.push([x, z, 4]); i++; }
+  for (let i = 0, tries = 0; i < 620 && tries < 8000; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; tree(x, z, rr(0.9, 1.4), rnd() < 0.3 ? 1 : 0); used.push([x, z, 1.5]); i++; }
+  for (let i = 0, tries = 0; i < 260 && tries < 5000; tries++) { const a = rnd() * 6.283, r = rr(10, ARENA_R - 8), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 3)) continue; rock(x, z, rr(1, 2.6)); used.push([x, z, 2.5]); i++; }
+  for (let i = 0, tries = 0; i < 140 && tries < 4000; tries++) { const a = rnd() * 6.283, r = rr(20, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 2)) continue; crate(x, z, rr(1.1, 1.6)); if (rnd() < 0.5) crate(x + 1.6, z + rr(-0.5, 0.5), 1.1); spot(x - 1.8, z); used.push([x, z, 2.5]); i++; }
+  for (let i = 0, tries = 0; i < 330 && tries < 6000; tries++) { const a = rnd() * 6.283, r = rr(8, ARENA_R - 10), x = Math.cos(a) * r, z = Math.sin(a) * r; if (!free(x, z, 1)) continue; spot(x, z); used.push([x, z, 4]); i++; }
   // the sky lobby everyone waits on before the drop
   { const y = LOBBY_Y, m = PM(0xd8d0e8, { roughness: 0.6 });
     solidBox(0, y - 1, 0, 44, 1, 44, m).castShadow = false;
@@ -2882,7 +3148,7 @@ function island(r) {
 }
 const islands = [];
 for (let i = 0; i < 16; i++) {
-  const a = (i / 16) * Math.PI * 2 + rand(-0.15, 0.15), d = ROYALE ? rand(380, 620) : rand(110, 320), r = rand(5, 18);
+  const a = (i / 16) * Math.PI * 2 + rand(-0.15, 0.15), d = ROYALE ? rand(600, 860) : rand(110, 320), r = rand(5, 18);
   const m = island(r); m.position.set(Math.cos(a) * d, rand(-30, 45), Math.sin(a) * d); m.rotation.y = rand(0, 6);
   m.userData = { y: m.position.y, ph: rand(0, 6) };
   scene.add(m); islands.push(m); decor.push(m);
@@ -3204,7 +3470,7 @@ const TRACKS = [
   { name: 'Starfall', style: 'trance', bpm: 138, root: 49, prog: [0, 5, 2, 6], seed: 29 },
 ];
 const ARR = [['intro', 8], ['build', 8], ['drop', 16], ['break', 8], ['build', 8], ['drop', 16], ['outro', 4]], ARR_LEN = 68;
-const MUS = { trk: -1, bar: 0, s: 0, hist: [], motif: null, wob: null, bus: null, skip: false };
+const MUS = { trk: -1, bar: 0, s: 0, hist: [], motif: null, wob: null, bus: null, skip: false, want: null };
 function musBus() {
   if (MUS.bus) return MUS.bus;
   const c = A.ctx, B = {};
@@ -3272,8 +3538,10 @@ function wobble(n, t, dur, rate, v = 1) {
   fl.connect(g); g.connect(B.syn); const d = c.createGain(); d.gain.value = 0.25 * v; g.connect(d); d.connect(B.shape);
 }
 function newTrack() {
-  const pool = TRACKS.map((_, k) => k).filter(k => !MUS.hist.includes(k) && k !== MUS.trk);
-  const i = pool[Math.floor(Math.random() * pool.length)]; MUS.hist.push(i); if (MUS.hist.length > 3) MUS.hist.shift();
+  const favs = mfavOnly ? TRACKS.map((_, k) => k).filter(k => mfav.has(TRACKS[k].name)) : [];
+  let pool = favs.length ? favs.filter(k => k !== MUS.trk) : TRACKS.map((_, k) => k).filter(k => !MUS.hist.includes(k) && k !== MUS.trk);
+  if (!pool.length) pool = favs.length ? favs : [0];
+  const i = MUS.want != null && TRACKS[MUS.want] ? MUS.want : pool[Math.floor(Math.random() * pool.length)]; MUS.want = null; MUS.hist.push(i); if (MUS.hist.length > 3) MUS.hist.shift();
   MUS.trk = i; MUS.bar = 0; MUS.s = 0;
   const T = TRACKS[i]; let q = T.seed * 7919 + 101; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
   // the hook: a one-bar rhythm of chord tones that repeats all track long, so it sticks in your head
@@ -3281,6 +3549,7 @@ function newTrack() {
   MUS.wob = Array.from({ length: 8 }, () => [1, 2, 3, 4, 6][Math.floor(r() * 5)]);
   MUS.bus.dly.delayTime.setValueAtTime(Math.min(1.4, 60 / T.bpm * 0.75), A.ctx.currentTime);
   if (state === 'playing' && A.musicOn) toast(`♪ Now playing: ${T.name}`);
+  renderMusicPlayer();
 }
 function nextSong() { MUS.skip = true; if (!A.musicOn) setMusic(true); }
 function lead(T, ch, t, st, s, v) {
@@ -3467,7 +3736,7 @@ let shake = 0, recoilP = 0, vmKick = 0, bobT = 0, landDip = 0, fovKick = 0, dmgF
 let score = 0, streak = 0, lastKill = -99, mult = 1, frags = 0, deaths = 0, ggLv = 0, myTeam = 0;
 let respawnAt = 0;
 // shared match state; the host writes it, everyone else mirrors it from the host's presence
-const GS = { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0 };
+const GS = { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0, sd: [] };
 let prevGS = JSON.parse(JSON.stringify(GS));
 
 // ================= physics =================
@@ -4918,6 +5187,104 @@ Object.assign(BODIES, {
     return { ...B, limb: mat, arm: { x: 0.54, y: 1.6, len: 0.42, r: 0.13, spread: 0.22 }, hat: [0.27, 0.22] };
   },
 });
+// ---------- October model skins ----------
+Object.assign(BODIES, {
+  saltbeard: c => {
+    // a pirate captain: red coat, a big black beard, an eyepatch and a tricorn hat
+    const { add, head, M } = c, coat = M(0xa8202a, { roughness: 0.7 }), gold = M(0xffc84a, { metalness: 0.9, roughness: 0.3 }), black = M(0x16161a, { roughness: 0.8 }), skin = M(0xe8b08a), white = M(0xf4f0e6);
+    const B = person(c, coat, M(0x2a2a32), M(0x3a2414), { tw: 1.2 });
+    add(gq('sbSash', () => new THREE.TorusGeometry(0.3, 0.05, 6, 20).rotateX(Math.PI / 2)), gold, 0, 1.1, 0).scale.z = 0.84;
+    add(gq('sbShirt', () => new THREE.BoxGeometry(0.12, 0.3, 0.02)), white, 0, 1.52, -0.225);
+    for (let k = 0; k < 3; k++) for (const sx of [-1, 1]) add(gq('sbBtn', () => new THREE.SphereGeometry(0.025, 8, 6)), gold, sx * 0.1, 1.52 - k * 0.12, -0.225);
+    head.position.y = 1.95;
+    add(gq('sbH', () => new THREE.SphereGeometry(0.25, 20, 14)), skin, 0, 0, 0, head).castShadow = true;
+    const beard = add(gq('sbBeard', () => new THREE.ConeGeometry(0.21, 0.42, 12).rotateX(Math.PI)), black, 0, -0.25, -0.1, head); beard.scale.z = 0.7;
+    add(gq('sbMus', () => new THREE.TorusGeometry(0.08, 0.028, 6, 12, Math.PI)), black, 0, -0.08, -0.235, head);
+    add(gq('sbEye', () => new THREE.SphereGeometry(0.03, 10, 8)), black, 0.09, 0.04, -0.235, head);
+    add(gq('sbPatch', () => new THREE.CylinderGeometry(0.055, 0.055, 0.02, 12).rotateX(Math.PI / 2)), black, -0.09, 0.04, -0.24, head);
+    add(gq('sbStrap', () => new THREE.TorusGeometry(0.255, 0.01, 4, 30)), black, 0, 0.05, 0, head).rotation.set(Math.PI / 2, 0.4, 0);
+    // the tricorn: a crown with three upturned brims
+    const hat = new THREE.Group(); hat.position.y = 0.19; head.add(hat);
+    add(gq('sbHatC', () => new THREE.CylinderGeometry(0.19, 0.23, 0.18, 16)), black, 0, 0.08, 0, hat);
+    for (let k = 0; k < 3; k++) { const p = new THREE.Group(); p.rotation.y = k * 2.094; hat.add(p); const b = add(gq('sbBrim', () => new THREE.BoxGeometry(0.44, 0.15, 0.04)), black, 0, 0.06, -0.22, p); b.rotation.x = 0.45; add(gq('sbTrim', () => new THREE.BoxGeometry(0.44, 0.02, 0.045)), gold, 0, 0.13, -0.25, p).rotation.x = 0.45; }
+    add(gq('sbSkull', () => new THREE.SphereGeometry(0.035, 10, 8)), white, 0, 0.1, -0.23, hat);
+    return { ...B, limb: coat, hat: [0.3, 0.44] };
+  },
+  ronin: c => {
+    // samurai armour: layered plates, a horned helmet with a gold crest and a red face mask
+    const { add, head, M } = c, plate = M(0x2a2a34, { metalness: 0.6, roughness: 0.35 }), plate2 = M(0x2a2a34, { metalness: 0.6, roughness: 0.35, side: THREE.DoubleSide }), red = M(0xb01e2a, { roughness: 0.5 }), gold = M(0xd9b44a, { metalness: 0.9, roughness: 0.25 }), skin = M(0xe8c09a);
+    const B = person(c, plate, M(0x1a1a22), M(0x3a2a1a), { tw: 1.2, ar: 0.09, lr: 0.1 });
+    for (let k = 0; k < 4; k++) add(gq('roL', () => new THREE.CylinderGeometry(0.33, 0.36, 0.09, 18)), k % 2 ? red : plate, 0, 1.52 - k * 0.11, 0).scale.z = 0.85;
+    for (const sx of [-1, 1]) for (let k = 0; k < 2; k++) { const p = add(gq('roSh', () => new THREE.BoxGeometry(0.28, 0.06, 0.36)), k ? red : plate, sx * (0.42 + k * 0.03), 1.62 - k * 0.09, 0); p.rotation.z = -sx * 0.45; }
+    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2, p = add(gq('roSk', () => new THREE.BoxGeometry(0.21, 0.32, 0.04)), k % 2 ? plate : red, Math.sin(a) * 0.33, 0.93, Math.cos(a) * 0.29); p.rotation.order = 'YXZ'; p.rotation.y = a; p.rotation.x = -0.25; }
+    const sword = add(gq('roKat', () => new THREE.BoxGeometry(0.035, 1.0, 0.07)), M(0x111114), 0.1, 1.32, 0.3); sword.rotation.z = 0.6;
+    add(gq('roHilt', () => new THREE.CylinderGeometry(0.03, 0.03, 0.26, 8)), M(0xd8c8a0), 0.4, 1.78, 0.3).rotation.z = 0.6;
+    head.position.y = 1.95;
+    add(gq('roH', () => new THREE.SphereGeometry(0.235, 18, 12)), skin, 0, 0, 0, head);
+    add(gq('roMask', () => new THREE.SphereGeometry(0.25, 18, 10, Math.PI * 1.15, Math.PI * 0.7, Math.PI * 0.5, Math.PI * 0.36)), red, 0, 0, 0, head);
+    for (const sx of [-1, 1]) add(gq('roEye', () => new THREE.BoxGeometry(0.07, 0.016, 0.01)), M(0x111111), sx * 0.08, 0.05, -0.232, head);
+    add(gq('roDome', () => new THREE.SphereGeometry(0.28, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2)), plate, 0, 0.05, 0, head).castShadow = true;
+    add(gq('roNeck', () => new THREE.CylinderGeometry(0.29, 0.4, 0.18, 18, 1, true, -Math.PI * 0.7, Math.PI * 1.4)), plate2, 0, -0.02, 0.02, head);
+    add(gq('roCrest', () => new THREE.TorusGeometry(0.19, 0.022, 6, 20, Math.PI)), gold, 0, 0.3, -0.22, head);
+    add(gq('roDisc', () => new THREE.CylinderGeometry(0.05, 0.05, 0.02, 14).rotateX(Math.PI / 2)), gold, 0, 0.2, -0.27, head);
+    return { ...B, limb: M(0x1a1a22), arm: { x: 0.45, y: 1.6, len: 0.42, r: 0.09, spread: 0.12 }, hat: [0.3, 0.42] };
+  },
+  arcanos: c => {
+    // a wizard: a starry robe, a long white beard, a pointed hat and a glowing staff on his back
+    const { add, head, M } = c, robe = M(0x3a2a8a, { roughness: 0.8 }), robe2 = M(0x3a2a8a, { roughness: 0.8, side: THREE.DoubleSide }), star = M(0xffd23a, { emissive: 0x6a5000 }), white = M(0xf2f2f4, { roughness: 1 }), skin = M(0xe8c0a0), wood = M(0x6a4a2a);
+    const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 1.8, 3) }); c.extra.push(glow);
+    const B = person(c, robe, M(0x2a1f60), M(0x3a2414), { tw: 1.15 });
+    add(gq('arRobe', () => new THREE.CylinderGeometry(0.3, 0.47, 0.72, 20, 1, true)), robe2, 0, 0.76, 0);
+    add(gq('arBelt', () => new THREE.TorusGeometry(0.3, 0.035, 6, 20).rotateX(Math.PI / 2)), star, 0, 1.1, 0).scale.z = 0.84;
+    for (let k = 0; k < 7; k++) { const a = k * 0.9 + 0.3, y = 0.55 + (k % 4) * 0.25, r = y < 1.1 ? 0.33 + (1.1 - y) * 0.25 : 0.3; add(gq('arStar', () => new THREE.OctahedronGeometry(0.035, 0)), star, Math.sin(a) * r, y, Math.cos(a) * r * 0.85); }
+    const staff = new THREE.Group(); staff.position.set(0.2, 1.15, 0.3); staff.rotation.z = 0.25; c.rig.add(staff);
+    add(gq('arStaff', () => new THREE.CylinderGeometry(0.025, 0.03, 1.7, 8)), wood, 0, 0, 0, staff);
+    const orb = add(gq('arOrb', () => new THREE.SphereGeometry(0.09, 14, 10)), glow, 0, 0.92, 0, staff);
+    head.position.y = 1.95;
+    add(gq('arH', () => new THREE.SphereGeometry(0.235, 18, 12)), skin, 0, 0, 0, head);
+    const beard = add(gq('arBeard', () => new THREE.ConeGeometry(0.2, 0.62, 12).rotateX(Math.PI)), white, 0, -0.3, -0.1, head); beard.scale.z = 0.65;
+    add(gq('arMus', () => new THREE.TorusGeometry(0.08, 0.03, 6, 12, Math.PI)), white, 0, -0.08, -0.225, head);
+    for (const sx of [-1, 1]) { add(gq('arEye', () => new THREE.SphereGeometry(0.028, 8, 6)), M(0x111111), sx * 0.08, 0.04, -0.22, head); add(gq('arBrow', () => new THREE.BoxGeometry(0.1, 0.03, 0.03)), white, sx * 0.08, 0.1, -0.215, head).rotation.z = sx * 0.2; }
+    add(gq('arBrim', () => new THREE.CylinderGeometry(0.42, 0.42, 0.03, 24)), robe, 0, 0.14, 0, head);
+    const cone = add(gq('arCone', () => new THREE.ConeGeometry(0.25, 0.72, 20)), robe, 0, 0.5, 0, head); cone.rotation.z = 0.15; cone.castShadow = true;
+    for (const [px, py, pz] of [[0.12, 0.35, -0.14], [-0.08, 0.55, -0.1], [0.1, 0.7, 0]]) add(gq('arHStar', () => new THREE.OctahedronGeometry(0.04, 0)), star, px, py, pz, head);
+    return { ...B, limb: robe, hat: [0.42, 0.9], tick(t) { orb.scale.setScalar(1 + Math.sin(t * 4) * 0.15); } };
+  },
+  zorbo: c => {
+    // a little grey-suited alien with a huge green head, three eyes and glowing antennae
+    const { add, head, M } = c, green = M(0x6adf5a, { roughness: 0.4 }), suit = M(0xc8ccd8, { metalness: 0.7, roughness: 0.25 }), black = M(0x0a0a0e, { roughness: 0.05, metalness: 0.3 });
+    const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.8, 3, 0.8) }); c.extra.push(glow);
+    const B = person(c, suit, suit, M(0x2a2a32), { tw: 0.95, tr: 0.23, ar: 0.07, lr: 0.075 });
+    add(gq('zbBelt', () => new THREE.TorusGeometry(0.23, 0.03, 6, 20).rotateX(Math.PI / 2)), M(0x3a3a48), 0, 1.08, 0).scale.z = 0.84;
+    add(gq('zbEmb', () => new THREE.CylinderGeometry(0.06, 0.06, 0.02, 16).rotateX(Math.PI / 2)), glow, 0, 1.45, -0.2);
+    add(gq('zbNeck', () => new THREE.CylinderGeometry(0.06, 0.07, 0.2, 10)), green, 0, 1.78, 0);
+    head.position.y = 2.06;
+    const h = add(gq('zbH', () => new THREE.SphereGeometry(0.3, 22, 16)), green, 0, 0.06, 0, head); h.scale.set(1, 1.25, 1); h.castShadow = true;
+    for (const sx of [-1, 1]) { const e = add(gq('zbEye', () => new THREE.SphereGeometry(0.075, 14, 10)), black, sx * 0.12, 0.04, -0.25, head); e.scale.set(1.4, 0.8, 0.5); e.rotation.z = -sx * 0.4; }
+    add(gq('zbEye3', () => new THREE.SphereGeometry(0.05, 12, 8)), black, 0, 0.22, -0.26, head).scale.set(1, 1, 0.5);
+    add(gq('zbMouth', () => new THREE.BoxGeometry(0.07, 0.012, 0.01)), M(0x1a4a1a), 0, -0.13, -0.27, head);
+    const tips = [-1, 1].map(sx => { const a = add(gq('zbAnt', () => new THREE.CylinderGeometry(0.01, 0.012, 0.3, 6)), green, sx * 0.12, 0.48, 0, head); a.rotation.z = -sx * 0.4; return add(gq('zbTip', () => new THREE.SphereGeometry(0.04, 10, 8)), glow, sx * 0.18, 0.62, 0, head); });
+    return { ...B, limb: suit, hat: [0.3, 0.45], tick(t) { tips.forEach((p, i) => { p.position.y = 0.62 + Math.sin(t * 5 + i * 2) * 0.03; }); } };
+  },
+  pricklypete: c => {
+    // a cactus in a sombrero, with spines, a moustache and a pink flower
+    const { add, head, M } = c, cact = M(0x3f9a4a, { roughness: 0.7 }), rib = M(0x2a7a34, { roughness: 0.8 }), spine = M(0xf4f0d6), pink = M(0xff6fb5), black = M(0x111111), straw = M(0xe8c06a, { roughness: 0.9 });
+    const body = add(gq('ppB', () => new THREE.CapsuleGeometry(0.31, 0.95, 8, 18)), cact, 0, 1.42, 0); body.castShadow = true;
+    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; add(gq('ppRib', () => new THREE.BoxGeometry(0.035, 1.0, 0.035)), rib, Math.sin(a) * 0.305, 1.42, Math.cos(a) * 0.305); }
+    for (let k = 0; k < 22; k++) { const a = (k % 8) / 8 * Math.PI * 2 + 0.39, y = 0.95 + Math.floor(k / 8) * 0.35 + (k % 2) * 0.12, s = add(gq('ppSp', () => new THREE.ConeGeometry(0.012, 0.08, 4)), spine, Math.sin(a) * 0.33, y, Math.cos(a) * 0.33); aimUp(s, Math.sin(a), 0.2, Math.cos(a)); }
+    // saguaro arms on the back
+    for (const sx of [-1, 1]) { add(gq('ppAh', () => new THREE.CapsuleGeometry(0.09, 0.2, 6, 10).rotateZ(Math.PI / 2)), cact, sx * 0.4, 1.3, 0.12); add(gq('ppAv', () => new THREE.CapsuleGeometry(0.09, 0.3, 6, 10)), cact, sx * 0.53, 1.5, 0.12); }
+    head.position.y = 1.92;
+    for (const sx of [-1, 1]) { add(gq('ppE', () => new THREE.SphereGeometry(0.05, 10, 8)), M(0xffffff), sx * 0.1, 0.02, -0.29, head).scale.z = 0.5; add(gq('ppPu', () => new THREE.SphereGeometry(0.026, 8, 6)), black, sx * 0.1, 0.02, -0.31, head); }
+    add(gq('ppMus', () => new THREE.TorusGeometry(0.09, 0.025, 6, 12, Math.PI)), M(0x3a2414), 0, -0.1, -0.29, head);
+    add(gq('ppBrim', () => new THREE.CylinderGeometry(0.55, 0.55, 0.025, 28)), straw, 0, 0.3, 0, head).castShadow = true;
+    add(gq('ppCrown', () => new THREE.ConeGeometry(0.22, 0.32, 18)), straw, 0, 0.46, 0, head);
+    add(gq('ppBand', () => new THREE.TorusGeometry(0.2, 0.02, 6, 20).rotateX(Math.PI / 2)), M(0xd8343c), 0, 0.34, 0, head);
+    for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; add(gq('ppPet', () => new THREE.SphereGeometry(0.045, 8, 6)), pink, 0.16 + Math.cos(a) * 0.05, 0.36, -0.12 + Math.sin(a) * 0.05, head); }
+    add(gq('ppFc', () => new THREE.SphereGeometry(0.03, 8, 6)), M(0xffd23a), 0.16, 0.37, -0.12, head);
+    return { arm: { x: 0.36, y: 1.55, len: 0.4, r: 0.085, spread: 0.15 }, legs: humanLegs(c, cact, M(0x6a3a1a), 0.13, 0.085, 0.85), limb: cact, hat: [0.33, 0.6] };
+  },
+});
 function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none', pet = '') {
   const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
@@ -5274,7 +5641,7 @@ function renderShop() {
 // The item shop shows a new selection every hour: 12 suits (half with their own model), 6 hats, 4 gun finishes, 5 pets, 5 emotes and 2 sprays.
 // This season's items are always there. Featured items join every rotation until FEATURED.until.
 const ROT_N = { suit: 12, hat: 6, finish: 4, pet: 5, emote: 5, spray: 2 };
-const FEATURED = { until: 1791144000000, suit: ['peelo', 'fishstik', 'cuddle', 'tomatoface', 'darkknight', 'skultrooper', 'meowsclez'] };
+const FEATURED = { until: 1791591600000, suit: ['saltbeard', 'ronin', 'arcanos', 'zorbo', 'pricklypete', 'aurora', 'marble', 'denim', 'graffiti', 'checker', 'honeycomb', 'snakeskin', 'stainedglass', 'thunder', 'koi'] };
 const shopHour = () => Math.floor(Date.now() / 3600000);
 let rotCache = null;
 function shopRotation() {
@@ -6123,7 +6490,7 @@ function resetMatchWorld() {
   for (const id of [...peers.keys()]) removePeer(id);
   stopPodium(); clearSprays();
   H.D = null; H.M = null; H.P = null;
-  Object.assign(GS, { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: mode === 'infect' ? INF_PRE : 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0 });
+  Object.assign(GS, { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: mode === 'infect' ? INF_PRE : 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0, sd: [] });
   H.I = { pre: INF_PRE, alive: new Map(), last: '' }; H.R = null;
   prevGS = JSON.parse(JSON.stringify(GS));
   H.ob = []; H.bs = []; H.ek = []; H.ev = []; H.bd = {}; H.seen.clear(); H.W = { queue: [], spawnT: 0, timer: 3 };
@@ -6812,7 +7179,7 @@ function hostPhase(dt) {
       GS.ph = 0; GS.pw = ''; GS.pwid = ''; GS.gm++; GS.ds = [0, 0]; GS.dp = []; GS.pph = 0;
       for (const e of ents.values()) if (e.kind === 'bot') { e.lv = 0; e.f = 0; e.d = 0; e.alive = false; e.respawnT = rand(0.2, 1); if (mode === 'gungame') e.wp = LADDER[0]; if (mode === 'infect') { e.team = 0; e.wp = e.gun || 'rifle'; } }
       if (mode === 'infect') { GS.inf = []; GS.ip = INF_PRE; GS.it = INF_TIME; H.I = { pre: INF_PRE, alive: new Map(), last: '' }; }
-      if (mode === 'royale') { Object.assign(GS, { rph: 0, rsd: 0, zs: 0, zk: 0, ztm: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R] }); H.R = null; for (const e of ents.values()) if (e.kind === 'bot') e.respawnT = 1e9; }
+      if (mode === 'royale') { Object.assign(GS, { sd: [], rph: 0, rsd: 0, zs: 0, zk: 0, ztm: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R] }); H.R = null; for (const e of ents.values()) if (e.kind === 'bot') e.respawnT = 1e9; }
     }
   }
 }
@@ -6866,6 +7233,7 @@ function mirrorHost(hd) {
   for (const k of ['zc', 'zt']) if (Array.isArray(hd[k]) && hd[k].length === 3) GS[k] = hd[k].map(v => +v || 0);
   if (Array.isArray(hd.inf)) GS.inf = hd.inf.slice(0, 32).map(String);
   if (Array.isArray(hd.dp)) GS.dp = hd.dp.slice(0, 2).map(String); if (Array.isArray(hd.ds)) GS.ds = [+hd.ds[0] || 0, +hd.ds[1] || 0];
+  if (Array.isArray(hd.sd)) GS.sd = hd.sd.slice(0, 6).filter(Array.isArray);
   if (Array.isArray(hd.mdp) && hd.mdp.length === 3) GS.mdp = hd.mdp.map(v => +v || 0);
   if (Array.isArray(hd.mhk)) GS.mhk = [0, 1, 2].map(i => +hd.mhk[i] || 0); if (Array.isArray(hd.hunt)) GS.hunt = hd.hunt.slice(0, 16).map(String);
   if (prevGS === null) prevGS = JSON.parse(JSON.stringify(GS));
@@ -8712,7 +9080,7 @@ function buildPresence() {
       ? ['d', e.id, DTYPES.indexOf(e.type), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), Math.round(e.hp), Math.round((e.charge || 0) * 10), ...(isBoss(e) || e.type === 'qclone' ? [e.bst | 0, r2(e.yaw || 0)] : [])]
       : ['b', e.id, Math.max(0, BOT_NAMES.indexOf(e.name)), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), r2(e.yaw), Math.round(e.hp), e.team, e.alive ? 1 : 0, WIDS.indexOf(e.wp), e.lv || 0, e.f || 0, e.d || 0]);
     Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
-    if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, mcar: GS.mcar, mdp: GS.mdp, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral });
+    if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, mcar: GS.mcar, mdp: GS.mdp, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral, sd: GS.sd });
   }
   if (mode === 'royale') Object.assign(o, { rs: RL.seed, rk: RY.picked, rco: RY.opened, rx: RY.drops, ri: player.alive ? royaleInvCodes() : RY.lastInv });
   // keep within the 4 KB presence budget
@@ -9997,7 +10365,7 @@ function peerProp(o, d) {
 // ================= Battle Royale =================
 // The island's loot comes from the match seed, so every player's game rolls the same items in the same places.
 // Players only share what changed: items they picked up, chests they opened, guns they dropped and what they carried when they died.
-const RZ = [[90, 60, 175, 1], [75, 50, 115, 2], [60, 45, 72, 3], [50, 35, 42, 5], [40, 30, 22, 7], [30, 25, 9, 10], [25, 20, 0, 14]]; // wait (s), shrink (s), radius, storm damage per second
+const RZ = [[120, 75, 300, 1], [90, 60, 195, 2], [75, 50, 125, 3], [60, 40, 75, 5], [45, 35, 40, 7], [35, 25, 16, 10], [25, 20, 0, 14]]; // wait (s), shrink (s), radius, storm damage per second
 const RAR = [{ n: 'Common', css: '#c8d0dc', c: new THREE.Color(1.5, 1.6, 1.8), k: 1 }, { n: 'Rare', css: '#5aa8ff', c: new THREE.Color(0.4, 1.3, 3.0), k: 1.1 }, { n: 'Epic', css: '#c07dff', c: new THREE.Color(1.9, 0.6, 3.0), k: 1.22 }, { n: 'Legendary', css: '#ffbf3a', c: new THREE.Color(3.0, 1.9, 0.3), k: 1.35 }];
 const AMMO_OF = { smg: 'L', rifle: 'L', lmg: 'L', cards: 'L', cannon: 'H', rail: 'H', autocannon: 'H', scatter: 'S', arc: 'E', inferno: 'E', nova: 'R' };
 const AMMO = { L: { n: 'Light Ammo', c: 0x5ff2ff, max: 240, give: [30, 60] }, H: { n: 'Heavy Ammo', c: 0xff9a3c, max: 90, give: [12, 24] }, S: { n: 'Shells', c: 0xff4fa3, max: 48, give: [8, 16] }, E: { n: 'Energy Cells', c: 0xb48cff, max: 300, give: [40, 80] }, R: { n: 'Rockets', c: 0xff6a1a, max: 12, give: [3, 6] } };
@@ -10096,6 +10464,7 @@ function royaleLoot(seed) {
 }
 function chestLoot(i) { const r = mulberry((RL.seed * 31 + i * 7919) | 0), g = rollGun(r, true); return [g, rollAmmo(r, AMMO_OF[parseCode(g).a]), r() < 0.6 ? rollHeal(r) : rollAmmo(r, AMMO_ROLL[Math.floor(r() * AMMO_ROLL.length)])]; }
 function openChest(i, mine) {
+  if (i >= 1000) return openSupply(i - 1000, mine);
   const c = RL.chests[i]; if (!c || c.open || !RL.seed) return;
   c.open = true; c.glow.visible = false;
   if (mine) RY.opened.push(i);
@@ -10111,6 +10480,62 @@ function spawnDrop(prefix, pos, codes) {
   list.forEach((code, j) => { const a = j / list.length * 6.283; addItem(prefix + '.' + j, String(code), pos.x + Math.cos(a) * 1.2, y, pos.z + Math.sin(a) * 1.2); });
 }
 function royaleBotDrop(e) { if (!GS.rsd) return; const t = AMMO_OF[e.wp] || 'L'; spawnDrop('b' + e.id + '.' + GS.rsd, e.pos, BR_GUNS.includes(e.wp) ? [`g:${e.wp}:0`, `a:${t}:${AMMO[t].give[1]}`, 'h:b:2'] : ['h:b:2']); }
+// ---------- supply drops: a crate parachutes into the next circle with top-tier loot ----------
+// The host drops them (GS.sd = [[id, x, y, z, landed]]); opening one is shared like a chest (id 1000 + n in rco).
+const SUP = new Map();
+const chuteTex = () => canvasTex('chute', x => { for (let i = 0; i < 8; i++) { x.fillStyle = i % 2 ? '#ffffff' : '#e8343c'; x.fillRect(i * 32, 0, 32, 256); } });
+const SG = { box: new THREE.BoxGeometry(1.4, 1.0, 1.4), band: new THREE.BoxGeometry(1.46, 0.1, 1.46), post: new THREE.BoxGeometry(0.1, 1.02, 0.1), lamp: new THREE.SphereGeometry(0.14, 10, 8), canopy: new THREE.SphereGeometry(3, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2.4), line: new THREE.CylinderGeometry(0.02, 0.02, 1, 4) };
+function supplyMesh() {
+  const g = new THREE.Group(), add = (geo, m, x = 0, y = 0, z = 0, p = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); p.add(o); return o; };
+  const blue = lmat('supB', () => PM(0x2f6fe0, { roughness: 0.4, metalness: 0.3 })), gold = lmat('supG', () => PM(0xffc84a, { metalness: 0.9, roughness: 0.25, emissive: 0x3a2400 }));
+  add(SG.box, blue, 0, 0.5, 0).castShadow = true;
+  for (const y of [0.06, 0.95]) add(SG.band, gold, 0, y, 0);
+  for (const [x, z] of [[-0.68, -0.68], [0.68, -0.68], [-0.68, 0.68], [0.68, 0.68]]) add(SG.post, gold, x, 0.5, z);
+  const light = add(SG.lamp, lmat('supL', () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2, 3) })), 0, 1.1, 0);
+  const chute = new THREE.Group(); chute.position.y = 1.0; g.add(chute);
+  add(SG.canopy, lmat('supC', () => PM(0xffffff, { map: chuteTex(), side: THREE.DoubleSide, roughness: 0.8 })), 0, 2.6, 0, chute);
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const ln = add(SG.line, lmat('supLn', () => new THREE.MeshBasicMaterial({ color: 0xdddddd })), x * 1.25, 1.6, z * 1.25, chute); aimUp(ln, x * 1.5, 3.2, z * 1.5); ln.scale.y = 3.8; }
+  const beam = add(LG.beam, lmat('supBeam', () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.4, 3), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false })), 0, 0.5, 0); beam.scale.set(5, 80, 5);
+  return { g, chute, beam, light };
+}
+function supplyLoot(id) {
+  const r = mulberry((RL.seed * 97 + id * 7919) | 0), gun = () => `g:${parseCode(rollGun(r, true)).a}:${r() < 0.55 ? 3 : 2}`, g1 = gun(), g2 = gun();
+  return [g1, rollAmmo(r, AMMO_OF[parseCode(g1).a]), g2, rollAmmo(r, AMMO_OF[parseCode(g2).a]), `h:m:${HEALS.m.give[1]}`, `h:s:${HEALS.s.give[1]}`];
+}
+function openSupply(id, mine) {
+  const s = SUP.get(id); if (!s || s.open || !s.landed || !RL.seed) return;
+  s.open = true; s.g.visible = false;
+  if (mine) RY.opened.push(1000 + id);
+  supplyLoot(id).forEach((code, j) => { const a = j / 6 * Math.PI * 2; addItem('s' + id + '.' + j, code, s.pos.x + Math.cos(a) * 1.4, s.pos.y, s.pos.z + Math.sin(a) * 1.4); });
+  burst(s.pos.clone().setY(s.pos.y + 0.8), 50, new THREE.Color(0.6, 2, 3), 8, 0.7, 0.14, 4);
+  const pf = panFor(s.pos); if (pf.v > 0.05) { tone(520, 1040, 0.25, 0.09 * pf.v, 'triangle', pf.pan); tone(780, 1560, 0.3, 0.07 * pf.v, 'triangle', pf.pan, 0.12); }
+}
+function updateSupply(dt) {
+  const list = GS.rph === 1 && Array.isArray(GS.sd) ? GS.sd : [], seen = new Set();
+  for (const a of list) {
+    if (!Array.isArray(a)) continue;
+    const id = +a[0]; seen.add(id);
+    let s = SUP.get(id);
+    if (!s) {
+      s = { id, ...supplyMesh(), pos: new V3(+a[1], +a[2], +a[3]), open: false, landed: false }; s.g.position.copy(s.pos); scene.add(s.g); SUP.set(id, s);
+      if (state !== 'menu' && !a[4]) { announce('SUPPLY DROP', 'Top-tier loot is coming down · it\'s on your map', '#5fd0ff'); sfx.alert(); }
+    }
+    s.pos.set(+a[1], +a[2], +a[3]);
+    if (a[4] && !s.landed) { s.landed = true; const pf = panFor(s.pos); if (pf.v > 0.05) { noise(0.4, 0.3 * pf.v, 500, 'lowpass', 1, pf.pan); tone(90, 40, 0.3, 0.3 * pf.v, 'sine', pf.pan); } }
+    if (s.g.position.distanceTo(s.pos) > 6) s.g.position.copy(s.pos); else s.g.position.lerp(s.pos, 1 - Math.exp(-8 * dt));
+    s.chute.visible = !s.landed; s.chute.rotation.y += dt * 0.6; s.g.rotation.z = s.landed ? 0 : Math.sin(time * 1.3 + id) * 0.08;
+    s.light.visible = Math.sin(time * 6) > 0; s.beam.visible = !s.open;
+  }
+  for (const [id, s] of SUP) if (!seen.has(id)) { scene.remove(s.g); SUP.delete(id); }
+}
+// host: drop a crate somewhere inside the next circle
+function hostSupply(R) {
+  const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * GS.zt[2] * 0.7;
+  let x = GS.zt[0] + Math.cos(a) * d, z = GS.zt[1] + Math.sin(a) * d; const k = Math.hypot(x, z); if (k > ARENA_R - 15) { x *= (ARENA_R - 15) / k; z *= (ARENA_R - 15) / k; }
+  const gy = groundBelow(tA.set(x, 140, z));
+  R.sd.push({ id: ++R.sdN, x: r1(x), z: r1(z), y: 130, gy, l: 0 }); if (R.sd.length > 4) R.sd.shift();
+  hostEvent('A supply drop is coming in');
+}
 // ---------- picking things up ----------
 function autoPick(it) {
   const c = it.c;
@@ -10191,7 +10616,7 @@ function animHeal(dt) {
 }
 function royaleUse() {
   if (GS.rph !== 1 || !player.alive || !RY.near) return;
-  if (RY.near.it) pickGun(RY.near.it); else if (RY.near.chest != null) openChest(RY.near.chest, true);
+  if (RY.near.it) pickGun(RY.near.it); else if (RY.near.chest != null) openChest(RY.near.chest, true); else if (RY.near.sup != null) openSupply(RY.near.sup, true);
 }
 // reloading takes from your reserve
 function royaleReload(W, cur) { const t = AMMO_OF[curW]; if (!t) return W.mag; const take = Math.min(W.mag - cur, RY.ammo[t]); RY.ammo[t] -= take; return cur + take; }
@@ -10306,7 +10731,7 @@ function royaleDrop() {
   const r = mulberry((GS.rsd ^ Math.imul(hashStr(myId) + 1, 2654435761)) | 0), a = r() * 6.283, d = 12 + Math.sqrt(r()) * (ARENA_R - 40);
   $('dead').hidden = true; if (state === 'dead') { state = 'playing'; requestLock(); }
   player.alive = true; player.downed = false; player.hp = maxHp(); player.over = 0; player.invuln = 3;
-  player.pos.set(Math.cos(a) * d, 95, Math.sin(a) * d); player.vel.set(0, 0, 0); player.yaw = Math.atan2(player.pos.x, player.pos.z); RY.glide = true; RY.inMatch = true;
+  player.pos.set(Math.cos(a) * d, 155, Math.sin(a) * d); player.vel.set(0, 0, 0); player.yaw = Math.atan2(player.pos.x, player.pos.z); RY.glide = true; RY.inMatch = true;
   setWeapon('pick', true);
   announce('DROP!', 'Glide down with WASD · loot up · stay inside the circle', '#ffbf6b'); sfx.wave();
 }
@@ -10353,6 +10778,11 @@ function hostRoyale(dt) {
       } else R.timer = 9999;
     }
   }
+  // supply drops: the first one about a minute and a half in, then one every two minutes, landing inside the next circle
+  if (!R.sd) { R.sd = []; R.sdN = 0; R.sdT = 90; }
+  R.sdT -= dt; if (R.sdT <= 0 && GS.zs < RZ.length - 2) { R.sdT = 120; hostSupply(R); }
+  for (const d of R.sd) if (!d.l) { d.y = Math.max(d.gy, d.y - 7 * dt); if (d.y <= d.gy + 0.01) d.l = 1; }
+  GS.sd = R.sd.map(d => [d.id, d.x, r1(d.y), d.z, d.l]);
   // the storm hurts bots too
   for (const e of ents.values()) if (e.kind === 'bot' && e.alive && Math.hypot(e.pos.x - GS.zc[0], e.pos.z - GS.zc[1]) > GS.zc[2]) { e.zT = (e.zT ?? 0.5) - dt; if (e.zT <= 0) { e.zT = 0.5; hostDamageEnt(e, S[3] * 0.5, '', 'zone'); } }
   const alive = acts.filter(a => a.alive); GS.ral = alive.length;
@@ -10364,8 +10794,8 @@ function hostRoyale(dt) {
 function royaleStart(R) {
   GS.rsd = 1 + Math.floor(Math.random() * 1e9); GS.rph = 1; GS.zs = 0; GS.zk = 0; GS.zc = [0, 0, ARENA_R];
   const nr = RZ[0][2], off = (ARENA_R - nr) * 0.6 * Math.random(), a = Math.random() * 6.283; GS.zt = [r1(Math.cos(a) * off), r1(Math.sin(a) * off), nr];
-  R.timer = RZ[0][0]; R.from = GS.zc.slice(); R.t0 = time; R.lobbyT = null; GS.ztm = RZ[0][0];
-  for (const e of ents.values()) if (e.kind === 'bot') { const g = royaleGroundSpot(Math.random), cl = Math.hypot(g.x, g.z) || 1; e.pos.set(g.x, rand(92, 104), g.z); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.glide = true; e.gdx = -g.x / cl * 0.6 + rand(-0.5, 0.5); e.gdz = -g.z / cl * 0.6 + rand(-0.5, 0.5); e.hp = 100; e.alive = true; e.invuln = 1e9; e.target = null; e.patrol = null; e.wp = 'pick'; e.lootT = time + rand(35, 140); e.f = 0; e.d = 0; e.respawnT = 1e9; }
+  R.timer = RZ[0][0]; R.from = GS.zc.slice(); R.t0 = time; R.lobbyT = null; GS.ztm = RZ[0][0]; R.sd = []; R.sdN = 0; R.sdT = 90; GS.sd = [];
+  for (const e of ents.values()) if (e.kind === 'bot') { const g = royaleGroundSpot(Math.random), cl = Math.hypot(g.x, g.z) || 1; e.pos.set(g.x, rand(150, 165), g.z); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.glide = true; e.gdx = -g.x / cl * 0.6 + rand(-0.5, 0.5); e.gdz = -g.z / cl * 0.6 + rand(-0.5, 0.5); e.hp = 100; e.alive = true; e.invuln = 1e9; e.target = null; e.patrol = null; e.wp = 'pick'; e.lootT = time + rand(35, 140); e.f = 0; e.d = 0; e.respawnT = 1e9; }
   GS.ral = allActors().filter(a => a.alive).length;
   hostEvent('The match has started');
 }
@@ -10408,6 +10838,7 @@ function drawRoyaleMap() {
     x.strokeStyle = '#ffffff'; x.lineWidth = 3; x.beginPath(); x.arc(X(RY.zc[0]), X(RY.zc[1]), Math.max(0, RY.zc[2] * k), 0, Math.PI * 2); x.stroke();
     if (GS.zk === 0) { x.setLineDash([8, 6]); x.lineWidth = 2.5; x.beginPath(); x.arc(X(GS.zt[0]), X(GS.zt[1]), Math.max(0, GS.zt[2] * k), 0, Math.PI * 2); x.stroke(); x.setLineDash([]); }
   }
+  for (const sp of SUP.values()) if (!sp.open) { x.fillStyle = '#2f8fff'; x.strokeStyle = '#ffffff'; x.lineWidth = 2; x.fillRect(X(sp.pos.x) - 6, X(sp.pos.z) - 6, 12, 12); x.strokeRect(X(sp.pos.x) - 6, X(sp.pos.z) - 6, 12, 12); }
   x.translate(X(player.pos.x), X(player.pos.z)); x.rotate(-player.yaw);
   x.fillStyle = '#5ff2ff'; x.strokeStyle = '#08131a'; x.lineWidth = 2; x.beginPath(); x.moveTo(0, -12); x.lineTo(9, 9); x.lineTo(0, 4); x.lineTo(-9, 9); x.closePath(); x.fill(); x.stroke();
   x.restore();
@@ -10418,7 +10849,7 @@ function updateRoyale(dt) {
   const want = GS.rph === 1 ? GS.rsd : 0;
   if (RL.seed !== want) royaleLoot(want);
   if (GS.rph === 1 && state === 'playing' && !RY.inMatch) { if (settings.room === 'public' && brInst < 40) royaleNextLobby(); else royaleWait(); }
-  royaleZoneFx(dt); updateZoneWeather(dt); animHeal(dt);
+  royaleZoneFx(dt); updateZoneWeather(dt); animHeal(dt); updateSupply(dt);
   const ui = royaleUI(), inGame = state !== 'menu' && state !== 'editor';
   ui.map.style.display = inGame ? '' : 'none'; ui.heals.style.display = 'none';
   // what everyone else picked up, opened, dropped or left behind
@@ -10446,7 +10877,7 @@ function updateRoyale(dt) {
   // gliding down after the drop
   if (RY.glide) {
     if (!me || player.onGround) RY.glide = false;
-    else { const w = wishDir(tD); player.vel.x = damp(player.vel.x, w.x * 16, 3, dt); player.vel.z = damp(player.vel.z, w.z * 16, 3, dt); if (player.vel.y < -11) player.vel.y = -11; }
+    else { const w = wishDir(tD); player.vel.x = damp(player.vel.x, w.x * 19, 3, dt); player.vel.z = damp(player.vel.z, w.z * 19, 3, dt); if (player.vel.y < -11) player.vel.y = -11; }
   }
   // the storm
   const out = GS.rph === 1 && me && Math.hypot(player.pos.x - GS.zc[0], player.pos.z - GS.zc[1]) > GS.zc[2];
@@ -10465,10 +10896,11 @@ function updateRoyale(dt) {
     }
     if (best) RY.near = { it: best };
     else RL.chests.forEach((c, i) => { if (!c.open && Math.hypot(c.pos.x - player.pos.x, c.pos.z - player.pos.z) < 2.6 && Math.abs(c.pos.y - player.pos.y) < 2) RY.near = { chest: i }; });
+    if (!RY.near) for (const sp of SUP.values()) if (sp.landed && !sp.open && Math.hypot(sp.pos.x - player.pos.x, sp.pos.z - player.pos.z) < 2.8 && Math.abs(sp.pos.y - player.pos.y) < 2.2) RY.near = { sup: sp.id };
   }
   const n = RY.near, show = !!n && !$('hud').hidden;
   $('useUI').hidden = !show;
-  if (show) { setText('useTxt', n.it ? `${bindLabel('use').toUpperCase()} · PICK UP ${RAR[n.it.c.b].n.toUpperCase()} ${WEAPONS[n.it.c.a].name.toUpperCase()}` : `${bindLabel('use').toUpperCase()} · OPEN CHEST`); setStyle($('useBar'), 'width', '0%'); }
+  if (show) { setText('useTxt', n.it ? `${bindLabel('use').toUpperCase()} · PICK UP ${RAR[n.it.c.b].n.toUpperCase()} ${WEAPONS[n.it.c.a].name.toUpperCase()}` : n.sup != null ? `${bindLabel('use').toUpperCase()} · OPEN SUPPLY DROP` : `${bindLabel('use').toUpperCase()} · OPEN CHEST`); setStyle($('useBar'), 'width', '0%'); }
   // healing
   if (RY.using) {
     const H = HEALS[RY.using.t], k = (time - RY.using.t0) / H.t;
@@ -11242,5 +11674,75 @@ wireMapUI();
 if (EDITOR) startEditor(); else netInit();
 if (!EDITOR && store.get('autostart', 0)) { store.set('autostart', 0); setTimeout(() => { if (state === 'menu') startGame(); }, 700); }
 // read-only peek for debugging in the browser console
+// ================= daily login streak =================
+// Come back every day for bigger rewards; day 7 is a mystery crate (a random item you don't own yet), then it starts over.
+// Miss a day and the streak resets to day 1.
+const STREAK_R = [100, 150, 200, 300, 400, 500, 'crate'];
+const stkDay = (d = new Date()) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+function streakState() {
+  let s = store.get('streak', null); if (!s || typeof s.n !== 'number') s = { last: 0, n: 0 };
+  const today = stkDay(), yday = stkDay(new Date(Date.now() - 864e5)), ready = s.last !== today;
+  const alive = s.last === today || s.last === yday;
+  return { s, today, ready, next: ready ? (alive ? s.n % 7 + 1 : 1) : s.n, shown: alive ? s.n : 0 };
+}
+// a random shop item you don't have yet (suits, hats, finishes, pets; nothing seasonal); coins if you own them all
+function mysteryItem() {
+  const pool = [];
+  for (const kind of ['suit', 'hat', 'finish', 'pet']) { const defs = KIND_DEFS[kind](); for (const id in defs) { const d = defs[id]; if (d.price > 0 && d.price <= 3000 && !d.season && !d.bundle && !owns(kind, id)) pool.push([kind, id, d]); } }
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+}
+function claimStreak() {
+  const st = streakState(); if (!st.ready) return;
+  const r = STREAK_R[st.next - 1]; let got;
+  if (r === 'crate') {
+    const it = mysteryItem();
+    if (it) { wallet.owned.push(it[0] + ':' + it[1]); saveWallet(); got = `🎁 Mystery crate: ${it[2].name} (${{ suit: 'skin', hat: 'hat', finish: 'gun finish', pet: 'pet' }[it[0]]})! It's in Customize`; }
+    else { addCoins(1500); got = '🎁 Mystery crate: +1,500 coins (you own everything!)'; }
+  } else { addCoins(r); got = `+${r} coins`; }
+  store.set('streak', { last: st.today, n: st.next });
+  $('stkMsg').textContent = `Day ${st.next} claimed · ${got}`; toast(got); sfx.win();
+  renderStreak();
+}
+function renderStreak() {
+  const st = streakState(), el = $('stkDays'); el.textContent = '';
+  STREAK_R.forEach((r, i) => {
+    const d = i + 1, done = st.ready ? d < st.next : d <= st.next, now = st.ready && d === st.next;
+    const b = document.createElement('div'); b.className = 'stkday' + (done ? ' done' : '') + (now ? ' now' : '') + (r === 'crate' ? ' crate' : '');
+    b.innerHTML = `<small>DAY ${d}</small><b>${r === 'crate' ? '🎁' : '🪙'}</b><span>${r === 'crate' ? 'MYSTERY' : r}</span>${done ? '<i>✓</i>' : ''}`;
+    el.appendChild(b);
+  });
+  $('stkClaim').disabled = !st.ready; $('stkClaim').textContent = st.ready ? `CLAIM DAY ${st.next}` : 'COME BACK TOMORROW';
+  $('stkSub').textContent = st.ready ? (st.next === 1 && st.s.n ? 'Your streak reset. Play every day to keep it going!' : `Day ${st.next} of 7 · log in every day for bigger rewards`) : `🔥 ${st.shown}-day streak · next reward tomorrow`;
+  $('stkBtn').classList.toggle('hot', st.ready); $('stkBtn').textContent = st.ready ? '🔥 DAILY REWARD!' : `🔥 ${st.shown}`;
+}
+function openStreak() { $('stkMsg').textContent = ''; renderStreak(); $('stkBox').hidden = false; }
+$('stkBtn').addEventListener('click', openStreak);
+$('stkClose').addEventListener('click', () => { $('stkBox').hidden = true; });
+$('stkClaim').addEventListener('click', claimStreak);
+renderStreak();
+// pop up once a day when there's something to claim
+setTimeout(() => { if (streakState().ready && state === 'menu') openStreak(); }, 1500);
+
+// ================= music player (Settings) =================
+const mfav = new Set(store.get('mfav', []).filter(n => TRACKS.some(t => t.name === n)));
+let mfavOnly = !!store.get('mfavonly', false);
+const STYLE_NAME = { house: 'House', dubstep: 'Dubstep', dnb: 'Drum & Bass', future: 'Future Bass', hard: 'Hardstyle', melodic: 'Melodic', trance: 'Trance' };
+function playTrack(i) { MUS.want = i; MUS.skip = true; if (!A.musicOn) setMusic(true); initAudio(); setTimeout(renderMusicPlayer, 300); }
+function renderMusicPlayer() {
+  const el = $('mplayer'); if (!el) return;
+  const cur = MUS.trk;
+  el.innerHTML = `<div class="mpnow"><span>${A.musicOn ? (cur >= 0 ? `♪ NOW PLAYING · <b>${esc(TRACKS[cur].name)}</b>` : '♪ Click anywhere in the game to start the music') : '♪ Music is off'}</span><span class="mpctl"><button class="ghost" data-mp="next">⏭ NEXT</button><button class="ghost" data-mp="toggle">${A.musicOn ? 'MUSIC OFF' : 'MUSIC ON'}</button></span></div>`
+    + TRACKS.map((t, i) => `<div class="mprow${i === cur && A.musicOn ? ' on' : ''}"><button class="mpplay" data-mp="play" data-i="${i}" title="Play">${i === cur && A.musicOn ? '▮▮' : '▶'}</button><b>${esc(t.name)}</b><small>${STYLE_NAME[t.style]} · ${t.bpm} BPM</small><button class="mpfav${mfav.has(t.name) ? ' on' : ''}" data-mp="fav" data-i="${i}" title="Favourite">${mfav.has(t.name) ? '♥' : '♡'}</button></div>`).join('')
+    + `<label class="mponly"><input type="checkbox" data-mp="only"${mfavOnly ? ' checked' : ''}> Only play my favourites${mfav.size ? '' : ' (heart a song first)'}</label>`;
+}
+$('mplayer').addEventListener('click', e => {
+  const b = e.target.closest('[data-mp]'); if (!b) return; const i = +b.dataset.i;
+  if (b.dataset.mp === 'play') playTrack(i);
+  else if (b.dataset.mp === 'next') { nextSong(); initAudio(); setTimeout(renderMusicPlayer, 300); }
+  else if (b.dataset.mp === 'toggle') { setMusic(!A.musicOn); initAudio(); renderMusicPlayer(); }
+  else if (b.dataset.mp === 'fav') { const n = TRACKS[i].name; if (mfav.has(n)) mfav.delete(n); else mfav.add(n); store.set('mfav', [...mfav]); renderMusicPlayer(); }
+});
+$('mplayer').addEventListener('change', e => { if (e.target.dataset.mp === 'only') { mfavOnly = e.target.checked; store.set('mfavonly', mfavOnly); } });
+renderMusicPlayer();
 window.__prism = { get info() { return { flying: grenades.map(n => n.kind + ':' + n.fuse.toFixed(1) + '@' + n.g.position.toArray().map(v => v.toFixed(1)).join(',')), cls: settings.cls, curW, gadgets: nadeCount, qcd: +player.pulseCd.toFixed(1), jetFuel: +jetFuel.toFixed(2), deploys: deploys.map(d => d.kind + (d.uses != null ? ':' + d.uses : '')), rally: teamFx.rallyUntil > time, wall: teamFx.wallUntil > time, py: +player.pos.y.toFixed(1), calls: renderer.info.render.calls, tris: renderer.info.render.triangles, q: settings.quality, dpr: renderer.getPixelRatio(), cam: camera.position.toArray().map(v => +v.toFixed(1)), fov: +camera.fov.toFixed(1), show: showcase ? [showcase.av.visible, showcase.av.position.toArray()] : null, menuTab, netKind, roomName, conn: !!conn, connected: !!(conn && conn.connected()), connId: conn && conn.myId(), state, mode, isHost, myId, hostId, peers: peers.size, ents: [...ents.values()].map(e => [e.kind, e.name || e.type, e.alive, Math.round(e.hp), e.lv || 0, e.f || 0]), ggLv, frags, deaths, score, hp: Math.round(player.hp), GS: JSON.parse(JSON.stringify(GS)) }; } };
 </script>
