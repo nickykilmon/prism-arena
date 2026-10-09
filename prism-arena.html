@@ -375,6 +375,7 @@ kbd{font-family:var(--display);font-size:11px;background:rgba(255,255,255,.08);b
 .seasonhead b{letter-spacing:.16em;font-size:13px;color:var(--sc,#ff8a2a)}
 .seasonhead span{font-size:12px;color:var(--dim);letter-spacing:.06em}
 .item .tagS{font-family:var(--display);font-size:9px;letter-spacing:.12em;color:var(--dim)}
+.item .tagS.rar{color:var(--rc);font-weight:700}.item.hasr{border-bottom:3px solid var(--rc)}
 
 .party{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:rgba(255,255,255,.03)}
 .prow,.frow{display:grid;grid-template-columns:10px 1fr auto;gap:2px 10px;align-items:center;font-size:14px;min-width:0}
@@ -1134,6 +1135,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'jc-sim', date: '2026-10-09', title: 'JC Sim Skins & Skin Rarities', lines: ['Six new skins from JC Simulator, in the shop all week: JC, Mom, William, Ryan, Nicolas and Nicky', 'Every skin now has a rarity on its shop card: Common, Rare (its own model), Boss, Island Legends, Creator, JC Sim, or its season for seasonal skins', 'If you ever get stuck inside a wall you get moved to a spot where you fit, and the game keeps running if something goes wrong instead of freezing'] },
   { id: 'br-bots-storm', date: '2026-10-08', title: 'Smarter Bots & a Nastier Storm', lines: ['Battle Royale bots are much better: most are medium skill and about one in four is hard. They spot you from much further away, find guns sooner (often rare or better), go after whoever shoots them, and heal up between fights', 'The storm hurts more every circle: 2 damage a second in the first, up to 30 in the last'] },
   { id: 'jets', date: '2026-10-08', title: 'Walk-In Jets', lines: ['Battle Royale: the Airport jets are much bigger, and you can climb the stairs and walk inside. Rows of seats, overhead bins, windows, and a cockpit with a chest. The hangar is bigger too, with its own jet inside'] },
   { id: 'big-island', date: '2026-10-08', title: 'Bigger Island, Supply Drops & Daily Rewards', lines: ['Battle Royale: the island is way bigger, so it takes a while to get between places. You drop from higher up to glide further', 'Four new places: the Airport (runway, jets, a hangar and a control tower), the Mountain (climb the terraces, explore the crystal cave), the Harbor (container stacks, a crane, a warehouse and a boat) and the Mall (two floors of shops, escalators and a food court)', 'Supply drops: a crate parachutes into the next circle every couple of minutes with epic and legendary guns. Look for the blue beam', 'Daily login streak: claim coins every day you play. Day 7 is a mystery crate with an item you don\'t own', 'Music player in Settings: play any song, skip, and heart your favourites', '15 new skins in the shop today: Cap\'n Saltbeard, Shogun Steel, Arcanos the Wise, Zorbo and Prickly Pete have their own models, plus Aurora, Marble, Denim, Graffiti, Checkered Flag, Honeycomb, Snakeskin, Stained Glass, Thunderstorm and Koi Pond'] },
@@ -1295,6 +1297,8 @@ const vmMat2 = new THREE.MeshStandardMaterial({ color: 0xd9d4ee, metalness: 0.6,
 
 // ================= cosmetics =================
 const HUES = [0, 16, 36, 54, 90, 140, 170, 192, 212, 240, 268, 296, 322];
+// shop picture for the JC Sim cast: hair, face and shirt
+const jcPv = (hair, skin, shirt, extra = '') => `${extra}radial-gradient(circle at 44% 38%,#111 0 2.2%,transparent 2.6%),radial-gradient(circle at 56% 38%,#111 0 2.2%,transparent 2.6%),radial-gradient(ellipse 15% 9% at 50% 22%,${hair} 0 100%,transparent 101%),radial-gradient(circle at 50% 35%,${skin} 0 15%,transparent 16%),linear-gradient(180deg,transparent 54%,${shirt} 54%),#1d2440`;
 const SUITS = {
   standard: { name: 'Standard', price: 0 },
   chrome: { name: 'Chrome', price: 150, pv: 'linear-gradient(135deg,#fff,#8a90a8 45%,#f4f6ff 60%,#5d6278)' },
@@ -1397,8 +1401,26 @@ const SUITS = {
   arcanos: { name: 'Arcanos the Wise', price: 2200, pv: 'conic-gradient(from 160deg at 50% 0%,transparent 0 20deg,#3a2a8a 20deg 40deg,transparent 40deg),radial-gradient(ellipse at 50% 45%,#f2f2f4 0 12%,transparent 13%),radial-gradient(circle,#ffd23a 0 2px,transparent 3px) 0 0/14px 14px,#3a2a8a' },
   zorbo: { name: 'Zorbo', price: 1800, pv: 'radial-gradient(ellipse at 40% 28%,#0a0a0e 0 6%,transparent 7%),radial-gradient(ellipse at 60% 28%,#0a0a0e 0 6%,transparent 7%),radial-gradient(ellipse at 50% 26%,#6adf5a 0 22%,transparent 23%),linear-gradient(180deg,transparent 50%,#c8ccd8 50%)' },
   pricklypete: { name: 'Prickly Pete', price: 1800, pv: 'radial-gradient(ellipse at 50% 14%,#e8c06a 0 34%,transparent 35%),radial-gradient(circle,#f4f0d6 0 1.5px,transparent 2px) 0 0/10px 10px,#3f9a4a' },
+  jc: { name: 'JC', price: 2000, pv: jcPv('#0b0b0b', '#e8b892', '#1f2937') },
+  jcmom: { name: 'Mom', price: 2000, pv: jcPv('#111827', '#fdba74', '#ef4444', 'linear-gradient(90deg,transparent 33%,#111827 33% 38%,transparent 38% 62%,#111827 62% 67%,transparent 67%) 0 25%/100% 32% no-repeat,') },
+  jcwilliam: { name: 'William', price: 2000, pv: jcPv('#5b3a24', '#ffe0bd', '#2563eb') },
+  jcryan: { name: 'Ryan', price: 2000, pv: jcPv('#0f172a', '#fdba74', '#2563eb') },
+  jcnicolas: { name: 'Nicolas', price: 2000, pv: jcPv('#0f0a08', '#c68863', '#2563eb') },
+  jcnicky: { name: 'Nicky', price: 2000, pv: jcPv('#fef08a', '#ffe0bd', '#2563eb', 'radial-gradient(circle at 44% 38%,transparent 0 3%,#111 3% 4.4%,transparent 4.8%),radial-gradient(circle at 56% 38%,transparent 0 3%,#111 3% 4.4%,transparent 4.8%),') },
   austen: { name: 'A.U.S.T.E.N.', price: 4000, pv: 'linear-gradient(90deg,#e8b06a 0 24%,#b84a2c 24% 44%,#ffd21f 44% 56%,#b84a2c 56% 76%,#e8b06a 76%)' },
 };
+// every suit has a rarity: Common is a new look on the standard body, Rare has its own model,
+// seasonal suits take their season's name, and some sets have their own
+const RARITY = {
+  common: { n: 'Common', c: '#b8bdd6' }, rare: { n: 'Rare', c: '#4fa8ff' }, boss: { n: 'Boss', c: '#ff7a2a' },
+  legends: { n: 'Island Legends', c: '#c77dff' }, creator: { n: 'Creator', c: '#ffd23a' }, jcsim: { n: 'JC Sim', c: '#3dffb0', icon: '🎮' },
+};
+const SUIT_SET = { titanlord: 'boss', mirrorqueen: 'boss', clockreaper: 'boss', wyrmkin: 'boss', overmind: 'boss', peelo: 'legends', fishstik: 'legends', cuddle: 'legends', tomatoface: 'legends', darkknight: 'legends', skultrooper: 'legends', meowsclez: 'legends', austen: 'creator', jc: 'jcsim', jcmom: 'jcsim', jcwilliam: 'jcsim', jcryan: 'jcsim', jcnicolas: 'jcsim', jcnicky: 'jcsim' };
+function suitRarity(id) {
+  const d = SUITS[id]; if (!d) return null;
+  if (d.season && SEASONS[d.season]) { const S = SEASONS[d.season]; return { n: S.name, c: S.css, icon: S.icon }; }
+  return RARITY[SUIT_SET[id] || (BODIES[id] || id === 'walla' ? 'rare' : 'common')];
+}
 const FINISHES = {
   factory: { name: 'Factory', price: 0, pv: 'linear-gradient(135deg,#d9d4ee 0 30%,#2b2840 30%)' },
   carbon: { name: 'Carbon', price: 100, pv: 'repeating-conic-gradient(#1a1a20 0 25%,#2c2c34 0 50%) 0 0/8px 8px' },
@@ -3861,6 +3883,25 @@ function collideSphere(p, r) {
     const d = Math.sqrt(d2), k = (r - d) / d; p.x += dx * k; p.y += dy * k; p.z += dz * k;
   }
 }
+// safety net: if you end up inside something you get moved to the nearest spot you fit,
+// and if the physics ever breaks you go back to the last place you stood
+const SAFE = { p: new V3(), t: 0, ok: false };
+function bodyInside(p) {
+  for (const c of collNear(p.x, p.z)) if (p.x + PR > c.min.x + 0.03 && p.x - PR < c.max.x - 0.03 && p.z + PR > c.min.z + 0.03 && p.z - PR < c.max.z - 0.03 && p.y + PH > c.min.y + 0.03 && p.y < c.max.y - 0.03) return true;
+  return false;
+}
+function unstick(dt) {
+  const p = player.pos, v = player.vel;
+  if (!Number.isFinite(p.x + p.y + p.z) || !Number.isFinite(v.x + v.y + v.z)) { v.set(0, 0, 0); p.copy(SAFE.ok ? SAFE.p : spawnPoint(myTeam)); return; }
+  if (!bodyInside(p)) { SAFE.t = 0; if (player.onGround && player.alive) { SAFE.p.copy(p); SAFE.ok = true; } return; }
+  if ((SAFE.t += dt) < 0.35) return;
+  SAFE.t = 0;
+  for (let r = 0.5; r <= 6; r += 0.5) for (let k = 0; k < 16; k++) {
+    const a = k / 16 * Math.PI * 2;
+    for (const dy of [0, 0.5, 1, 2]) { tB.set(p.x + Math.cos(a) * r, p.y + dy, p.z + Math.sin(a) * r); if (!bodyInside(tB)) { p.copy(tB); v.set(0, 0, 0); return; } }
+  }
+  if (SAFE.ok) { p.copy(SAFE.p); v.set(0, 0, 0); }
+}
 function spawnPoint(team) {
   if (mode === 'royale') return royaleSpawn();
   if (mode === 'prophunt') return team === 1 ? hunterSpawn() : propSpawn();
@@ -3881,7 +3922,7 @@ function spawnPoint(team) {
 function spawnPlayer() {
   if (mode === 'royale') royaleResetInv();
   const p = spawnPoint(myTeam);
-  player.pos.copy(p); player.vel.set(0, 0, 0);
+  player.pos.copy(p); player.vel.set(0, 0, 0); SAFE.ok = false; SAFE.t = 0;
   const look = new V3();
   player.yaw = Math.atan2(p.x - look.x, p.z - look.z); player.pitch = -0.05;
   player.over = 0; player.mechUntil = 0; player.chillUntil = 0;
@@ -3938,6 +3979,7 @@ function updatePlayer(dt) {
   const wasGround = player.onGround, fallV = v.y;
   player.grav = deploys.length && insideDep('antigrav', p, 9) ? 0.3 : 1;
   stepBody(player, dt);
+  unstick(dt);
   riftSweep();
   if (player.onGround && !wasGround && fallV < -9) { landDip = Math.min(0.25, -fallV * 0.012); sfx.land(); }
   if (padCheck(player)) { sfx.pad(); fovKick = 12; }
@@ -5342,6 +5384,48 @@ Object.assign(BODIES, {
     return { arm: { x: 0.36, y: 1.55, len: 0.4, r: 0.085, spread: 0.15 }, legs: humanLegs(c, cact, M(0x6a3a1a), 0.13, 0.085, 0.85), limb: cact, hat: [0.33, 0.6] };
   },
 });
+// ---------- JC Simulator skins: the cast of JC Sim, rebuilt at Prism Arena's size ----------
+// same build as in JC Sim (cylinder torso, round head, dot eyes), scaled down and turned to face -z
+function jcSim(c, o) {
+  const { add, head, M } = c, tall = o.tall || 1, w = (o.w || 0.38) * 0.6, hip = 0.78 * tall, tH = 0.9 * tall, tY = hip + tH / 2 + 0.02;
+  const skin = M(o.skin, { roughness: 0.55 }), shirt = M(o.shirt, { roughness: 0.65 }), pants = M(o.pants || 0x334155, { roughness: 0.7 }), shoe = M(0x1c1917, { roughness: 0.55 });
+  const black = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide }); c.extra.push(black);
+  add(gq('jcT' + w + tall, () => new THREE.CylinderGeometry(w, w * 1.05, tH, 18)), shirt, 0, tY, 0).castShadow = true;
+  add(gq('jcNk', () => new THREE.CylinderGeometry(0.075, 0.09, 0.14, 12)), skin, 0, tY + tH / 2 + 0.04, 0);
+  head.position.y = tY + tH / 2 + 0.25;
+  add(gq('jcH', () => new THREE.SphereGeometry(0.25, 24, 18)), skin, 0, 0, 0, head).castShadow = true;
+  for (const sx of [-1, 1]) { add(gq('jcEye', () => new THREE.SphereGeometry(0.034, 8, 6)), black, sx * 0.09, 0.03, -0.228, head); add(gq('jcEar', () => new THREE.SphereGeometry(0.04, 8, 6)), skin, sx * 0.25, 0, 0, head); }
+  add(gq('jcMo', () => new THREE.BoxGeometry(0.12, 0.03, 0.03)), M(o.lips || 0xb91c1c), 0, -0.09, -0.236, head);
+  // hair: a cap over the top of the head, or a cluster of curls
+  if (o.cap != null) add(gq('jcCap', () => new THREE.SphereGeometry(0.272, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2.2)), M(o.cap, { roughness: 0.8 }), 0, 0.03, 0, head).castShadow = true;
+  if (o.curls != null) {
+    let q = o.seed || 7; const r = () => (q = (q * 16807) % 2147483647) / 2147483647, hm = M(o.curls, { roughness: 0.9 });
+    add(gq('jcCurlBase', () => new THREE.SphereGeometry(0.262, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2.4)), hm, 0, 0.03, 0.01, head);
+    for (let k = 0; k < (o.puffs || 7); k++) add(gq('jcPuff' + (o.puff || 0.11), () => new THREE.SphereGeometry(o.puff || 0.11, 8, 6)), hm, (r() - 0.5) * 0.34, 0.18 + r() * 0.08, (r() - 0.5) * 0.34 + 0.02, head);
+  }
+  if (o.extra) o.extra({ add, head, M, skin, shirt, black, tY, tH, w });
+  return { arm: { x: w + 0.07, y: tY + tH / 2 - 0.08, len: 0.46 * tall, r: 0.06, spread: 0.12 }, hat: [0.28, 0.24], legs: humanLegs(c, pants, shoe, Math.max(0.11, w * 0.42 + 0.02), 0.085, hip), limb: shirt };
+}
+Object.assign(BODIES, {
+  jc: c => jcSim(c, { skin: 0xe8b892, shirt: 0x1f2937, cap: 0x0b0b0b, extra: ({ add, head, M }) => {
+    const b = add(gq('jcBangs', () => new THREE.BoxGeometry(0.41, 0.07, 0.13)), M(0x0b0b0b, { roughness: 0.6 }), 0, 0.16, -0.17, head); b.rotation.x = 0.16;
+  } }),
+  jcmom: c => jcSim(c, { skin: 0xfdba74, shirt: 0xef4444, pants: 0x1e3a8a, cap: 0x111827, extra: ({ add, head, M, tY, tH, w }) => {
+    const hair = M(0x111827, { roughness: 0.75 });
+    add(gq('jmBack', () => new THREE.BoxGeometry(0.5, 0.7, 0.2)), hair, 0, -0.3, 0.13, head).castShadow = true;
+    const b = add(gq('jmBangs', () => new THREE.BoxGeometry(0.45, 0.1, 0.18)), hair, 0, 0.18, -0.17, head); b.rotation.x = 0.2;
+    for (const sx of [-1, 1]) { const br = add(gq('jmBrow', () => new THREE.BoxGeometry(0.085, 0.015, 0.02)), hair, sx * 0.09, 0.08, -0.24, head); br.rotation.z = sx * 0.1; }
+    add(gq('jmNose', () => new THREE.ConeGeometry(0.036, 0.09, 10).rotateX(-Math.PI / 2)), M(0xfb923c), 0, 0, -0.26, head);
+    add(gq('jmBelt', () => new THREE.TorusGeometry(w * 1.04, 0.03, 8, 20).rotateX(Math.PI / 2)), M(0x78350f), 0, tY - tH * 0.28, 0);
+  } }),
+  jcwilliam: c => jcSim(c, { skin: 0xffe0bd, shirt: 0x2563eb, curls: 0x5b3a24, tall: 1.12, seed: 11 }),
+  jcryan: c => jcSim(c, { skin: 0xfdba74, shirt: 0x2563eb, curls: 0x0f172a, w: 0.65, puff: 0.12, seed: 3 }),
+  jcnicolas: c => jcSim(c, { skin: 0xc68863, shirt: 0x2563eb, curls: 0x0f0a08, puffs: 6, puff: 0.1, seed: 19 }),
+  jcnicky: c => jcSim(c, { skin: 0xffe0bd, shirt: 0x2563eb, cap: 0xfef08a, extra: ({ add, head, black }) => {
+    for (const sx of [-1, 1]) add(gq('jnRim', () => new THREE.RingGeometry(0.048, 0.066, 14)), black, sx * 0.09, 0.03, -0.25, head);
+    add(gq('jnBridge', () => new THREE.BoxGeometry(0.07, 0.016, 0.012)), black, 0, 0.03, -0.25, head);
+  } }),
+});
 function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none', pet = '') {
   const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
@@ -5660,7 +5744,9 @@ function shopItem(kind, id, def, cur, el) {
   if (slot >= 0) b.classList.add('eq');
   sm.textContent = eq ? 'EQUIPPED' : slot >= 0 ? `KEY ${slot + 1}` : own ? (kind === 'emote' ? `PUT ON KEY ${emoteSel + 1}` : 'OWNED · EQUIP') : closed ? `${SEASONS[def.season].name.toUpperCase()} ONLY` : def.bundle ? `WITH ${SUITS[def.bundle].name.toUpperCase()} SUIT` : def.price.toLocaleString();
   b.append(pv, nm, sm);
-  if (def.season) { const t = document.createElement('span'); t.className = 'tagS'; t.textContent = `${SEASONS[def.season].icon} ${kind.toUpperCase()}`; b.insertBefore(t, nm); }
+  const rar = kind === 'suit' && suitRarity(id);
+  if (rar) { const t = document.createElement('span'); t.className = 'tagS rar'; t.textContent = `${rar.icon ? rar.icon + ' ' : ''}${rar.n.toUpperCase()}`; b.style.setProperty('--rc', rar.c); b.classList.add('hasr'); b.insertBefore(t, nm); }
+  else if (def.season) { const t = document.createElement('span'); t.className = 'tagS'; t.textContent = `${SEASONS[def.season].icon} ${kind.toUpperCase()}`; b.insertBefore(t, nm); }
   if (kind !== 'emote' && kind !== 'spray') {
     b.addEventListener('mouseenter', () => { preview[kind] = id; refreshPreview(); });
     b.addEventListener('mouseleave', () => { preview[kind] = null; refreshPreview(); });
@@ -5696,9 +5782,10 @@ function renderShop() {
   for (const el of document.querySelectorAll('.hrow')) if (el.id && keep[el.id]) { el.style.scrollBehavior = 'auto'; el.scrollLeft = keep[el.id]; el.style.scrollBehavior = ''; }
 }
 // The item shop shows a new selection every hour: 12 suits (half with their own model), 6 hats, 4 gun finishes, 5 pets, 5 emotes and 2 sprays.
-// This season's items are always there. Featured items join every rotation until FEATURED.until.
+// This season's items are always there. Featured items join every rotation until their entry's `until`.
 const ROT_N = { suit: 12, hat: 6, finish: 4, pet: 5, emote: 5, spray: 2 };
-const FEATURED = { until: 1791591600000, suit: ['saltbeard', 'ronin', 'arcanos', 'zorbo', 'pricklypete', 'aurora', 'marble', 'denim', 'graffiti', 'checker', 'honeycomb', 'snakeskin', 'stainedglass', 'thunder', 'koi'] };
+const FEATURED = [{ until: 1791591600000, suit: ['saltbeard', 'ronin', 'arcanos', 'zorbo', 'pricklypete', 'aurora', 'marble', 'denim', 'graffiti', 'checker', 'honeycomb', 'snakeskin', 'stainedglass', 'thunder', 'koi']},
+  { until: 1792196400000, suit: ['jc', 'jcmom', 'jcwilliam', 'jcryan', 'jcnicolas', 'jcnicky'] }];
 const shopHour = () => Math.floor(Date.now() / 3600000);
 let rotCache = null;
 function shopRotation() {
@@ -5708,7 +5795,7 @@ function shopRotation() {
     const defs = KIND_DEFS[kind](), r = mulberry(h * 7919 + kind.charCodeAt(0) * 131);
     const pool = Object.keys(defs).filter(id => defs[id].price > 0 && !defs[id].season && !defs[id].bundle).sort();
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-    const feat = Date.now() < FEATURED.until ? (FEATURED[kind] || []).filter(id => defs[id]) : [];
+    const feat = FEATURED.filter(f => Date.now() < f.until).flatMap(f => f[kind] || []).filter(id => defs[id]);
     let rest = pool.filter(id => !feat.includes(id));
     // suits alternate between ones with their own model and plain suits
     if (kind === 'suit') { const model = rest.filter(id => BODIES[id] || id === 'walla' || id === 'austen'), plain = rest.filter(id => !model.includes(id)); rest = []; for (let i = 0; i < Math.max(model.length, plain.length); i++) { if (plain[i]) rest.push(plain[i]); if (model[i]) rest.push(model[i]); } }
@@ -11626,9 +11713,18 @@ function wireMapUI() {
   for (const id of ['titlePick', 'vposePick']) $(id).addEventListener('change', () => { const k = id === 'titlePick' ? 'title' : 'vpose'; settings[k] = $(id).value; store.set(k, settings[k]); renderCardPick(); sendProf(); });}
 
 let hiddenDrawT = 0, last = performance.now(), boardT = 0, labelT = 0, fpsN = 0, fpsT = performance.now();
-function rafLoop(now) { requestAnimationFrame(rafLoop); if (!document.hidden) frame(now); }
+// if anything throws mid-frame, keep drawing and say what broke instead of freezing on one picture
+let frameErrT = -1e9;
+function safeFrame(now) {
+  try { frame(now); } catch (e) {
+    console.error(e);
+    if (performance.now() - frameErrT > 10000) { frameErrT = performance.now(); toast(`Something went wrong: ${String((e && e.message) || e).slice(0, 90)}. Take a screenshot so it can be fixed.`); }
+    try { if (composer) composer.render(); else renderer.render(scene, camera); } catch {}
+  }
+}
+function rafLoop(now) { requestAnimationFrame(rafLoop); if (!document.hidden) safeFrame(now); }
 // background tabs get no animation frames; keep the match (and host duties) ticking anyway
-setInterval(() => { if (document.hidden) frame(performance.now()); }, 50);
+setInterval(() => { if (document.hidden) safeFrame(performance.now()); }, 50);
 function frame(now) {
   const dt = Math.min(document.hidden ? 0.25 : 0.05, (now - last) / 1000); last = now; time += dt;
 
