@@ -1134,6 +1134,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'br-bots-storm', date: '2026-10-08', title: 'Smarter Bots & a Nastier Storm', lines: ['Battle Royale bots are much better: most are medium skill and about one in four is hard. They spot you from much further away, find guns sooner (often rare or better), go after whoever shoots them, and heal up between fights', 'The storm hurts more every circle: 2 damage a second in the first, up to 30 in the last'] },
   { id: 'jets', date: '2026-10-08', title: 'Walk-In Jets', lines: ['Battle Royale: the Airport jets are much bigger, and you can climb the stairs and walk inside. Rows of seats, overhead bins, windows, and a cockpit with a chest. The hangar is bigger too, with its own jet inside'] },
   { id: 'big-island', date: '2026-10-08', title: 'Bigger Island, Supply Drops & Daily Rewards', lines: ['Battle Royale: the island is way bigger, so it takes a while to get between places. You drop from higher up to glide further', 'Four new places: the Airport (runway, jets, a hangar and a control tower), the Mountain (climb the terraces, explore the crystal cave), the Harbor (container stacks, a crane, a warehouse and a boat) and the Mall (two floors of shops, escalators and a food court)', 'Supply drops: a crate parachutes into the next circle every couple of minutes with epic and legendary guns. Look for the blue beam', 'Daily login streak: claim coins every day you play. Day 7 is a mystery crate with an item you don\'t own', 'Music player in Settings: play any song, skip, and heart your favourites', '15 new skins in the shop today: Cap\'n Saltbeard, Shogun Steel, Arcanos the Wise, Zorbo and Prickly Pete have their own models, plus Aurora, Marble, Denim, Graffiti, Checkered Flag, Honeycomb, Snakeskin, Stained Glass, Thunderstorm and Koi Pond'] },
   { id: 'towers-music', date: '2026-10-08', title: 'Office Towers & New Music', lines: ['Battle Royale: the City skyscrapers are now office towers you can explore. Walk in through the doors or land on the roof, and take the stairs up and down every floor', 'Houses no longer have a see-through strip where the two floors meet', 'All-new music: 7 EDM tracks in different styles (house, dubstep, drum & bass, future bass, hardstyle, melodic and trance) with build-ups and drops. Music is muffled in the menus and opens up in a match. Press N to skip a song'] },
@@ -6572,7 +6573,7 @@ function hostKillEnt(e, attackerId, weapon) {
     if (mode === 'gungame' && weapon === 'blade') e.lv = Math.max(0, (e.lv || 0) - 1);
   }
   const atk = ents.get(attackerId);
-  if (atk) { atk.f = (atk.f || 0) + 1; if (mode === 'gungame') botLevelUp(atk); }
+  if (atk) { atk.f = (atk.f || 0) + 1; if (mode === 'gungame') botLevelUp(atk); if (mode === 'royale' && atk.wp !== 'pick' && Math.random() < 0.5) atk.rar = Math.min(3, (atk.rar || 0) + 1); }
   else if (attackerId === myId) creditKill(e.kind === 'drone' ? 'd' : 'b', pts, e.name);
   hostPush(H.ek, [attackerId || '', e.kind === 'drone' ? 'd' : 'b', e.name || '', pts], 5);
   if (e.kind === 'bot') feedKill(attackerId, e.name, weapon);
@@ -7065,7 +7066,7 @@ function hostManageBots(dt) {
     const want = Math.max(0, 50 - hs.length);
     for (let n = bots.length; n < want; n++) { hostAddBot(-1); const b = [...ents.values()].filter(e => e.kind === 'bot').pop(); if (b) { b.respawnT = 1e9; b.alive = false; } }
     for (let n = bots.length; n > want; n--) { const b = [...ents.values()].filter(e => e.kind === 'bot').pop(); if (b) removeEnt(b, false); }
-    for (const b of ents.values()) if (b.kind === 'bot' && !b.alive) { b.alive = true; b.hp = 100; b.invuln = 1e9; b.pos.copy(royaleSpawn()); b.tpos.copy(b.pos); b.vel.set(0, 0, 0); b.yaw = rand(0, 6.283); b.wp = 'pick'; b.glide = false; b.target = null; }
+    for (const b of ents.values()) if (b.kind === 'bot' && !b.alive) { b.alive = true; b.hp = 100; b.invuln = 1e9; b.pos.copy(royaleSpawn()); b.tpos.copy(b.pos); b.vel.set(0, 0, 0); b.yaw = rand(0, 6.283); b.wp = 'pick'; b.glide = false; b.target = null; b.skill = Math.random() < 0.25 ? 'hard' : 'medium'; b.rar = 0; }
     return;
   }
   if (mode === 'duel' || mode === 'prophunt') {
@@ -7127,7 +7128,8 @@ function hostUpdateBot(e, dt, acts) {
   }
   const bMax = mode === 'infect' && e.team === 1 ? INFECTED_HP : 100;
   if (mode !== 'royale' && time - e.lastDmgT > 4 && e.hp < bMax) e.hp = Math.min(bMax, e.hp + 15 * dt);
-  if (mode === 'royale' && e.wp === 'pick' && time > (e.lootT || 0)) e.wp = pick(BR_GUNS);
+  else if (mode === 'royale' && !e.target && time - e.lastDmgT > 6 && e.hp < 100) e.hp = Math.min(100, e.hp + 6 * dt);
+  if (mode === 'royale' && e.wp === 'pick' && time > (e.lootT || 0)) { e.wp = pick(BR_GUNS); const v = Math.random(), w = e.skill === 'hard' ? [0.2, 0.55, 0.85] : [0.4, 0.75, 0.95]; e.rar = v < w[0] ? 0 : v < w[1] ? 1 : v < w[2] ? 2 : 3; }
   const W = WEAPONS[e.wp] || WEAPONS.rifle;
   bEye.copy(e.pos).setY(e.pos.y + 1.45);
   e.thinkT -= dt;
@@ -7136,12 +7138,13 @@ function hostUpdateBot(e, dt, acts) {
     e.thinkT = rand(...S.think);
     // Battle Royale bots loot first: with only a pickaxe they just fight back; with a gun they look less far
     const brPick = mode === 'royale' && e.wp === 'pick', angry = time - e.lastDmgT < 4 ? e.lastHitBy : '';
-    let best = null, bd = S.sight * (mode === 'royale' ? (brPick ? 0.12 : 0.45) : 1);
+    const br = mode === 'royale';
+    let best = null, bd = br ? 1e9 : S.sight;
     for (const a of acts) {
       if (!a.alive || a.id === e.id || !enemyOf(e.team, a.team)) continue;
-      if (brPick && a.id !== angry) continue;
-      if (mode === 'prophunt' && !propSeen(a, e)) continue;
       const d = a.pos.distanceTo(e.pos) - (a.id === e.target?.id ? 6 : 0);
+      if (br) { const reach = a.id === angry ? (a.ent ? 25 : 90) : brPick ? (a.ent ? 0 : 12) : S.sight * (a.ent ? 0.28 : 1.4); if (d > reach) continue; }
+      if (mode === 'prophunt' && !propSeen(a, e)) continue;
       if (d < bd && hasLOS(bEye, bTgt.copy(a.pos).setY(a.pos.y + 1.2))) { bd = d; best = a; }
     }
     if (best && best.id !== e.target?.id) e.fireT = Math.max(e.fireT, rand(...S.react));
@@ -7187,7 +7190,7 @@ function hostUpdateBot(e, dt, acts) {
     const t = e.target, dist = t.pos.distanceTo(e.pos);
     const aimErr = Math.abs(Math.atan2(Math.sin(Math.atan2(e.pos.x - t.pos.x, e.pos.z - t.pos.z) - e.yaw), Math.cos(Math.atan2(e.pos.x - t.pos.x, e.pos.z - t.pos.z) - e.yaw)));
     const S = skillOf(e);
-    if (aimErr < S.aim && dist < Math.min(W.range, 60)) { botShoot(e, t, dist, W); e.fireT = (W.rate * (W.auto ? 2.1 : 1.5) + (W.auto && Math.random() < 0.12 ? 0.8 : 0)) * S.rate; }
+    if (aimErr < S.aim && dist < Math.min(W.range, mode === 'royale' && !t.ent ? 85 : 60)) { botShoot(e, t, dist, W); e.fireT = (W.rate * (W.auto ? 2.1 : 1.5) + (W.auto && Math.random() < 0.12 ? 0.8 : 0)) * S.rate; }
   }
 }
 function botShoot(e, t, dist, W) {
@@ -7198,11 +7201,13 @@ function botShoot(e, t, dist, W) {
     return;
   }
   const moving = t.vel && Math.hypot(t.vel.x, t.vel.z) > 3;
-  let chance = clamp(0.66 - dist * 0.011, 0.15, 0.6) * (moving ? 0.7 : 1) * skillOf(e).hit * (mode === 'royale' ? 0.6 : 1);
+  let chance = clamp(0.66 - dist * 0.011, 0.15, 0.6) * (moving ? 0.7 : 1) * skillOf(e).hit * (mode === 'royale' && t.ent ? 0.32 : 1);
   if (e.wp === 'rail') chance *= 0.75;
   let dmg = 0;
   if (W.pellets > 1) { const k = clamp(1 - dist / W.range, 0.05, 1); dmg = W.dmg * Math.round(W.pellets * k * rand(0.3, 0.8) * skillOf(e).hit); chance = 1; }
   else dmg = W.projectile ? 95 : W.dmg;
+  // rarer guns hit harder; bots go easy on each other so the match isn't over in two minutes
+  if (mode === 'royale') dmg = Math.round(dmg * RAR[e.rar || 0].k * (t.ent ? 0.5 : 1));
   const hit = Math.random() < chance && dmg > 0;
   if (!hit) to.add(new V3(rand(-1.5, 1.5), rand(-0.8, 1.2), rand(-1.5, 1.5)));
   if (hit) { if (t.ent) hostDamageEnt(t.ent, dmg, e.id, e.wp); else hostHitHuman(t, dmg, e.pos, e); }
@@ -10421,7 +10426,7 @@ function peerProp(o, d) {
 // ================= Battle Royale =================
 // The island's loot comes from the match seed, so every player's game rolls the same items in the same places.
 // Players only share what changed: items they picked up, chests they opened, guns they dropped and what they carried when they died.
-const RZ = [[120, 75, 300, 1], [90, 60, 195, 2], [75, 50, 125, 3], [60, 40, 75, 5], [45, 35, 40, 7], [35, 25, 16, 10], [25, 20, 0, 14]]; // wait (s), shrink (s), radius, storm damage per second
+const RZ = [[120, 75, 300, 2], [90, 60, 195, 4], [75, 50, 125, 7], [60, 40, 75, 11], [45, 35, 40, 16], [35, 25, 16, 22], [25, 20, 0, 30]]; // wait (s), shrink (s), radius, storm damage per second
 const RAR = [{ n: 'Common', css: '#c8d0dc', c: new THREE.Color(1.5, 1.6, 1.8), k: 1 }, { n: 'Rare', css: '#5aa8ff', c: new THREE.Color(0.4, 1.3, 3.0), k: 1.1 }, { n: 'Epic', css: '#c07dff', c: new THREE.Color(1.9, 0.6, 3.0), k: 1.22 }, { n: 'Legendary', css: '#ffbf3a', c: new THREE.Color(3.0, 1.9, 0.3), k: 1.35 }];
 const AMMO_OF = { smg: 'L', rifle: 'L', lmg: 'L', cards: 'L', cannon: 'H', rail: 'H', autocannon: 'H', scatter: 'S', arc: 'E', inferno: 'E', nova: 'R' };
 const AMMO = { L: { n: 'Light Ammo', c: 0x5ff2ff, max: 240, give: [30, 60] }, H: { n: 'Heavy Ammo', c: 0xff9a3c, max: 90, give: [12, 24] }, S: { n: 'Shells', c: 0xff4fa3, max: 48, give: [8, 16] }, E: { n: 'Energy Cells', c: 0xb48cff, max: 300, give: [40, 80] }, R: { n: 'Rockets', c: 0xff6a1a, max: 12, give: [3, 6] } };
@@ -10535,7 +10540,7 @@ function spawnDrop(prefix, pos, codes) {
   const list = codes.slice(0, 12), y = groundBelow(tC.set(pos.x, pos.y + 0.5, pos.z));
   list.forEach((code, j) => { const a = j / list.length * 6.283; addItem(prefix + '.' + j, String(code), pos.x + Math.cos(a) * 1.2, y, pos.z + Math.sin(a) * 1.2); });
 }
-function royaleBotDrop(e) { if (!GS.rsd) return; const t = AMMO_OF[e.wp] || 'L'; spawnDrop('b' + e.id + '.' + GS.rsd, e.pos, BR_GUNS.includes(e.wp) ? [`g:${e.wp}:0`, `a:${t}:${AMMO[t].give[1]}`, 'h:b:2'] : ['h:b:2']); }
+function royaleBotDrop(e) { if (!GS.rsd) return; const t = AMMO_OF[e.wp] || 'L'; spawnDrop('b' + e.id + '.' + GS.rsd, e.pos, BR_GUNS.includes(e.wp) ? [`g:${e.wp}:${e.rar || 0}`, `a:${t}:${AMMO[t].give[1]}`, 'h:b:2'] : ['h:b:2']); }
 // ---------- supply drops: a crate parachutes into the next circle with top-tier loot ----------
 // The host drops them (GS.sd = [[id, x, y, z, landed]]); opening one is shared like a chest (id 1000 + n in rco).
 const SUP = new Map();
@@ -10851,7 +10856,7 @@ function royaleStart(R) {
   GS.rsd = 1 + Math.floor(Math.random() * 1e9); GS.rph = 1; GS.zs = 0; GS.zk = 0; GS.zc = [0, 0, ARENA_R];
   const nr = RZ[0][2], off = (ARENA_R - nr) * 0.6 * Math.random(), a = Math.random() * 6.283; GS.zt = [r1(Math.cos(a) * off), r1(Math.sin(a) * off), nr];
   R.timer = RZ[0][0]; R.from = GS.zc.slice(); R.t0 = time; R.lobbyT = null; GS.ztm = RZ[0][0]; R.sd = []; R.sdN = 0; R.sdT = 90; GS.sd = [];
-  for (const e of ents.values()) if (e.kind === 'bot') { const g = royaleGroundSpot(Math.random), cl = Math.hypot(g.x, g.z) || 1; e.pos.set(g.x, rand(150, 165), g.z); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.glide = true; e.gdx = -g.x / cl * 0.6 + rand(-0.5, 0.5); e.gdz = -g.z / cl * 0.6 + rand(-0.5, 0.5); e.hp = 100; e.alive = true; e.invuln = 1e9; e.target = null; e.patrol = null; e.wp = 'pick'; e.lootT = time + rand(35, 140); e.f = 0; e.d = 0; e.respawnT = 1e9; }
+  for (const e of ents.values()) if (e.kind === 'bot') { const g = royaleGroundSpot(Math.random), cl = Math.hypot(g.x, g.z) || 1; e.pos.set(g.x, rand(150, 165), g.z); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.glide = true; e.gdx = -g.x / cl * 0.6 + rand(-0.5, 0.5); e.gdz = -g.z / cl * 0.6 + rand(-0.5, 0.5); e.hp = 100; e.alive = true; e.invuln = 1e9; e.target = null; e.patrol = null; e.skill = Math.random() < 0.25 ? 'hard' : 'medium'; e.wp = 'pick'; e.rar = 0; e.lootT = time + (e.skill === 'hard' ? rand(15, 40) : rand(25, 75)); e.f = 0; e.d = 0; e.respawnT = 1e9; }
   GS.ral = allActors().filter(a => a.alive).length;
   hostEvent('The match has started');
 }
