@@ -231,6 +231,10 @@ table.lb .you{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6
 #downUI span{display:block;font-size:13px;letter-spacing:.1em;color:var(--fg);margin-top:4px;text-shadow:0 2px 6px rgba(0,0,0,.8)}
 #useUI{position:absolute;left:50%;top:61%;transform:translateX(-50%);text-align:center;font-family:var(--display);font-size:14px;letter-spacing:.12em;color:var(--fg);text-shadow:0 2px 6px rgba(0,0,0,.85);white-space:nowrap}
 #useUI kbd{font-size:12px}
+#vehUI{position:absolute;left:50%;bottom:calc(118px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(280px,calc(100vw - 32px));text-align:center;font-family:var(--display);letter-spacing:.12em;text-shadow:0 2px 6px rgba(0,0,0,.85)}
+#vehUI b{font-size:13px;color:var(--amber)}#vehUI small{display:block;font-size:10px;color:var(--dim);margin-top:4px}
+#vehUI .vbar{height:7px;margin-top:5px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden}#vehUI .vbar i{display:block;height:100%;background:linear-gradient(90deg,var(--good),#d9ff6a);transition:width .2s}
+#vehUI .vbar i.low{background:linear-gradient(90deg,var(--bad),var(--amber))}
 .rbar{width:220px;max-width:100%;height:8px;margin:10px auto 0;background:rgba(255,255,255,.14);border-radius:2px;overflow:hidden}
 .rbar i{display:block;height:100%;width:0;background:var(--good);box-shadow:0 0 10px var(--good)}
 .dmark{position:absolute;transform:translate(-50%,-100%);font-family:var(--display);font-size:11px;letter-spacing:.14em;color:var(--good);text-align:center;white-space:nowrap;text-shadow:0 1px 4px #000}
@@ -496,6 +500,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
   <div id="announce"></div>
   <div id="downUI" hidden><b>DOWNED</b><span id="downTxt">Hang on. A teammate can revive you.</span><div class="rbar" id="downBarWrap" hidden><i id="downBar"></i></div></div>
   <div id="useUI" hidden><span id="useTxt"></span><div class="rbar"><i id="useBar"></i></div></div>
+  <div id="vehUI" hidden><b id="vehName"></b><div class="vbar"><i id="vehBar"></i></div><small id="vehKeys"></small></div>
   <div id="marks"></div>
   <div class="wp mwp" id="mwp" hidden></div>
   <div id="mlog" hidden></div>
@@ -1135,6 +1140,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'br-vehicles', date: '2026-10-09', title: "Golf Carts & JC's eBikes", lines: ['Battle Royale: golf carts and JC\'s eBikes are parked outside every named place. Press E to get in, W / S to drive, A / D to steer, Space to hop, E to get out', 'Ram people with a golf cart to send them flying (and hurt them)', 'Drivers can still be shot. Vehicles have health too: shoot one enough and it explodes, badly hurting whoever is inside', 'No more dashing in Battle Royale: use a vehicle to get around fast'] },
   { id: 'jc-sim', date: '2026-10-09', title: 'JC Sim Skins & Skin Rarities', lines: ['Six new skins from JC Simulator, in the shop all week: JC, Mom, William, Ryan, Nicolas and Nicky', 'Every skin now has a rarity on its shop card: Common, Rare (its own model), Boss, Island Legends, Creator, JC Sim, or its season for seasonal skins', 'If you ever get stuck inside a wall you get moved to a spot where you fit, and the game keeps running if something goes wrong instead of freezing'] },
   { id: 'br-bots-storm', date: '2026-10-08', title: 'Smarter Bots & a Nastier Storm', lines: ['Battle Royale bots are much better: most are medium skill and about one in four is hard. They spot you from much further away, find guns sooner (often rare or better), go after whoever shoots them, and heal up between fights', 'The storm hurts more every circle: 2 damage a second in the first, up to 30 in the last'] },
   { id: 'jets', date: '2026-10-08', title: 'Walk-In Jets', lines: ['Battle Royale: the Airport jets are much bigger, and you can climb the stairs and walk inside. Rows of seats, overhead bins, windows, and a cockpit with a chest. The hangar is bigger too, with its own jet inside'] },
@@ -3830,16 +3836,16 @@ function collNear(x, z) {
   return CG.cells.get(Math.floor(x / CGS) * 1000 + Math.floor(z / CGS)) || CG_EMPTY;
 }
 function collideBody(b, axis, prevY) {
-  const p = b.pos;
+  const p = b.pos, R = b.r || PR, Hh = b.h || PH;
   for (const c of collNear(p.x, p.z)) {
-    if (p.x + PR <= c.min.x || p.x - PR >= c.max.x || p.z + PR <= c.min.z || p.z - PR >= c.max.z || p.y + PH <= c.min.y || p.y >= c.max.y) continue;
+    if (p.x + R <= c.min.x || p.x - R >= c.max.x || p.z + R <= c.min.z || p.z - R >= c.max.z || p.y + Hh <= c.min.y || p.y >= c.max.y) continue;
     if (axis === 'y') {
       if (prevY >= c.max.y - 0.06) { p.y = c.max.y; if (b.vel.y < 0) b.vel.y = 0; b.onGround = true; }
-      else if (prevY + PH <= c.min.y + 0.06) { p.y = c.min.y - PH; if (b.vel.y > 0) b.vel.y = 0; }
+      else if (prevY + Hh <= c.min.y + 0.06) { p.y = c.min.y - Hh; if (b.vel.y > 0) b.vel.y = 0; }
     } else {
       if (c.max.y - p.y <= 0.5 && time - b.lastGround < 0.1) { p.y = c.max.y; continue; }
-      if (axis === 'x') p.x = p.x < (c.min.x + c.max.x) / 2 ? c.min.x - PR - 0.001 : c.max.x + PR + 0.001;
-      else p.z = p.z < (c.min.z + c.max.z) / 2 ? c.min.z - PR - 0.001 : c.max.z + PR + 0.001;
+      if (axis === 'x') p.x = p.x < (c.min.x + c.max.x) / 2 ? c.min.x - R - 0.001 : c.max.x + R + 0.001;
+      else p.z = p.z < (c.min.z + c.max.z) / 2 ? c.min.z - R - 0.001 : c.max.z + R + 0.001;
       b.blocked = true;
     }
   }
@@ -3942,12 +3948,13 @@ let jetFuel = JET_MAX, jetting = false;
 const JETC = new THREE.Color(3, 1.4, 0.4);
 function tryJump() {
   if (!player.alive || playerFrozen()) return;
+  if (DRV) { vehHop(); return; }
   player.jumpT = time;
   if (player.onGround || time - player.lastGround < 0.12) { player.vel.y = 11; player.jumps = 1; player.onGround = false; player.lastGround = -9; sfx.jump(); }
   else if (player.jumps < 2) { player.vel.y = 10.5; player.jumps = 2; sfx.djump(); burst(player.pos, 14, new THREE.Color(0.4, 2, 2.4), 4, 0.4, 0.09, 2); shockRing(player.pos, new THREE.Color(0.4, 2, 2.4), 2.2, 0.35); }
 }
 function tryDash() {
-  if (!player.alive || player.dashCd > 0) return;
+  if (mode === 'royale' || !player.alive || player.dashCd > 0) return;
   if (mechOn) { if (player.dashCd <= 0) { player.dashCd = 0.6; toast("Mechs can't dash"); tone(160, 120, 0.12, 0.08, 'square'); } return; }
   const d = wishDir(tA); if (d.lengthSq() === 0) d.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
   player.vel.x = d.x * 27; player.vel.z = d.z * 27; player.vel.y = Math.max(player.vel.y, 1.5);
@@ -3962,6 +3969,8 @@ function updatePlayer(dt) {
   const wish = player.downed || playerFrozen() ? pWish.set(0, 0, 0) : wishDir(pWish);
   const spd = (ads ? 6 : 9.5) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.6 : 1) * (mode === 'mission' && GS.mcar === myId ? 0.82 : 1);
   updateRift(dt);
+  if (DRV) driveTick(dt);
+  else {
   if (player.dashT > 0) player.dashT -= dt;
   else if (player.onGround) { v.x = damp(v.x, wish.x * spd, 14, dt); v.z = damp(v.z, wish.z * spd, 14, dt); }
   else if (wish.lengthSq() > 0) {
@@ -3983,6 +3992,7 @@ function updatePlayer(dt) {
   riftSweep();
   if (player.onGround && !wasGround && fallV < -9) { landDip = Math.min(0.25, -fallV * 0.012); sfx.land(); }
   if (padCheck(player)) { sfx.pad(); fovKick = 12; }
+  }
   if (player.poisonUntil > time && player.alive) {
     player.poisonT -= dt;
     if (player.poisonT <= 0) { player.poisonT = 0.5; burst(tA.copy(player.pos).setY(player.pos.y + 1.2), 4, new THREE.Color(0.3, 2.9, 0.35), 2, 0.5, 0.07, -1); player.invuln = 0; hurt(2.5, { text: 'Poison wore you down', poison: true }); }
@@ -5674,7 +5684,7 @@ function avatarFX(a) {
     a.arms[0].position.y = a.armY + Math.sin(t + 1.3) * 0.04; a.arms[1].position.y = a.armY + Math.sin(t + 2.1) * 0.04;
     if (a.tick) a.tick(time + a.phase * 9);
     if (a.jiggle) { const j = Math.sin(time * 5 + a.phase * 6) * 0.05; a.jiggle.scale.set(1 - j * 0.5, 1.25 + j * 1.5, 0.85 - j * 0.4); }
-    if (a.legs) { const mv = a.vel && Math.hypot(a.vel.x, a.vel.z) > 1.5; a.legs.forEach((l, i) => { l.rotation.x = mv ? Math.sin(time * 10 + i * Math.PI) * 0.55 : damp(l.rotation.x, 0, 8, 0.016); }); }
+    if (a.legs) { const mv = !a.seated && a.vel && Math.hypot(a.vel.x, a.vel.z) > 1.5; a.legs.forEach((l, i) => { l.rotation.x = a.seated ? a.seated : mv ? Math.sin(time * 10 + i * Math.PI) * 0.55 : damp(l.rotation.x, 0, 8, 0.016); }); }
     a.arms[0].rotation.x = damp(a.arms[0].rotation.x, P.l[0], 10, 0.016); a.arms[0].rotation.z = damp(a.arms[0].rotation.z, P.l[1], 10, 0.016);
     a.arms[1].rotation.x = damp(a.arms[1].rotation.x, P.r[0], 10, 0.016); a.arms[1].rotation.z = damp(a.arms[1].rotation.z, P.r[1], 10, 0.016);
   }
@@ -7832,6 +7842,7 @@ function rocketExplode(p, mine, sc = 1) {
 }
 // blasts reach in every direction (a sphere), so they hit drones hovering above too
 function blast(p, dmgMax, R, push, falloff = 0.6, pvp = 1) {
+  vehBlast(p, dmgMax, R);
   let hitAny = false;
   for (const e of [...ents.values()]) {
     if (!e.alive || (e.kind !== 'drone' && !enemyOf(myTeam, e.team))) continue;
@@ -8443,6 +8454,7 @@ function shotTargets() {
   for (const d of deploys) if (d.block) t.push(d.block);
   for (const e of ents.values()) if (e.alive && (e.kind === 'drone' || enemyOf(myTeam, e.team))) { if (e.vis.hits) t.push(...e.vis.hits, ...e.vis.weaks); else { t.push(e.vis.hit); if (e.vis.weak) t.push(e.vis.weak); } if (e.vis.blockers) t.push(...e.vis.blockers); }
   for (const o of peers.values()) if (o.av.visible && enemyOf(myTeam, o.team)) t.push(o.body);
+  for (const v of VEH.values()) if (!v.dead && v !== DRV && v.g.visible) t.push(v.hit);
   return t;
 }
 function hitscan(origin, dir, W, targets) {
@@ -8462,12 +8474,13 @@ function hitscan(origin, dir, W, targets) {
   else if (hit && hit.object.userData.mirror) mirrorBounce(point);
   else if (hit && hit.object.userData.sprop && amHunter()) { wrongProp(); burst(point, 8, wColor(curW), 5, 0.35, 0.07); }
   else if (hit && hit.object.userData.peer) { const o = peers.get(hit.object.userData.peer); if (o) damagePeer(o, dmg, point, W.pellets > 1); }
+  else if (hit && hit.object.userData.veh) { const v = VEH.get(hit.object.userData.veh); if (v) damageVeh(v, dmg, point, W.pellets > 1); }
   else if (hit || groundT < Infinity) burst(point, W.pellets > 1 ? 2 : 8, wColor(curW), 5, 0.35, 0.07);
   return { point, hitTarget: hit && (hit.object.userData.ent || hit.object.userData.peer) };
 }
 function startReload() { if (mode === 'royale' && RY.hold) return; const W = WEAPONS[curW]; if (W.melee || reloadT > 0 || ammo === W.mag) return; if (mode === 'royale' && !royaleCanReload()) return; reloadT = W.reload; sfx.reload(); }
 function fire() {
-  if (playerFrozen()) return;
+  if (playerFrozen() || DRV) return;
   if (isPropPlayer()) { fireCd = 0.4; firing = false; propGun(); return; }
   if (mode === 'royale' && RY.hold) { fireCd = 0.35; firing = false; royaleHeal(RY.hold); return; }
   if (mode === 'royale' && RY.using) { RY.using = null; toast('Stopped healing'); }
@@ -8878,7 +8891,7 @@ function updateWeapon(dt) {
   { const sp = curGun().g.userData.spin; if (sp) { sp.userData.v = damp(sp.userData.v || 0, firing ? 32 : 2, 6, dt); sp.rotation.z += dt * sp.userData.v; } }
   const scoped = curW === 'rail' && ads && camera.fov < 34;
   if (scoped) $('scope').style.setProperty('--ch', scopeCharge.toFixed(2));
-  $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && state !== 'editor' && !scoped && !specOn && !KC.on && !(podium && GS.ph === 1) && !isPropPlayer();
+  $('scope').hidden = !scoped; vm.visible = state !== 'menu' && state !== 'dead' && state !== 'editor' && !scoped && !specOn && !KC.on && !(podium && GS.ph === 1) && !isPropPlayer() && !DRV;
 }
 
 // ================= damage / death / scoring =================
@@ -9169,6 +9182,7 @@ function updatePeers(dt, list) {
     if (dt > 0) o.vel.set((o.pos.x - px) / dt, 0, (o.pos.z - pz) / dt);
     let dy = (+d.yw || 0) - o.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); o.yaw += dy * (1 - Math.exp(-14 * dt));
     o.av.position.copy(o.pos); o.av.rotation.y = o.yaw; o.av.visible = d.st === 'p' && (!!d.al || !!d.dn); o.down = !!d.dn;
+    if (mode === 'royale') peerVehicle(o, d, p.id, myKey, dt);
     o.flash = Math.max(0, o.flash - dt * 7); avatarFX(o);
     if (mode === 'prophunt' || o.prop) peerProp(o, d);
     // a teammate in a mech: show the mech instead of their body
@@ -9230,7 +9244,7 @@ function buildPresence() {
     Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
     if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, mcar: GS.mcar, mdp: GS.mdp, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral, sd: GS.sd });
   }
-  if (mode === 'royale') Object.assign(o, { rs: RL.seed, rk: RY.picked, rco: RY.opened, rx: RY.drops, ri: player.alive ? royaleInvCodes() : RY.lastInv });
+  if (mode === 'royale') Object.assign(o, { rs: RL.seed, rk: RY.picked, rco: RY.opened, rx: RY.drops, ri: player.alive ? royaleInvCodes() : RY.lastInv, vh: DRV ? [DRV.id, r2(DRV.body.pos.x), r2(DRV.body.pos.y), r2(DRV.body.pos.z), r2(DRV.yaw), r2(DRV.speed)] : null, vd: vdOut, vl: vlOut });
   // keep within the 4 KB presence budget
   let s = JSON.stringify(o);
   if (s.length > 3900) { o.ev = H.ev.slice(-2); o.bs = H.bs.slice(-2); o.ob = H.ob.slice(-3); o.ek = H.ek.slice(-2); s = JSON.stringify(o); }
@@ -10601,6 +10615,7 @@ function royaleLoot(seed) {
   for (const it of RL.items.values()) scene.remove(it.g);
   RL.items.clear(); RL.taken.clear(); RL.seed = seed; RY.picked = []; RY.opened = []; RY.drops = [];
   for (const c of RL.chests) { c.open = false; c.lid.rotation.x = 0; c.glow.visible = true; }
+  royaleVehicles(seed);
   if (!seed) return;
   const r = mulberry(seed);
   RL.spots.forEach((p, i) => {
@@ -10763,8 +10778,10 @@ function animHeal(dt) {
   if (g.userData.glow) g.userData.glow.material.color.setRGB(0.4, 1.2 + (u ? Math.sin(time * 12) * 0.6 : 0), 2.6);
 }
 function royaleUse() {
+  if (DRV) { leaveVehicle(); return; }
   if (GS.rph !== 1 || !player.alive || !RY.near) return;
-  if (RY.near.it) pickGun(RY.near.it); else if (RY.near.chest != null) openChest(RY.near.chest, true); else if (RY.near.sup != null) openSupply(RY.near.sup, true);
+  if (RY.near.veh) { const v = VEH.get(RY.near.veh); if (v) enterVehicle(v); }
+  else if (RY.near.it) pickGun(RY.near.it); else if (RY.near.chest != null) openChest(RY.near.chest, true); else if (RY.near.sup != null) openSupply(RY.near.sup, true);
 }
 // reloading takes from your reserve
 function royaleReload(W, cur) { const t = AMMO_OF[curW]; if (!t) return W.mag; const take = Math.min(W.mag - cur, RY.ammo[t]); RY.ammo[t] -= take; return cur + take; }
@@ -10991,13 +11008,271 @@ function drawRoyaleMap() {
   x.fillStyle = '#5ff2ff'; x.strokeStyle = '#08131a'; x.lineWidth = 2; x.beginPath(); x.moveTo(0, -12); x.lineTo(9, 9); x.lineTo(0, 4); x.lineTo(-9, 9); x.closePath(); x.fill(); x.stroke();
   x.restore();
 }
+// ================= Battle Royale vehicles: golf carts and JC's eBikes =================
+// They're spread round the island from the match seed, so every player has the same ones in the same places.
+// The driver sends where theirs is in their presence (vh) and everyone else draws it there.
+// Damage to a vehicle adds up from everyone's presence (vd), the same way damage to players does; at 0 it blows up.
+// Golf carts launch anyone they run into: the driver sends the launch (vl) and the victim's own game applies it.
+const VTYPES = {
+  cart: { name: 'Golf Cart', hp: 300, r: 1.0, h: 1.9, top: 21, acc: 13, turn: 1.8, hop: 6, seat: [-0.3, -0.23, 0.12], legs: 1.35, ram: true, wheelR: 0.28 },
+  bike: { name: "JC's eBike", hp: 150, r: 0.5, h: 1.8, top: 24, acc: 17, turn: 2.5, hop: 7.5, seat: [0, 0.08, 0.5], legs: 0.55, ram: false, wheelR: 0.5 },
+};
+const VEH = new Map(), vdOut = {}, vlOut = [], ramT = new Map();
+let DRV = null, vlSeq = 0, engine = null;
+if (ROYALE) $('abDash').hidden = true;
+const VM = {};
+function vmats() {
+  if (VM.white) return VM;
+  const S = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.5, ...o });
+  Object.assign(VM, { white: S(0xf4f4ee, { roughness: 0.35 }), green: S(0x1f8a4a), tan: S(0xd9c7a0, { roughness: 0.8 }), black: S(0x141418, { roughness: 0.85 }), chrome: S(0xd8dce6, { metalness: 0.9, roughness: 0.2 }),
+    frame: S(0x111827, { metalness: 0.8, roughness: 0.2 }), rim: S(0xd97706, { metalness: 0.9, roughness: 0.3 }), blue: S(0x2563eb), fender: S(0x1e3a8a, { metalness: 0.5, roughness: 0.4, side: THREE.DoubleSide }),
+    light: S(0xfef9c3, { emissive: 0xfacc15, emissiveIntensity: 0.8 }), bag: S(0x8a2a2a, { roughness: 0.8 }) });
+  return VM;
+}
+function buildCart() {
+  const M = vmats(), g = new THREE.Group(), wheels = [];
+  const box = (w, h, d, m, x, y, z) => { const o = new THREE.Mesh(gq('vB' + w + h + d, () => new THREE.BoxGeometry(w, h, d)), m); o.position.set(x, y, z); o.castShadow = true; g.add(o); return o; };
+  box(1.3, 0.22, 2.4, M.white, 0, 0.42, 0);
+  box(1.26, 0.5, 0.55, M.white, 0, 0.72, -0.95);
+  box(1.2, 0.36, 0.6, M.white, 0, 0.71, 0.15);
+  box(1.2, 0.12, 0.58, M.tan, 0, 0.94, 0.15);
+  box(1.2, 0.5, 0.1, M.tan, 0, 1.22, 0.45);
+  box(1.26, 0.3, 0.6, M.black, 0, 0.68, 0.95);
+  for (const sx of [-1, 1]) for (const z of [-0.62, 0.55]) { const post = new THREE.Mesh(gq('vPost', () => new THREE.CylinderGeometry(0.035, 0.035, 1.4, 8)), M.chrome); post.position.set(sx * 0.58, 1.45, z); g.add(post); }
+  box(1.42, 0.08, 1.9, M.green, 0, 2.17, -0.04);
+  const wheel = new THREE.Group(); wheel.position.set(-0.3, 1.1, -0.68); wheel.rotation.x = -0.6; g.add(wheel);
+  const sw = new THREE.Mesh(gq('vSw', () => new THREE.TorusGeometry(0.17, 0.025, 8, 20)), M.black); wheel.add(sw);
+  const col = new THREE.Mesh(gq('vCol', () => new THREE.CylinderGeometry(0.025, 0.025, 0.45, 8)), M.black); col.rotation.x = Math.PI / 2; col.position.z = -0.22; wheel.add(col);
+  for (const sx of [-1, 1]) { const l = new THREE.Mesh(gq('vHl', () => new THREE.SphereGeometry(0.07, 10, 8)), M.light); l.position.set(sx * 0.42, 0.78, -1.23); g.add(l); }
+  const bag = new THREE.Mesh(gq('vBag', () => new THREE.CylinderGeometry(0.16, 0.16, 0.9, 12)), M.bag); bag.position.set(0.3, 1.25, 1.05); bag.rotation.x = 0.25; g.add(bag);
+  for (const sx of [-1, 1]) for (const z of [-0.8, 0.8]) {
+    const w = new THREE.Group(); w.position.set(sx * 0.62, 0.28, z); g.add(w); wheels.push(w);
+    const t = new THREE.Mesh(gq('vTire', () => new THREE.CylinderGeometry(0.28, 0.28, 0.22, 16).rotateZ(Math.PI / 2)), M.black); t.castShadow = true; w.add(t);
+    const hub = new THREE.Mesh(gq('vHub', () => new THREE.CylinderGeometry(0.13, 0.13, 0.24, 10).rotateZ(Math.PI / 2)), M.chrome); w.add(hub);
+    const spoke = new THREE.Mesh(gq('vSpk', () => new THREE.BoxGeometry(0.25, 0.04, 0.42)), M.chrome); w.add(spoke);
+  }
+  const hit = new THREE.Mesh(gq('vHitC', () => new THREE.BoxGeometry(1.35, 0.75, 2.5)), hitMat); hit.position.y = 0.47; g.add(hit); // low, so the driver above it can still be shot
+  return { g, wheels, hit, spin: 'x' };
+}
+// JC's eBike from JC Simulator, at Prism Arena's size
+function buildBike() {
+  const M = vmats(), g = new THREE.Group(), model = new THREE.Group(), wheels = [];
+  model.rotation.y = Math.PI / 2; model.scale.setScalar(0.5); g.add(model);
+  const add = (geo, m, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; model.add(o); return o; };
+  add(gq('ebBar', () => new THREE.CylinderGeometry(0.12, 0.12, 3.2, 12)), M.frame, 0.2, 1.3, 0, 0, 0, -Math.PI / 4);
+  add(gq('ebPost', () => new THREE.CylinderGeometry(0.06, 0.06, 0.6, 10)), M.frame, -1.15, 1.9, 0);
+  add(gq('ebSeat', () => new THREE.BoxGeometry(0.35, 0.15, 0.6)), M.black, -1.2, 2.2, 0);
+  add(gq('ebBatt', () => new THREE.BoxGeometry(1.2, 0.5, 0.4)), M.blue, 0, 1.1, 0);
+  add(gq('ebCrank', () => new THREE.CylinderGeometry(0.08, 0.08, 0.5, 10)), M.frame, 0.2, 0.85, 0, Math.PI / 2);
+  add(gq('ebPedal', () => new THREE.BoxGeometry(0.25, 0.05, 0.35)), M.black, 0.2, 0.7, 0.28); add(gq('ebPedal', () => new THREE.BoxGeometry(0.25, 0.05, 0.35)), M.black, 0.2, 1.0, -0.28);
+  for (const x of [1.8, -1.8]) {
+    const w = new THREE.Group(); w.position.set(x, 0.8, 0); model.add(w); wheels.push(w);
+    w.add(new THREE.Mesh(gq('ebTire', () => new THREE.TorusGeometry(0.8, 0.2, 10, 22)), M.black), new THREE.Mesh(gq('ebRim', () => new THREE.TorusGeometry(0.65, 0.05, 8, 16)), M.rim));
+    for (let k = 0; k < 3; k++) { const sp = new THREE.Mesh(gq('ebSpk', () => new THREE.BoxGeometry(1.3, 0.04, 0.04)), M.chrome); sp.rotation.z = k * Math.PI / 3; w.add(sp); }
+    add(gq('ebFender', () => new THREE.TorusGeometry(0.95, 0.06, 8, 16, Math.PI * 0.9)), M.fender, x, 0.8, 0, 0, 0, Math.PI * 0.05);
+  }
+  add(gq('ebHandle', () => new THREE.CylinderGeometry(0.06, 0.06, 1.8, 10)), M.frame, 1.4, 2.2, 0, Math.PI / 2);
+  add(gq('ebStem', () => new THREE.CylinderGeometry(0.06, 0.06, 1.5, 10)), M.frame, 1.6, 1.5, 0, 0, 0, 0.25);
+  add(gq('ebLight', () => new THREE.SphereGeometry(0.14, 10, 8)), M.light, 2.0, 1.75, 0);
+  const hit = new THREE.Mesh(gq('vHitB', () => new THREE.BoxGeometry(0.4, 1.0, 2.3)), hitMat); hit.position.y = 0.55; g.add(hit);
+  return { g, wheels, hit, spin: 'z' };
+}
+function addVeh(id, t, x, z, yaw) {
+  const T = VTYPES[t], m = t === 'cart' ? buildCart() : buildBike();
+  const v = { id, t, T, ...m, yaw, speed: 0, dead: false, driver: null, dmg: new Map(), smokeT: 0, lastBy: '',
+    body: { pos: new V3(x, 0, z), vel: new V3(), r: T.r, h: T.h, grav: 1, lastGround: 0, onGround: true, jumps: 0 } };
+  m.hit.userData.veh = id; m.g.position.set(x, 0, z); m.g.rotation.y = yaw; scene.add(m.g); VEH.set(id, v);
+  return v;
+}
+function vehBlocked(x, y, z, R, H) {
+  for (const c of collNear(x, z)) if (x + R > c.min.x && x - R < c.max.x && z + R > c.min.z && z - R < c.max.z && y + H > c.min.y && y < c.max.y) return true;
+  return false;
+}
+// one golf cart and one eBike parked just outside every named place
+function royaleVehicles(seed) {
+  if (DRV) leaveVehicle();
+  for (const v of VEH.values()) scene.remove(v.g);
+  VEH.clear(); ramT.clear(); for (const k in vdOut) delete vdOut[k]; vlOut.length = 0;
+  if (!seed) return;
+  const r = mulberry(seed * 31 + 7);
+  let n = 0;
+  for (const [, cx, cz, rad] of RL.pois) for (const t of ['cart', 'bike']) {
+    for (let tries = 0; tries < 14; tries++) {
+      const a = r() * Math.PI * 2, d = rad + 4 + r() * 12, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, yaw = r() * Math.PI * 2;
+      if (Math.hypot(x, z) > ARENA_R - 12 || vehBlocked(x, 0, z, VTYPES[t].r + 0.8, 2.2)) continue;
+      addVeh('v' + n++, t, x, z, yaw); break;
+    }
+  }
+}
+const vehHp = v => v.T.hp - [...v.dmg.values()].reduce((a, b) => a + b, 0) - (vdOut[v.id] || 0);
+function nearVehicle() {
+  let best = null, bd = 99;
+  for (const v of VEH.values()) {
+    if (v.dead || v.driver) continue;
+    const d = Math.hypot(v.body.pos.x - player.pos.x, v.body.pos.z - player.pos.z);
+    if (d < v.T.r + 1.6 && Math.abs(v.body.pos.y - player.pos.y) < 1.6 && d < bd) { bd = d; best = v; }
+  }
+  return best;
+}
+function damageVeh(v, dmg, point, quiet) {
+  if (v.dead || mode !== 'royale' || GS.rph !== 1) return;
+  vdOut[v.id] = (vdOut[v.id] || 0) + dmg; v.lastBy = myId;
+  burst(point, 8, new THREE.Color(2.6, 1.8, 0.6), 5, 0.3, 0.07);
+  if (!quiet) { hitmarker(false); tone(900, 700, 0.04, 0.05, 'square'); }
+}
+function vehBlast(p, dmgMax, R) {
+  if (mode !== 'royale') return;
+  for (const v of VEH.values()) {
+    if (v.dead) continue;
+    const d = p.distanceTo(tC.copy(v.body.pos).setY(v.body.pos.y + 0.6));
+    if (d < R + v.T.r) damageVeh(v, Math.round(dmgMax * clamp(1 - d / (R + v.T.r) * 0.6, 0.3, 1)), tC, true);
+  }
+}
+// sitting in the vehicle: where the driver's feet go (the avatar is dropped into the seat)
+function seatPos(v, out) {
+  const [sx, sy, sz] = v.T.seat, c = Math.cos(v.yaw), s = Math.sin(v.yaw);
+  return out.set(v.body.pos.x + sx * c + sz * s, v.body.pos.y + sy, v.body.pos.z - sx * s + sz * c);
+}
+function enterVehicle(v) {
+  if (v.dead || v.driver || !player.alive) return;
+  DRV = v; v.driver = myId; v.speed = 0; player.yaw = v.yaw; player.pitch = -0.08;
+  firing = false; clearAds(); RY.using = null; jetting = false;
+  startEngine(v.t);
+  toast(`${v.T.name}: W / S to drive, A / D to steer, ${bindLabel('jump').toUpperCase()} to hop, ${bindLabel('use').toUpperCase()} to get out`);
+}
+function leaveVehicle() {
+  const v = DRV; if (!v) return;
+  DRV = null; v.driver = null; v.speed = 0; v.body.vel.x = v.body.vel.z = 0;
+  stopEngine();
+  // step out on the left; if that's inside something the anti-stuck finds the nearest free spot
+  const c = Math.cos(v.yaw), s = Math.sin(v.yaw), out = v.T.r + 0.75;
+  player.pos.set(v.body.pos.x - c * out, v.body.pos.y + 0.05, v.body.pos.z + s * out);
+  player.vel.set(0, 0, 0); player.onGround = false; player.lastGround = time;
+  if (bodyInside(player.pos)) { SAFE.t = 1; unstick(0); }
+}
+function vehHop() {
+  const b = DRV.body;
+  if (b.onGround || time - b.lastGround < 0.12) { b.vel.y = DRV.T.hop; b.onGround = false; b.lastGround = -9; sfx.jump(); }
+}
+function driveTick(dt) {
+  const v = DRV, T = v.T, b = v.body;
+  jetting = false;
+  if (!player.alive || player.downed || v.dead) { leaveVehicle(); return; }
+  const thr = (held.forward ? 1 : 0) - (held.back ? 1 : 0), steer = (held.left ? 1 : 0) - (held.right ? 1 : 0);
+  if (b.onGround) {
+    if (thr > 0) v.speed = Math.min(T.top, v.speed + T.acc * dt * (v.speed < 0 ? 2.5 : 1));
+    else if (thr < 0) v.speed = Math.max(-T.top * 0.4, v.speed - T.acc * dt * (v.speed > 0 ? 2 : 0.8));
+    else v.speed = damp(v.speed, 0, 1.4, dt);
+  }
+  // steering needs some speed, and flips when you reverse
+  const turn = steer * T.turn * dt * clamp(Math.abs(v.speed) / 5, 0, 1) * (v.speed < 0 ? -1 : 1);
+  v.yaw += turn; player.yaw += turn;
+  b.vel.x = -Math.sin(v.yaw) * v.speed; b.vel.z = -Math.cos(v.yaw) * v.speed;
+  stepBody(b, dt);
+  if (b.blocked) { if (Math.abs(v.speed) > 9) { shake = Math.max(shake, 0.25); noise(0.2, 0.3, 500, 'lowpass'); } v.speed *= 0.3; }
+  if (b.pos.y < -8) { v.dead = true; v.g.visible = false; leaveVehicle(); return; }
+  seatPos(v, player.pos); player.vel.copy(b.vel); player.onGround = false; player.lastGround = time;
+  if (T.ram && Math.abs(v.speed) > 6) vehRam(v);
+  if (engine) { const k = Math.abs(v.speed) / T.top; engine.o.frequency.setTargetAtTime((v.t === 'cart' ? 55 : 110) + k * (v.t === 'cart' ? 75 : 160), A.ctx.currentTime, 0.1); engine.g.gain.setTargetAtTime(0.025 + k * 0.05, A.ctx.currentTime, 0.1); }
+}
+// the golf cart sends anyone it hits flying
+function vehRam(v) {
+  const b = v.body, fx = -Math.sin(v.yaw) * Math.sign(v.speed), fz = -Math.cos(v.yaw) * Math.sign(v.speed), sp = Math.abs(v.speed);
+  const dmg = Math.round(clamp(sp * 2.3, 15, 50));
+  const hitOne = (key, pos, onHit) => {
+    const dx = pos.x - b.pos.x, dz = pos.z - b.pos.z, dy = pos.y - b.pos.y;
+    if (Math.hypot(dx, dz) > v.T.r + 0.75 || dy < -1.2 || dy > 1.8 || dx * fx + dz * fz < 0) return;
+    if (time - (ramT.get(key) || -9) < 1) return; ramT.set(key, time);
+    const vx = r2(fx * sp * 0.75 + dx * 2), vz = r2(fz * sp * 0.75 + dz * 2);
+    vlOut.push([++vlSeq, key, vx, 13, vz, dmg]); while (vlOut.length > 6) vlOut.shift();
+    onHit(vx, vz);
+    hitmarker(false); sfx.hit(); noise(0.15, 0.4, 700, 'lowpass'); tone(140, 60, 0.15, 0.3, 'sine'); shake = Math.max(shake, 0.2);
+    burst(tA.copy(pos).setY(pos.y + 1), 14, WHITE, 7, 0.4, 0.09); v.speed *= 0.8;
+  };
+  for (const o of peers.values()) if (o.av.visible && !o.down && enemyOf(myTeam, o.team) && !(o.d && o.d.vh)) hitOne(peerKey(o.id), o.pos, () => {});
+  for (const e of ents.values()) if (e.kind === 'bot' && e.alive && enemyOf(myTeam, e.team)) hitOne('e:' + e.id, e.pos, (vx, vz) => { damageEnt(e, dmg, tA.copy(e.pos).setY(e.pos.y + 1), true); if (isHost && e.vel) { e.vel.set(vx, 13, vz); e.onGround = false; } });
+}
+function peerVehicle(o, d, pid, myKey, dt) {
+  o.seated = 0;
+  if (Array.isArray(d.vh) && d.vh.length >= 6) {
+    const v = VEH.get(String(d.vh[0]));
+    if (v && !v.dead) {
+      if (v === DRV && pid < myId) { leaveVehicle(); toast('Someone else got in first'); }
+      if (v !== DRV) {
+        v.driver = pid;
+        const b = v.body, tx = +d.vh[1] || 0, ty = +d.vh[2] || 0, tz = +d.vh[3] || 0, k = 1 - Math.exp(-14 * dt);
+        if (Math.hypot(tx - b.pos.x, tz - b.pos.z) > 15) b.pos.set(tx, ty, tz); else b.pos.set(b.pos.x + (tx - b.pos.x) * k, b.pos.y + (ty - b.pos.y) * k, b.pos.z + (tz - b.pos.z) * k);
+        let dy = (+d.vh[4] || 0) - v.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); v.yaw += dy * k; v.speed = +d.vh[5] || 0;
+        o.av.rotation.y = v.yaw; o.seated = v.T.legs; v.seenT = time;
+      }
+    }
+  }
+  if (d.vd && typeof d.vd === 'object') for (const id in d.vd) { const v = VEH.get(id), n = +d.vd[id] || 0; if (v && n > (v.dmg.get(pid) || 0)) { v.dmg.set(pid, n); v.lastBy = pid; } }
+  // run over by their golf cart?
+  if (Array.isArray(d.vl)) {
+    if (o.vlSeen == null) o.vlSeen = d.vl.reduce((m, x) => Math.max(m, +x[0] || 0), 0);
+    for (const x of d.vl) if (Array.isArray(x) && x.length >= 6 && +x[0] > o.vlSeen) {
+      o.vlSeen = +x[0];
+      const key = String(x[1]), vel = [clamp(+x[2] || 0, -40, 40), clamp(+x[3] || 0, 0, 20), clamp(+x[4] || 0, -40, 40)];
+      if (key === myKey && player.alive && GS.rph === 1) {
+        if (DRV) leaveVehicle();
+        player.vel.set(...vel); player.onGround = false; player.lastGround = -9; player.jumps = 2;
+        hurt(clamp(+x[5] || 0, 0, 60), { killer: pid, from: o.pos, text: `${o.name} ran you over` });
+      } else if (isHost && key.startsWith('e:')) { const e = ents.get(key.slice(2)); if (e && e.alive && e.vel) { e.vel.set(...vel); e.onGround = false; } }
+    }
+  }
+}
+function vehicleBoom(v) {
+  v.dead = true; v.g.visible = false;
+  const at = v.body.pos.clone().setY(v.body.pos.y + 0.8), col = new THREE.Color(3, 1.2, 0.3);
+  explosionFX(at, col, 2); shockRing(at, new THREE.Color(3, 2.2, 0.8), 12, 0.5); burst(at, 40, new THREE.Color(0.35, 0.33, 0.32), 6, 1.6, 0.3, -1.5);
+  const near = at.distanceTo(player.pos); if (near < 30) shake = Math.max(shake, 0.45 * (1 - near / 30));
+  const by = v.lastBy && v.lastBy !== myId ? v.lastBy : '';
+  if (DRV === v) {
+    leaveVehicle(); player.vel.y = 9; player.onGround = false; player.lastGround = -9; player.invuln = 0;
+    hurt(85, { killer: by, text: `Your ${v.T.name.replace("JC's ", '')} blew up` });
+  } else if (near < 6 && player.alive) { player.invuln = 0; hurt(Math.round(40 * (1 - near / 6)), { killer: by, text: `Caught in a ${v.T.name.replace("JC's ", '')} explosion` }); }
+}
+function updateVehicles(dt) {
+  if (DRV && (state === 'dead' || state === 'menu' || GS.rph !== 1)) leaveVehicle();
+  const cp = camera.position;
+  for (const v of VEH.values()) {
+    if (v.dead) continue;
+    if (v !== DRV && v.driver && time - (v.seenT || 0) > 0.5) v.driver = null; // the driver got out or left
+    if (vehHp(v) <= 0) { vehicleBoom(v); continue; }
+    const b = v.body; v.g.position.copy(b.pos); v.g.rotation.y = v.yaw;
+    v.g.visible = Math.abs(b.pos.x - cp.x) < 220 && Math.abs(b.pos.z - cp.z) < 220;
+    if (!v.g.visible) continue;
+    const spin = v.speed * dt / v.T.wheelR;
+    for (const w of v.wheels) w.rotation[v.spin] -= spin;
+    // smoking when it's about to go
+    if (vehHp(v) < v.T.hp * 0.35 && (v.smokeT -= dt) <= 0) { v.smokeT = 0.12; burst(tA.copy(b.pos).setY(b.pos.y + 1), 2, new THREE.Color(0.3, 0.3, 0.32), 2, 1.2, 0.25, -2.5); }
+  }
+  // the driving panel
+  const show = !!DRV && !$('hud').hidden;
+  $('vehUI').hidden = !show;
+  if (show) {
+    const hp = Math.max(0, vehHp(DRV)), pct = Math.round(hp / DRV.T.hp * 100);
+    setText('vehName', `${DRV.T.name.toUpperCase()} · ${Math.round(Math.abs(DRV.speed) * 3.6)} KM/H`);
+    setStyle($('vehBar'), 'width', pct + '%'); $('vehBar').classList.toggle('low', pct <= 35);
+    setText('vehKeys', `${bindLabel('use').toUpperCase()} GET OUT · ${bindLabel('jump').toUpperCase()} HOP${DRV.T.ram ? ' · RAM PEOPLE TO LAUNCH THEM' : ''}`);
+  }
+}
+function startEngine(t) {
+  if (!A.ctx || engine) return;
+  const c = A.ctx, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+  o.type = t === 'cart' ? 'sawtooth' : 'triangle'; o.frequency.value = t === 'cart' ? 55 : 110; f.type = 'lowpass'; f.frequency.value = t === 'cart' ? 420 : 900;
+  g.gain.value = 0.0001; o.connect(f); f.connect(g); g.connect(A.sfx); o.start();
+  engine = { o, g };
+}
+function stopEngine() { if (!engine) return; const { o, g } = engine; engine = null; g.gain.setTargetAtTime(0.0001, A.ctx.currentTime, 0.08); o.stop(A.ctx.currentTime + 0.4); }
 function updateRoyale(dt) {
   if (mode !== 'royale') return;
   // this match's loot
   const want = GS.rph === 1 ? GS.rsd : 0;
   if (RL.seed !== want) royaleLoot(want);
   if (GS.rph === 1 && state === 'playing' && !RY.inMatch) { if (settings.room === 'public' && brInst < 40) royaleNextLobby(); else royaleWait(); }
-  royaleZoneFx(dt); updateZoneWeather(dt); animHeal(dt); updateSupply(dt);
+  royaleZoneFx(dt); updateZoneWeather(dt); animHeal(dt); updateSupply(dt); updateVehicles(dt);
   const ui = royaleUI(), inGame = state !== 'menu' && state !== 'editor';
   ui.map.style.display = inGame ? '' : 'none'; ui.heals.style.display = 'none';
   // what everyone else picked up, opened, dropped or left behind
@@ -11044,11 +11319,12 @@ function updateRoyale(dt) {
     }
     if (best) RY.near = { it: best };
     else RL.chests.forEach((c, i) => { if (!c.open && Math.hypot(c.pos.x - player.pos.x, c.pos.z - player.pos.z) < 2.6 && Math.abs(c.pos.y - player.pos.y) < 2) RY.near = { chest: i }; });
+    if (!RY.near && !DRV) { const v = nearVehicle(); if (v) RY.near = { veh: v.id }; }
     if (!RY.near) for (const sp of SUP.values()) if (sp.landed && !sp.open && Math.hypot(sp.pos.x - player.pos.x, sp.pos.z - player.pos.z) < 2.8 && Math.abs(sp.pos.y - player.pos.y) < 2.2) RY.near = { sup: sp.id };
   }
   const n = RY.near, show = !!n && !$('hud').hidden;
   $('useUI').hidden = !show;
-  if (show) { setText('useTxt', n.it ? `${bindLabel('use').toUpperCase()} · PICK UP ${RAR[n.it.c.b].n.toUpperCase()} ${WEAPONS[n.it.c.a].name.toUpperCase()}` : n.sup != null ? `${bindLabel('use').toUpperCase()} · OPEN SUPPLY DROP` : `${bindLabel('use').toUpperCase()} · OPEN CHEST`); setStyle($('useBar'), 'width', '0%'); }
+  if (show) { setText('useTxt', n.veh ? `${bindLabel('use').toUpperCase()} · ${VEH.get(n.veh) ? (VEH.get(n.veh).t === 'cart' ? 'DRIVE THE GOLF CART' : "RIDE JC'S EBIKE") : ''}` : n.it ? `${bindLabel('use').toUpperCase()} · PICK UP ${RAR[n.it.c.b].n.toUpperCase()} ${WEAPONS[n.it.c.a].name.toUpperCase()}` : n.sup != null ? `${bindLabel('use').toUpperCase()} · OPEN SUPPLY DROP` : `${bindLabel('use').toUpperCase()} · OPEN CHEST`); setStyle($('useBar'), 'width', '0%'); }
   // healing
   if (RY.using) {
     const H = HEALS[RY.using.t], k = (time - RY.using.t0) / H.t;
