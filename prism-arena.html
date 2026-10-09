@@ -2643,7 +2643,6 @@ function buildRoyale() {
     if (cur < L - 1) road(x0 + dx * cur, z0 + dz * cur, x1, z1);
   };
   for (const [, x, z, r] of POI) used.push([x, z, r]);
-  for (const [, x, z, r] of POI.slice(1)) { const d = Math.hypot(x, z); roadAround(x / d * 18, z / d * 18, x - x / d * r * 0.6, z - z / d * r * 0.6); }
   // Prism Point: a crystal shrine in the middle
   block(0, 0, 12, 1.2, 12, 0, roseGlow);
   for (const [sx, sz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) block(sx * 7, sz * 7, sz ? 4 : 2, 0.6, sz ? 2 : 4, 0, null);
@@ -3088,7 +3087,7 @@ function buildRoyale() {
   for (const m of mergeChunks(solidG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); }
   for (const m of mergeChunks(softG, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); }
   flatG.forEach((list, k) => { if (!list.length) return; const mat = vcMat.clone(); Object.assign(mat, { polygonOffset: true, polygonOffsetFactor: -(k + 1), polygonOffsetUnits: -3 * (k + 1) }); for (const m of mergeChunks(list, mat)) { m.receiveShadow = true; scene.add(m); } });
-  const roadM = new THREE.Mesh(mergeGeometries(roadG), new THREE.MeshStandardMaterial({ color: 0x9a7a52, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2.5, polygonOffsetUnits: -7.5 })); roadM.receiveShadow = true; scene.add(roadM);
+  if (roadG.length) { const roadM = new THREE.Mesh(mergeGeometries(roadG), new THREE.MeshStandardMaterial({ color: 0x9a7a52, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2.5, polygonOffsetUnits: -7.5 })); roadM.receiveShadow = true; scene.add(roadM); }
   finalizeWorld();
 }
 if (CMAP) buildCustomWorld(CMAP);
