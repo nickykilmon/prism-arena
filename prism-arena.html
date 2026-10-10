@@ -2121,7 +2121,8 @@ function finalizeWorld() {
     const k = clamp((y + 24) / 48, 0, 1); const C = TH.cone; col.push(C[0] + C[3] * k, C[1] + C[4] * k, C[2] + C[5] * k);
   }
   cone.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); cone.computeVertexNormals();
-  const under2 = new THREE.Mesh(cone, rockMat); under2.position.y = -25; scene.add(under2); decor.push(under2);
+  // the cone's flat top would show through rally valleys (they go ~10 m below sea level), so there it sits deeper
+  const under2 = new THREE.Mesh(cone, rockMat); under2.position.y = RALLY ? -50 : -25; scene.add(under2); decor.push(under2);
 }
 const crystals = [];
 function crystal(x, y, z, s, color) {
@@ -2731,6 +2732,7 @@ const KWALL = {
   parade: [['round'], [0xe40303, 0xff8c00, 0xffed00, 0x008026, 0x004dff, 0x750787], 0x5a3a22], rainbow: [['round'], [0xe40303, 0xff8c00, 0xffed00, 0x008026, 0x004dff, 0x750787], 0x3a2a4a], confetti: [['round', 'pine'], [0xff8c00, 0x008026, 0x3f8f3a], 0x5a3a22],
 };
 function buildRally() {
+  RCHUNKS.length = 0;
   const R = RALLY_MAPS[settings.map];
   // every rally map gets its own tracks
   let q = 4241 + hashStr(settings.map) * 13; const rnd = () => (q = (q * 16807) % 2147483647) / 2147483647, rr = (a, b) => a + rnd() * (b - a);
@@ -2880,9 +2882,18 @@ function buildRally() {
     RKS.push({ ...T, pads, boxes });
   });
   const roadMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -16 });
-  for (const m of mergeChunks(roads, roadMat)) { m.receiveShadow = true; scene.add(m); }
-  for (const m of mergeChunks(props, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); }
+  for (const m of mergeChunks(roads, roadMat)) { m.receiveShadow = true; scene.add(m); RCHUNKS.push(m); }
+  for (const m of mergeChunks(props, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); RCHUNKS.push(m); }
+  for (const m of RCHUNKS) { m.geometry.computeBoundingSphere(); m.userData.c = m.geometry.boundingSphere.center; m.userData.r = m.geometry.boundingSphere.radius; }
   finalizeWorld();
+}
+// only draw the trees and road near the camera: the tree walls hide everything further away anyway
+const RCHUNKS = [];
+let rchunkT = 0;
+function rallyCull(dt) {
+  if ((rchunkT -= dt) > 0) return; rchunkT = 0.2;
+  const c = camera.position;
+  for (const m of RCHUNKS) { const p = m.userData.c, d = Math.hypot(p.x - c.x, p.z - c.z) - m.userData.r; m.visible = d < 170; }
 }
 function buildRoyale() {
   let q = 977; const rnd = () => (q = (q * 16807) % 2147483647) / 2147483647, rr = (a, b) => a + rnd() * (b - a), rp = a => a[Math.floor(rnd() * a.length)];
@@ -12743,7 +12754,7 @@ function frame(now) {
   if (state === 'playing' || (state === 'paused' && inMatch())) updatePlayer(dt);
   if (state === 'playing') { stats.pt += dt; statsDirty = true; if (emoteOpen && time - emoteT > 6) closeEmotes(); }
   if (VEH.size || DRV) updateVehicles(dt);
-  updateOrbs(dt); updateHazards(dt); updateMech(dt); updateSlots(dt); updateMission(dt); updatePropHunt(dt); updateDuel(); updateRoyale(dt); if (mode === 'rally') rallyTick(dt); kcRecord(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
+  updateOrbs(dt); updateHazards(dt); updateMech(dt); updateSlots(dt); updateMission(dt); updatePropHunt(dt); updateDuel(); updateRoyale(dt); if (mode === 'rally') rallyTick(dt); if (RALLY) rallyCull(dt); kcRecord(dt); updateReflects(dt); updateRockets(dt); updateNades(dt); updateDeploys(dt); updateBurns(dt); updateFlameSnd(dt); updatePickups(dt);
   for (const e of ents.values()) syncEntVis(e, dt);
   updateWeapon(dt); updateMyPet(dt);
   sendPresence(dt);
