@@ -284,6 +284,11 @@ table.lb td.stg{font-family:var(--display);font-size:11px;letter-spacing:.16em;c
 .map:hover{border-color:rgba(95,242,255,.5)}
 .mode.sel{border-color:var(--cyan);background:rgba(95,242,255,.1);box-shadow:inset 0 0 0 1px var(--cyan)}
 .mode:hover{border-color:rgba(95,242,255,.5)}
+.bsz{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bsz button{text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:9px 6px;cursor:pointer;font-family:var(--display);font-size:14px;letter-spacing:.08em;color:inherit}
+.bsz button span{display:block;font-family:inherit;font-size:11px;color:var(--dim);letter-spacing:0;margin-top:3px;text-transform:none}
+.bsz button.sel{border-color:var(--cyan);background:rgba(95,242,255,.1);box-shadow:inset 0 0 0 1px var(--cyan)}
+.bsz button:hover{border-color:rgba(95,242,255,.5)}
 .guns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .gun{text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:0}
 .gun b{font-family:var(--display);font-size:13px;letter-spacing:.04em;color:var(--gc)}
@@ -565,6 +570,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
     <div class="maps" id="maps"></div>
     <div class="btnrow mapbtns"><button class="ghost" id="cmapsBtn">🌍 COMMUNITY MAPS</button><button class="ghost" id="editorBtn">🛠 MAP EDITOR</button></div>
     <div id="missionBox" hidden><div class="sect" style="margin-bottom:8px">Mission <span style="letter-spacing:.08em;text-transform:none">· the host's pick is the one everyone plays</span></div><div class="mlist" id="missionList"></div></div>
+    <div id="brSizeBox" hidden><div class="sect" style="margin-bottom:8px">Team size <span style="letter-spacing:.08em;text-transform:none">· people in the same room are put on teams together first</span></div><div class="bsz" id="brSizes"></div></div>
     <div id="classBox" hidden>
       <div class="sect" style="margin-bottom:8px">Class <span style="letter-spacing:.08em;text-transform:none">· Q uses your ability · G throws your gadget · 1–2 switch guns</span></div>
       <div class="guns clsgrid" id="classes"></div>
@@ -604,6 +610,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="scol"><div class="srh"><span class="sect">Sprays · Y in a match<span class="n" id="nsprayItems"></span></span><span class="arrows" data-for="sprayItems"></span></div><div class="items hrow" id="sprayItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Gun finishes<span class="n" id="nfinishItems"></span></span><span class="arrows" data-for="finishItems"></span></div><div class="items hrow" id="finishItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Golf carts<span class="n" id="nkartItems"></span></span><span class="arrows" data-for="kartItems"></span></div><div class="items hrow" id="kartItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Kart horns · X while driving<span class="n" id="nhornItems"></span></span><span class="arrows" data-for="hornItems"></span></div><div class="items hrow" id="hornItems"></div></div>
       </div>
       <p class="note">Things you buy go to <b>Customize</b>, where you put them on.</p>
     </div>
@@ -614,6 +621,7 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
         <div class="scol"><div class="srh"><span class="sect">Hats<span class="n" id="ncHatItems"></span></span><span class="arrows" data-for="cHatItems"></span></div><div class="items hrow" id="cHatItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Gun finishes<span class="n" id="ncFinishItems"></span></span><span class="arrows" data-for="cFinishItems"></span></div><div class="items hrow" id="cFinishItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Golf carts<span class="n" id="ncKartItems"></span></span><span class="arrows" data-for="cKartItems"></span></div><div class="items hrow" id="cKartItems"></div></div>
+        <div class="scol"><div class="srh"><span class="sect">Kart horns · X while driving<span class="n" id="ncHornItems"></span></span><span class="arrows" data-for="cHornItems"></span></div><div class="items hrow" id="cHornItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Pets<span class="n" id="ncPetItems"></span></span><span class="arrows" data-for="cPetItems"></span></div><div class="items hrow" id="cPetItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Emotes · in a match press H, then 1–4<span class="n" id="ncEmoteItems"></span></span><span class="arrows" data-for="cEmoteItems"></span></div><div class="eslots" id="eslots"></div><div class="items hrow" id="cEmoteItems"></div></div>
         <div class="scol"><div class="srh"><span class="sect">Sprays · press Y on a wall<span class="n" id="ncSprayItems"></span></span><span class="arrows" data-for="cSprayItems"></span></div><div class="items hrow" id="cSprayItems"></div></div>
@@ -842,7 +850,9 @@ const GDEF = { repair: { name: 'REPAIR BEACON', max: 1, re: 28 }, decoy: { name:
 const JET_MAX = 4;
 const isCoopMode = m => m === 'waves' || m === 'boss' || m === 'mission';
 const coop = () => isCoopMode(mode);
-const teamMode = () => mode === 'infect' || mode === 'prophunt';
+const teamMode = () => mode === 'infect' || mode === 'prophunt' || brTeams();
+// Battle Royale Duos / Squads: the host puts everyone on a team when the match starts (GS.bt: player id -> team; bots carry theirs)
+function brTeams() { return mode === 'royale' && settings.brSize > 1; }
 const INF_TIME = 180, INF_PRE = 8, INFECTED_HP = 200;
 const amInfected = () => mode === 'infect' && GS.inf.includes(myId);
 const maxHp = () => coop() ? CLASSES[settings.cls].hp : amInfected() ? INFECTED_HP : 100;
@@ -1073,6 +1083,7 @@ function renderMenu() {
   { const gs = $('gunSlots'); gs.textContent = ''; settings.loadout.forEach((id, i) => { const W = WEAPONS[id], b = document.createElement('button'); b.className = i === gunSel ? 'sel' : ''; b.style.setProperty('--gc', W.css); b.innerHTML = `<kbd>${i + 1}</kbd><span>${W.name}</span>`; b.addEventListener('click', () => { gunSel = i; renderMenu(); }); gs.appendChild(b); }); }
   $('loadoutBox').hidden = settings.mode === 'gungame' || settings.mode === 'royale' || settings.mode === 'rally' || isCoopMode(settings.mode);
   $('missionBox').hidden = settings.mode !== 'mission'; if (settings.mode === 'mission') renderMissions();
+  $('brSizeBox').hidden = settings.mode !== 'royale'; if (settings.mode === 'royale') renderBrSizes();
   $('classBox').hidden = !isCoopMode(settings.mode);
   document.querySelectorAll('.cls').forEach(b => b.classList.toggle('sel', b.dataset.c === settings.cls));
   { const c = CLASSES[settings.cls], el = $('classInfo'); el.style.setProperty('--gc', c.css);
@@ -1103,7 +1114,11 @@ function switchMap(id) {
 // room names: the original map keeps the old naming so existing rooms still match
 // Battle Royale in the public room has numbered copies (BR1, BR2, ...): if a match is already going you're sent to the next one
 let brInst = 1;
-const roomFor = (m = mode, map = settings.map, room = settings.room) => { if (m === 'royale' && room === 'public' && brInst > 1) room = `public-br${brInst}`; return map === 'prism' ? `pa-${m}-${room}` : `pa-${m}-${map}-${room}`; };
+const BR_SIZES = [[1, 'SOLO', 'Every player for themselves'], [2, 'DUOS', 'Teams of 2'], [4, 'SQUADS', 'Teams of 4']];
+settings.brSize = [1, 2, 4].includes(+store.get('brsize', 1)) ? +store.get('brsize', 1) : 1;
+function renderBrSizes() { $('brSizes').innerHTML = BR_SIZES.map(([n, t, d]) => `<button class="${n === settings.brSize ? 'sel' : ''}" data-n="${n}">${t}<span>${d}</span></button>`).join(''); }
+$('brSizes').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || +b.dataset.n === settings.brSize) return; settings.brSize = +b.dataset.n; store.set('brsize', settings.brSize); brInst = 1; menuChanged(); });
+const roomFor = (m = mode, map = settings.map, room = settings.room) => { if (m === 'royale' && room === 'public' && brInst > 1) room = `public-br${brInst}`; if (m === 'royale' && settings.brSize > 1) room += settings.brSize === 2 ? '-duos' : '-squads'; return map === 'prism' ? `pa-${m}-${room}` : `pa-${m}-${map}-${room}`; };
 
 // ================= player stats (shown on your profile) =================
 const stats = Object.assign({ k: 0, d: 0, w: 0, bk: 0, inf: 0, gp: 0, pt: 0, ch: 0, since: Date.now() }, store.get('stats', {}));
@@ -1177,6 +1192,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'br-squads-heli', date: '2026-10-10', title: 'Squads, Helicopters & Horns', lines: ['Battle Royale now has Duos and Squads: pick Solo, Duos or Squads under Team size. People in the same room are put on a team together, and bots fill the gaps', 'In Duos and Squads you get knocked down instead of eliminated while a teammate is still standing. Crawl to cover and they can revive you with E. Enemies can finish you off', 'Helicopters in Battle Royale: one at the Airport and two more around the island. Mouse to turn, WASD to fly, Space up, Shift down. You can be shot through the glass, and if it blows up you go with it. Jump out up high and your glider opens', 'Fall damage in Battle Royale: big drops hurt', 'Kart horns in the shop: press X (or click) while driving anything. 13 horns, from Clown Honk to La Cucaracha', '13 new emotes including Floss, Chicken Dance, Air Guitar, Jumping Jacks and the Halloween Zombie Walk', '11 new skins: Bjorn the Viking, Chef Remy, Pengu, Pizza Pete, the Halloween Scarecrow, Tie-Dye, Lumberjack, Polka Dot, Comic Book, Hologram and Carbon Fiber'] },
   { id: 'kart-models-lb', date: '2026-10-10', title: 'Wild Karts & Rally Records', lines: ['Six new golf cart skins with their own models: Shark Attack, Hot Dog, Rubber Duck, Rocket, Dragon and Bathtub', 'Rally Kart leaderboard: the fastest time on every stage of every rally map. Find it under Leaderboard → Rally Kart', 'The stage record shows when each stage starts, and you get a message when you beat your personal best'] },
   { id: 'rally-wrc', date: '2026-10-09', title: 'Rally Kart, Rally Style', lines: ['Rally stages are now narrow, twisty and walled in by trees, over rolling hills with crests and jumps that throw you into the air (warning boards tell you one is coming)', 'You drive in first person now, and the steering wheel and front wheels turn with you', 'W gas, S brake and reverse, A / D steer, Space is the handbrake: pull it to slide and drift round hairpins. No more hopping', 'Hover a golf cart skin in the Shop or Customize to see it, with you sitting in it'] },
   { id: 'rally-kart', date: '2026-10-09', title: 'Rally Kart, Golf Cart Skins & The Golfer', lines: ['New mode: Rally Kart. Race golf carts against players and bots over 3 rally stages, with points after every stage. Drive through ? boxes for a Turbo, Rocket, Oil Slick, Shield or Super Hop and click to use it. Boost pads and jump pads too, and R puts you back on the track', 'Seasonal rally maps with 3 themed stages each, only while their season is on. Spooky Rally is out now for Halloween', '10 golf cart skins in the shop, including Inferno, Neon Rider, 24K Gold, Galaxy and Monster Truck. Your skin shows in Rally Kart and in any cart you drive', 'New skin with its own model: The Golfer', 'Map editor: place golf carts (under Gameplay) so people can drive them on your map'] },
@@ -1448,6 +1464,17 @@ const SUITS = {
   zorbo: { name: 'Zorbo', price: 1800, pv: 'radial-gradient(ellipse at 40% 28%,#0a0a0e 0 6%,transparent 7%),radial-gradient(ellipse at 60% 28%,#0a0a0e 0 6%,transparent 7%),radial-gradient(ellipse at 50% 26%,#6adf5a 0 22%,transparent 23%),linear-gradient(180deg,transparent 50%,#c8ccd8 50%)' },
   pricklypete: { name: 'Prickly Pete', price: 1800, pv: 'radial-gradient(ellipse at 50% 14%,#e8c06a 0 34%,transparent 35%),radial-gradient(circle,#f4f0d6 0 1.5px,transparent 2px) 0 0/10px 10px,#3f9a4a' },
   golfer: { name: 'The Golfer', price: 2000, pv: 'radial-gradient(ellipse at 50% 16%,#f8f8f4 0 14%,transparent 15%),radial-gradient(circle at 50% 28%,#f0c8a0 0 13%,transparent 14%),linear-gradient(90deg,transparent 44%,#16161a 44% 56%,transparent 56%) 0 27%/100% 5% no-repeat,conic-gradient(from 45deg at 50% 50%,#1f3a8a 0 25%,#ff8fb8 0 50%,#1f3a8a 0 75%,#ff8fb8 0) 0 0/14px 14px' },
+  tiedye: { name: 'Tie-Dye', price: 600, pv: 'conic-gradient(from 30deg at 50% 50%,#ff4f9a,#ffd23a,#4fff9a,#4fb8ff,#b04fff,#ff4f9a)' },
+  plaid: { name: 'Lumberjack', price: 450, pv: 'linear-gradient(90deg,rgba(20,20,20,.5) 0 30%,transparent 30% 60%,rgba(20,20,20,.5) 60% 90%,transparent 90%) 0 0/24px 24px,linear-gradient(0deg,rgba(20,20,20,.5) 0 30%,transparent 30% 60%,rgba(20,20,20,.5) 60% 90%,transparent 90%) 0 0/24px 24px,#c41e2a' },
+  polka: { name: 'Polka Dot', price: 400, pv: 'radial-gradient(circle,#fff 0 4px,transparent 5px) 0 0/16px 16px,#e23a6a' },
+  comic: { name: 'Comic Book', price: 750, pv: 'radial-gradient(circle,#1a1a1a 0 1.5px,transparent 2px) 0 0/7px 7px,linear-gradient(135deg,#ffd23a 0 50%,#4fb8ff 50%)' },
+  hologram: { name: 'Hologram', price: 1200, pv: 'repeating-linear-gradient(0deg,rgba(255,255,255,.25) 0 2px,transparent 2px 5px),linear-gradient(135deg,#7af0ff,#d07aff 50%,#7affc0)' },
+  carbonfiber: { name: 'Carbon Fiber', price: 550, pv: 'repeating-conic-gradient(#1a1a20 0 25%,#2c2c34 0 50%) 0 0/8px 8px' },
+  viking: { name: 'Bjorn the Viking', price: 2200, pv: 'radial-gradient(ellipse at 50% 46%,#d8902a 0 16%,transparent 17%),radial-gradient(circle at 50% 30%,#f0c8a0 0 12%,transparent 13%),radial-gradient(ellipse at 50% 16%,#b8bdcc 0 16%,transparent 17%),linear-gradient(180deg,transparent 50%,#7a4a26 50%),#3a5a8a' },
+  chef: { name: 'Chef Remy', price: 1800, pv: 'radial-gradient(ellipse at 50% 10%,#fff 0 22%,transparent 23%),radial-gradient(circle at 50% 30%,#f0c8a0 0 12%,transparent 13%),linear-gradient(90deg,transparent 30%,#f4f4f0 30% 70%,transparent 70%),#2a2a32' },
+  pengu: { name: 'Pengu', price: 1800, pv: 'radial-gradient(ellipse at 50% 34%,#ff9a1f 0 5%,transparent 6%),radial-gradient(ellipse at 50% 64%,#f4f6fa 0 22%,transparent 23%),radial-gradient(ellipse at 50% 50%,#16161c 0 38%,transparent 39%),#7fd0ff' },
+  pizzaguy: { name: 'Pizza Pete', price: 2000, pv: 'radial-gradient(circle at 40% 30%,#c41e1e 0 5%,transparent 6%),radial-gradient(circle at 58% 44%,#c41e1e 0 5%,transparent 6%),conic-gradient(from 160deg at 50% 90%,#ffcf5a 0 40deg,transparent 40deg),#2a2a32' },
+  scarecrow: { name: 'Scarecrow', price: 2000, season: 'halloween', pv: 'radial-gradient(ellipse at 50% 10%,#5a3a1a 0 24%,transparent 25%),radial-gradient(circle at 50% 30%,#d8b878 0 13%,transparent 14%),linear-gradient(90deg,#3a5a8a 0 30%,#c8762a 30% 70%,#3a5a8a 70%)' },
   jc: { name: 'JC', price: 2000, pv: jcPv('#0b0b0b', '#e8b892', '#1f2937') },
   jcmom: { name: 'Mom', price: 2000, pv: jcPv('#111827', '#fdba74', '#ef4444', 'linear-gradient(90deg,transparent 33%,#111827 33% 38%,transparent 38% 62%,#111827 62% 67%,transparent 67%) 0 25%/100% 32% no-repeat,') },
   jcwilliam: { name: 'William', price: 2000, pv: jcPv('#5b3a24', '#ffe0bd', '#2563eb') },
@@ -1488,6 +1515,48 @@ const KARTS = {
   tub: { name: 'Bathtub', price: 2600, cool: 1, model: 'tub', b: 0xf8f8f4, r: 0xf8f8f4, s: 0x9ad8ff, pv: 'radial-gradient(circle at 30% 40%,#fff 0 6%,transparent 7%),radial-gradient(circle at 45% 34%,#fff 0 4%,transparent 5%),linear-gradient(180deg,transparent 36%,#7fd0ff 36% 46%,#f8f8f4 46% 74%,transparent 74%),radial-gradient(circle at 20% 82%,#ffc84a 0 5%,transparent 6%),radial-gradient(circle at 80% 82%,#ffc84a 0 5%,transparent 6%),#1d2440' },
   monster: { name: 'Monster Truck', price: 2500, cool: 1, b: 0x6adf2a, r: 0x16161a, s: 0x16161a, big: 1, pv: 'radial-gradient(circle at 25% 80%,#16161a 0 17%,#d8dce6 17% 20%,transparent 21%),radial-gradient(circle at 75% 80%,#16161a 0 17%,#d8dce6 17% 20%,transparent 21%),linear-gradient(180deg,#16161a 0 14%,transparent 14% 20%,#6adf2a 20% 55%,transparent 55%)' },
 };
+// kart horns: X (or click, outside Rally Kart) while you're driving anything. Everyone nearby hears it.
+const HORNS = {
+  beep: { name: 'Beep Beep', price: 0, icon: '📯', len: 0.5 },
+  clown: { name: 'Clown Honk', price: 300, icon: '🤡', len: 0.7 },
+  dingdong: { name: 'Ding Dong', price: 300, icon: '🔔', len: 1.2 },
+  quack: { name: 'Quack Quack', price: 350, icon: '🦆', len: 0.5 },
+  laser: { name: 'Pew Pew', price: 350, icon: '🔫', len: 0.5 },
+  goat: { name: 'Goat Scream', price: 450, icon: '🐐', len: 0.8 },
+  airhorn: { name: 'Air Horn', price: 500, icon: '📢', len: 1.4 },
+  icecream: { name: 'Ice Cream Truck', price: 500, icon: '🍦', len: 1.6 },
+  train: { name: 'Train Horn', price: 700, icon: '🚂', len: 1.4 },
+  fanfare: { name: 'Royal Fanfare', price: 750, icon: '🎺', len: 1.4 },
+  cucaracha: { name: 'La Cucaracha', price: 800, icon: '🌮', len: 1.8 },
+  spooky: { name: 'Spooky Organ', price: 450, icon: '🎃', len: 1.8, season: 'halloween' },
+  sleigh: { name: 'Sleigh Bells', price: 450, icon: '🛷', len: 1.2, season: 'christmas' },
+};
+function playHorn(id, pan = 0, v = 1) {
+  if (!A.ctx || v <= 0.02) return;
+  const sq = (f, d, at, vol = 0.1, type = 'square', f2) => tone(f, f2 || f, d, vol * v, type, pan, at);
+  const mel = (notes, step, type, vol) => { let t = 0; for (const [f, n] of notes) { if (f) sq(f, step * n * 0.92, t, vol, type); t += step * n; } };
+  switch (id) {
+    case 'clown': sq(330, 0.22, 0, 0.16, 'square', 270); noise(0.22, 0.12 * v, 900, 'bandpass', 3, pan); sq(280, 0.28, 0.3, 0.16, 'square', 340); noise(0.28, 0.12 * v, 900, 'bandpass', 3, pan, 0.3); break;
+    case 'dingdong': sq(880, 0.7, 0, 0.14, 'sine'); sq(1760, 0.4, 0, 0.03, 'sine'); sq(698, 0.9, 0.45, 0.14, 'sine'); sq(1396, 0.5, 0.45, 0.03, 'sine'); break;
+    case 'quack': for (const d of [0, 0.22]) { sq(720, 0.14, d, 0.14, 'sawtooth', 380); noise(0.12, 0.08 * v, 1300, 'bandpass', 4, pan, d); } break;
+    case 'laser': sq(1800, 0.3, 0, 0.1, 'sawtooth', 180); sq(1500, 0.25, 0.18, 0.08, 'square', 160); break;
+    case 'goat': for (let i = 0; i < 9; i++) sq(520 + (i % 2) * 90 - i * 18, 0.08, i * 0.075, 0.1, 'sawtooth'); break;
+    case 'airhorn': for (const [d, l] of [[0, 0.22], [0.3, 0.22], [0.6, 0.75]]) for (const [f, vol] of [[440, 0.13], [554, 0.1], [659, 0.08]]) sq(f, l, d, vol, 'sawtooth', f * 0.98); break;
+    case 'icecream': mel([[659, 1], [784, 1], [880, 2], [784, 1], [659, 1], [523, 2], [587, 1], [659, 1], [784, 2]], 0.13, 'triangle', 0.16); break;
+    case 'train': for (const [f, vol] of [[155, 0.12], [311, 0.1], [370, 0.08], [466, 0.07]]) { sq(f, 0.5, 0, vol, 'sawtooth'); sq(f, 0.75, 0.6, vol, 'sawtooth'); } break;
+    case 'fanfare': mel([[523, 1], [523, 1], [523, 1], [659, 2], [523, 1], [784, 4]], 0.11, 'square', 0.09); mel([[392, 3], [0, 0], [523, 3], [659, 4]], 0.11, 'triangle', 0.07); break;
+    case 'cucaracha': mel([[392, 1], [392, 1], [392, 1], [523, 3], [659, 2], [392, 1], [392, 1], [392, 1], [523, 3], [659, 2]], 0.1, 'square', 0.09); break;
+    case 'spooky': mel([[880, 1], [784, 1], [880, 4], [784, 1], [698, 1], [659, 1], [587, 1], [554, 2], [587, 4]], 0.1, 'sawtooth', 0.06); mel([[440, 6], [0, 0], [294, 9]], 0.1, 'triangle', 0.08); break;
+    case 'sleigh': for (let i = 0; i < 14; i++) { sq(2600 + (i % 3) * 300, 0.08, i * 0.08, 0.04, 'sine'); noise(0.06, 0.04 * v, 7000, 'highpass', 1, pan, i * 0.08); } break;
+    default: for (const d of [0, 0.22]) { sq(420, 0.17, d, 0.12); sq(525, 0.17, d, 0.08); }
+  }
+}
+let hornSeq = 0, hornOut = null, hornT = 0;
+function honk() {
+  if (!DRV || time < hornT) return;
+  const H = HORNS[settings.horn] || HORNS.beep; hornT = time + H.len;
+  hornOut = [++hornSeq, settings.horn]; playHorn(settings.horn, 0, 1.3);
+}
 const FINISHES = {
   factory: { name: 'Factory', price: 0, pv: 'linear-gradient(135deg,#d9d4ee 0 30%,#2b2840 30%)' },
   carbon: { name: 'Carbon', price: 100, pv: 'repeating-conic-gradient(#1a1a20 0 25%,#2c2c34 0 50%) 0 0/8px 8px' },
@@ -1520,6 +1589,7 @@ const FINISHES = {
 if (!SUITS[settings.skin]) settings.skin = 'standard';
 if (!FINISHES[settings.finish]) settings.finish = 'factory';
 settings.kart = KARTS[store.get('kart', 'classic')] ? store.get('kart', 'classic') : 'classic';
+settings.horn = store.get('horn', 'beep');
 let wallet = store.get('wallet', null);
 if (!wallet || typeof wallet.coins !== 'number' || !Array.isArray(wallet.owned)) wallet = { coins: 0, owned: [] };
 const ADDONS = { beckcam: { name: 'Becket Cam', price: 1500, pv: 'radial-gradient(circle at 58% 50%,#3f7fe0 0 14%,#0a1430 15% 22%,#c8ccd6 23% 27%,#18181c 28% 60%,#2a2a30 61%)' } };
@@ -1572,6 +1642,19 @@ const EMOTES = {
   facepalm: { name: 'Facepalm', icon: '🤦', say: 'Bruh', price: 300 },
   celebrate: { name: 'Celebrate', icon: '🎉', say: 'LET\'S GO!', price: 500, prop: true },
   nap: { name: 'Nap Time', icon: '😴', say: 'Zzz', price: 350, dur: 4.5 },
+  floss: { name: 'Floss', icon: '🦷', say: '', price: 500, dur: 4 },
+  chicken: { name: 'Chicken Dance', icon: '🐔', say: 'Bawk bawk!', price: 400, dur: 4 },
+  airguitar: { name: 'Air Guitar', icon: '🎸', say: 'Wiiiiing!', price: 450, dur: 4 },
+  clap: { name: 'Slow Clap', icon: '👏', say: 'Well played', price: 250 },
+  karate: { name: 'Karate', icon: '🥋', say: 'HI-YAH!', price: 400 },
+  jacks: { name: 'Jumping Jacks', icon: '🤸', say: 'Stay fit', price: 350, dur: 4 },
+  ballerina: { name: 'Ballerina', icon: '🩰', say: '', price: 450, dur: 4 },
+  bow: { name: 'Bow', icon: '🙇', say: 'Thank you', price: 250 },
+  golfswing: { name: 'Fore!', icon: '⛳', say: 'FORE!', price: 400 },
+  think: { name: 'Thinking', icon: '🤔', say: 'Hmm...', price: 250 },
+  scared: { name: 'Scared', icon: '😱', say: 'AAAH!', price: 300 },
+  victory: { name: 'Victory Lap', icon: '🏆', say: 'Winner winner', price: 600, dur: 4 },
+  zombie: { name: 'Zombie Walk', icon: '🧟', say: 'Braaains', price: 400, season: 'halloween', dur: 4.5 },
   trickortreat: { name: 'Trick or Treat', icon: '🎃', say: 'Trick or treat!', price: 450, season: 'halloween', dur: 4.5 },
   feast: { name: 'Feast', icon: '🍗', say: 'Dinner time', price: 450, season: 'thanksgiving', dur: 4.5 },
   unwrap: { name: 'Unwrap', icon: '🎁', say: 'For me?!', price: 450, season: 'christmas', dur: 4.5 },
@@ -1627,7 +1710,7 @@ const SPRAYS = {
   power: { name: 'Power', icon: '✊🏿', price: 150, season: 'blackhistory', col: '#ffc83a' }, rainbow: { name: 'Rainbow', icon: '🌈', price: 150, season: 'pride', col: '#c47aff' },
 };
 for (const d of Object.values(SPRAYS)) d.pv = `radial-gradient(circle,${d.col}cc 0 46%,transparent 48%),rgba(255,255,255,.04)`;
-const owns = (kind, id) => { const d = (kind === 'kart' ? KARTS : kind === 'spray' ? SPRAYS : kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : kind === 'pet' ? PETS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
+const owns = (kind, id) => { const d = (kind === 'horn' ? HORNS : kind === 'kart' ? KARTS : kind === 'spray' ? SPRAYS : kind === 'suit' ? SUITS : kind === 'hat' ? HATS : kind === 'emote' ? EMOTES : kind === 'pet' ? PETS : FINISHES)[id]; if (d?.bundle) return owns('suit', d.bundle); return d?.price === 0 || wallet.owned.includes(kind + ':' + id); };
 if (!owns('suit', settings.skin)) settings.skin = 'standard';
 if (!owns('finish', settings.finish)) settings.finish = 'factory';
 if (!HATS[settings.hat] || !owns('hat', settings.hat)) settings.hat = 'none';
@@ -1902,6 +1985,26 @@ const koiTex = () => canvasTex('koi', x => {
     x.fillStyle = i % 2 ? '#f4f4f4' : '#ff5a1a'; x.beginPath(); x.ellipse(4, -1, 7, 4, 0.3, 0, 7); x.fill(); x.restore();
   }
 });
+const tiedyeTex = () => canvasTex('tiedye', x => {
+  const cols = ['#ff4f9a', '#ffd23a', '#4fff9a', '#4fb8ff', '#b04fff'];
+  for (let r = 380; r > 0; r -= 14) { x.fillStyle = cols[Math.floor(r / 14) % cols.length]; x.beginPath(); for (let a = 0; a <= 6.3; a += 0.1) { const rr = r + Math.sin(a * 6 + r * 0.05) * 10; x.lineTo(128 + Math.cos(a) * rr, 128 + Math.sin(a) * rr); } x.fill(); }
+});
+const lumberTex = () => canvasTex('lumber', x => {
+  x.fillStyle = '#c41e2a'; x.fillRect(0, 0, 256, 256); x.fillStyle = 'rgba(15,15,20,.55)';
+  for (let k = 0; k < 256; k += 64) { x.fillRect(k, 0, 28, 256); x.fillRect(0, k, 256, 28); }
+  x.fillStyle = 'rgba(15,15,20,.25)'; for (let k = 0; k < 256; k += 64) { x.fillRect(k + 44, 0, 4, 256); x.fillRect(0, k + 44, 256, 4); }
+}, 2);
+const polkaTex = () => canvasTex('polka', x => { x.fillStyle = '#e23a6a'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#fff'; for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { x.beginPath(); x.arc(i * 32 + (j % 2) * 16 + 8, j * 32 + 16, 7, 0, 7); x.fill(); } }, 2);
+const comicTex = () => canvasTex('comic', x => {
+  const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, '#ffd23a'); g.addColorStop(0.5, '#ff6a3a'); g.addColorStop(1, '#4fb8ff'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.fillStyle = 'rgba(20,20,20,.75)'; for (let i = 0; i < 37; i++) for (let j = 0; j < 37; j++) { const r = 1 + ((i + j) % 9) / 4; x.beginPath(); x.arc(i * 7, j * 7, r, 0, 7); x.fill(); }
+  x.strokeStyle = '#111'; x.lineWidth = 6; x.strokeRect(10, 10, 110, 110); x.strokeRect(136, 10, 110, 236); x.strokeRect(10, 136, 110, 110);
+  x.fillStyle = '#fff'; x.font = '900 34px Impact, sans-serif'; x.fillText('POW!', 22, 80); x.fillText('ZAP!', 22, 200);
+});
+const holoTex = () => canvasTex('holo', x => {
+  const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, '#7af0ff'); g.addColorStop(0.5, '#d07aff'); g.addColorStop(1, '#7affc0'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.fillStyle = 'rgba(255,255,255,.35)'; for (let y = 0; y < 256; y += 6) x.fillRect(0, y, 256, 2);
+});
 function suitMaterial(id, col, glowCol) {
   switch (id) {
     case 'chrome': return new THREE.MeshStandardMaterial({ color: 0xe9ecf7, metalness: 1, roughness: 0.06 });
@@ -1984,6 +2087,12 @@ function suitMaterial(id, col, glowCol) {
     case 'stainedglass': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: stainedTex(), emissive: 0xffffff, emissiveMap: stainedTex(), emissiveIntensity: 0.45, roughness: 0.1, clearcoat: 1 });
     case 'thunder': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: thunderTex(), emissive: 0xfff6a8, emissiveMap: boltTex(), emissiveIntensity: 2.2, roughness: 0.6 });
     case 'koi': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: koiTex(), roughness: 0.2, clearcoat: 0.8 });
+    case 'tiedye': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: tiedyeTex(), roughness: 0.8 });
+    case 'plaid': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: lumberTex(), roughness: 0.9 });
+    case 'polka': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: polkaTex(), roughness: 0.35, clearcoat: 0.6 });
+    case 'comic': return new THREE.MeshStandardMaterial({ color: 0xffffff, map: comicTex(), roughness: 0.7 });
+    case 'hologram': return new THREE.MeshPhysicalMaterial({ color: 0xbff4ff, map: holoTex(), emissive: 0x7ad8ff, emissiveMap: holoTex(), emissiveIntensity: 0.7, roughness: 0.1, metalness: 0.3, iridescence: 1, iridescenceIOR: 1.8, transparent: true, opacity: 0.88 });
+    case 'carbonfiber': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: carbonTex(), roughness: 0.35, metalness: 0.3, clearcoat: 1, clearcoatRoughness: 0.1 });
     default: return new THREE.MeshStandardMaterial({ color: col, metalness: 0.45, roughness: 0.35 });
   }
 }
@@ -4025,7 +4134,7 @@ const ACTIONS = [
   ['left', 'Move left', ['KeyA', 'ArrowLeft']], ['right', 'Move right', ['KeyD', 'ArrowRight']],
   ['jump', 'Jump / double jump', ['Space', null]], ['dash', 'Dash', ['ShiftLeft', 'ShiftRight']],
   ['reload', 'Reload', ['KeyR', null]], ['pulse', 'Ability (pulse / class)', ['KeyQ', null]], ['nade', 'Grenade / gadget', ['KeyG', null]],
-  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['song', 'Next song', ['KeyN', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]], ['spray', 'Spray', ['KeyY', null]],
+  ['use', 'Revive teammate (hold)', ['KeyE', null]], ['streak', 'Kill streak reward (FFA)', ['KeyB', null]], ['emote', 'Emote wheel', ['KeyH', null]], ['chat', 'Chat', ['KeyT', null]], ['board', 'Scoreboard (hold)', ['Tab', null]], ['music', 'Music on/off', ['KeyM', null]], ['song', 'Next song', ['KeyN', null]], ['fullscreen', 'Fullscreen on/off', ['KeyP', null]], ['spray', 'Spray', ['KeyY', null]], ['horn', 'Kart horn (driving)', ['KeyX', null]],
   ['panic', 'Panic screen', ['Backquote', null]],
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ['w' + n, `Weapon ${n}`, ['Digit' + n, 'Numpad' + n]]),
 ];
@@ -4119,7 +4228,9 @@ let shake = 0, recoilP = 0, vmKick = 0, bobT = 0, landDip = 0, fovKick = 0, dmgF
 let score = 0, streak = 0, lastKill = -99, mult = 1, frags = 0, deaths = 0, ggLv = 0, myTeam = 0;
 let respawnAt = 0;
 // shared match state; the host writes it, everyone else mirrors it from the host's presence
-const GS = { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0, sd: [] };
+const GS = { dp: [], ds: [0, 0], dr: 0, drs: 0, dtm: 0, mi: 0, mst: -1, mp: 0, mc: 0, mhk: [0, 0, 0], mt: 0, mh: 100, mres: 0, mpos: 0, mcar: '', mdp: [0, 0, 0], pph: 0, ptm: 0, hunt: [], prn: 0, wt: 0, wr: 0, wv: 0, wst: 0, fl: [[0, '', -44, 0, 0], [0, '', 44, 0, 0]], cs: [0, 0], ph: 0, pw: '', pwid: '', gm: 0, inf: [], it: INF_TIME, ip: 0, bhp: 0, bp: 0, rph: 0, rsd: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], zs: 0, zk: 0, ztm: 0, ral: 0, sd: [], bt: {} };
+const teamOfId = id => id === myId ? myTeam : peers.has(id) ? peers.get(id).team : ents.has(id) ? ents.get(id).team : mode === 'royale' ? (GS.bt[id] ?? -1) : -1;
+const mateOf = t => teamMode() && t === myTeam && t >= 0;
 Object.assign(GS, { kg: 0, kst: 0, kph: 0, ktm: 0, kres: [], kpt: [], kgrid: [], kord: [], kbp: [] });
 let prevGS = JSON.parse(JSON.stringify(GS));
 
@@ -4267,8 +4378,8 @@ function updatePlayer(dt) {
   const p = player.pos, v = player.vel;
   player.dashCd = Math.max(0, player.dashCd - dt); player.pulseCd = Math.max(0, player.pulseCd - dt); player.invuln = Math.max(0, player.invuln - dt);
   if (!coop() && mode !== 'royale' && time - player.lastDmgT > 4 && player.hp < maxHp()) player.hp = Math.min(maxHp(), player.hp + 15 * dt);
-  const wish = player.downed || playerFrozen() ? pWish.set(0, 0, 0) : wishDir(pWish);
-  const spd = (ads ? 6 : 9.5) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.6 : 1) * (mode === 'mission' && GS.mcar === myId ? 0.82 : 1);
+  const wish = (player.downed && !brTeams()) || playerFrozen() ? pWish.set(0, 0, 0) : wishDir(pWish);
+  const spd = (ads ? 6 : 9.5) * (coop() && settings.cls === 'tank' ? 0.9 : 1) * (curW === 'blade' ? 1.12 : 1) * (amInfected() ? 1.3 : 1) * (time < (player.chillUntil || 0) ? 0.55 : 1) * (time < slowUntil ? 0.5 : 1) * (mechOn ? 0.6 : 1) * (mode === 'mission' && GS.mcar === myId ? 0.82 : 1) * (player.downed ? 0.3 : 1);
   updateRift(dt);
   if (DRV) driveTick(dt);
   else {
@@ -4292,6 +4403,8 @@ function updatePlayer(dt) {
   unstick(dt);
   riftSweep();
   if (player.onGround && !wasGround && fallV < -9) { landDip = Math.min(0.25, -fallV * 0.012); sfx.land(); }
+  // Battle Royale: a long fall hurts (glide down, or land the helicopter, to get down safely)
+  if (mode === 'royale' && GS.rph === 1 && player.onGround && !wasGround && fallV < -17 && !RY.glide) { shake = Math.max(shake, 0.3); { const k = time - (player.lastHitT || -99) < 8 ? player.lastHitBy : ''; hurt(Math.round((-fallV - 17) * 4.5), { text: k ? 'made you fall to your doom' : 'You fell too far', killer: k }); } }
   if (padCheck(player)) { sfx.pad(); fovKick = 12; }
   }
   if (player.poisonUntil > time && player.alive) {
@@ -4628,7 +4741,7 @@ function updateNetLabel() {
   const on = conn && conn.connected();
   $('netdot').classList.toggle('on', !!on);
   const mname = { waves: 'Waves', boss: 'Boss Raid', ffa: 'FFA', gungame: 'Gun Game', infect: 'Infection', duel: '1v1 Duel', mission: 'Missions', prophunt: 'Prop Hunt', royale: 'Battle Royale', rally: 'Rally Kart' }[mode];
-  $('nettxt').textContent = on ? `${mname} · room ${settings.room}${mode === 'royale' && settings.room === 'public' ? ` · BR${brInst}` : ''} · ${others + 1} online` : `${mname} · solo`;
+  $('nettxt').textContent = on ? `${mname} · room ${settings.room}${mode === 'royale' && settings.room === 'public' ? ` · BR${brInst}` : ''}${mode === 'royale' && settings.brSize > 1 ? (settings.brSize === 2 ? ' · DUOS' : ' · SQUADS') : ''} · ${others + 1} online` : `${mname} · solo`;
   $('menuNet').textContent = on ? `Room ${settings.room}: ${others + 1} online` : (netKind === 'off' ? 'Multiplayer unavailable here' : 'Multiplayer: connecting…');
 }
 
@@ -5779,6 +5892,98 @@ Object.assign(BODIES, {
     return { ...B, limb: polo, hat: [0.27, 0.32] };
   },
 });
+// ---------- more skins with their own models: a viking, a chef, a penguin, a pizza slice and a scarecrow ----------
+Object.assign(BODIES, {
+  viking: c => {
+    const { add, head, M } = c, tunic = M(0x3a5a8a, { roughness: 0.85 }), skin = M(0xf0c8a0), beard = M(0xd8802a, { roughness: 0.9 }), fur = M(0x6a4a2a, { roughness: 1 });
+    const steel = M(0xb8bdcc, { metalness: 0.9, roughness: 0.35 }), wood = M(0x8a5a2a, { roughness: 0.8 }), ivory = M(0xf1e6c8, { roughness: 0.6 });
+    const B = person(c, tunic, M(0x7a4a26, { roughness: 0.9 }), fur, { tw: 1.2 });
+    add(gq('vkBelt', () => new THREE.CylinderGeometry(0.33, 0.33, 0.08, 18)), M(0x3a2414), 0, 1.08, 0).scale.z = 0.84;
+    add(gq('vkBuckle', () => new THREE.BoxGeometry(0.1, 0.08, 0.02)), steel, 0, 1.08, -0.28);
+    // fur cape over the shoulders and a round shield on the back
+    const cape = add(gq('vkCape', () => new THREE.TorusGeometry(0.26, 0.1, 8, 18).rotateX(Math.PI / 2)), fur, 0, 1.72, 0); cape.scale.set(1.25, 1, 1);
+    add(gq('vkShield', () => new THREE.CylinderGeometry(0.36, 0.36, 0.05, 22).rotateX(Math.PI / 2)), wood, 0, 1.35, 0.3).castShadow = true;
+    add(gq('vkRim', () => new THREE.TorusGeometry(0.36, 0.025, 6, 24)), steel, 0, 1.35, 0.33);
+    add(gq('vkBoss', () => new THREE.SphereGeometry(0.08, 12, 8)), steel, 0, 1.35, 0.34);
+    head.position.y = 1.97;
+    add(gq('vkH', () => new THREE.SphereGeometry(0.24, 20, 14)), skin, 0, 0, 0, head).castShadow = true;
+    const bd = add(gq('vkBeard', () => new THREE.SphereGeometry(0.22, 16, 12)), beard, 0, -0.17, -0.1, head); bd.scale.set(1.05, 1.15, 0.8);
+    for (const sx of [-1, 1]) { add(gq('vkBraid', () => new THREE.CapsuleGeometry(0.035, 0.18, 4, 8)), beard, sx * 0.08, -0.38, -0.16, head); add(gq('vkEye', () => new THREE.SphereGeometry(0.03, 8, 6)), M(0x1a2a4a), sx * 0.08, 0.04, -0.225, head); }
+    add(gq('vkMus', () => new THREE.CapsuleGeometry(0.03, 0.16, 4, 8).rotateZ(Math.PI / 2)), beard, 0, -0.05, -0.23, head);
+    const helm = add(gq('vkHelm', () => new THREE.SphereGeometry(0.26, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2)), steel, 0, 0.04, 0, head); helm.scale.y = 0.9;
+    add(gq('vkHBand', () => new THREE.TorusGeometry(0.255, 0.025, 6, 24).rotateX(Math.PI / 2)), M(0x8a6a3a, { metalness: 0.6, roughness: 0.4 }), 0, 0.05, 0, head);
+    add(gq('vkNose', () => new THREE.BoxGeometry(0.04, 0.16, 0.03)), steel, 0, 0.02, -0.255, head);
+    for (const sx of [-1, 1]) add(gq('vkHorn', () => new THREE.ConeGeometry(0.05, 0.28, 10)), ivory, sx * 0.3, 0.2, 0, head).rotation.z = -sx * 0.8;
+    return { ...B, limb: tunic, hat: [0.28, 0.34] };
+  },
+  chef: c => {
+    const { add, head, M } = c, white = M(0xf4f4f0, { roughness: 0.7 }), skin = M(0xf0c8a0), black = M(0x16161a), red = M(0xd8202f, { roughness: 0.6 });
+    const B = person(c, white, M(0x2a2a32, { roughness: 0.8 }), black, { tw: 1.15 });
+    for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) add(gq('chBtn', () => new THREE.SphereGeometry(0.025, 8, 6)), black, sx * 0.08, 1.48 - k * 0.14, -0.25);
+    add(gq('chScarf', () => new THREE.TorusGeometry(0.13, 0.04, 6, 16).rotateX(Math.PI / 2)), red, 0, 1.74, 0);
+    add(gq('chKnot', () => new THREE.ConeGeometry(0.06, 0.14, 8)), red, 0, 1.64, -0.14).rotation.x = Math.PI;
+    head.position.y = 1.95;
+    add(gq('chH', () => new THREE.SphereGeometry(0.24, 20, 14)), skin, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) {
+      add(gq('chEye', () => new THREE.SphereGeometry(0.03, 8, 6)), black, sx * 0.08, 0.05, -0.225, head);
+      const m = add(gq('chMus', () => new THREE.CapsuleGeometry(0.035, 0.11, 4, 8).rotateZ(Math.PI / 2)), M(0x3a2414), sx * 0.075, -0.06, -0.23, head); m.rotation.z = sx * 0.35;
+    }
+    add(gq('chNose', () => new THREE.SphereGeometry(0.045, 10, 8)), M(0xf0a888), 0, -0.01, -0.25, head);
+    // the tall puffy chef's hat
+    add(gq('chHatB', () => new THREE.CylinderGeometry(0.22, 0.2, 0.22, 18)), white, 0, 0.27, 0, head).castShadow = true;
+    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; add(gq('chPuff', () => new THREE.SphereGeometry(0.13, 12, 10)), white, Math.cos(a) * 0.13, 0.48, Math.sin(a) * 0.13, head); }
+    add(gq('chPuffT', () => new THREE.SphereGeometry(0.16, 12, 10)), white, 0, 0.55, 0, head);
+    return { ...B, limb: white, hat: [0.26, 0.72] };
+  },
+  pengu: c => {
+    const { add, head, M } = c, black = M(0x16161c, { roughness: 0.35 }), white = M(0xf4f6fa, { roughness: 0.5 }), orange = M(0xff9a1f, { roughness: 0.5 }), red = M(0xd8202f);
+    const body = add(gq('pgB', () => new THREE.SphereGeometry(0.45, 22, 16)), black, 0, 1.15, 0); body.scale.set(0.95, 1.3, 0.85); body.castShadow = true;
+    const belly = add(gq('pgBelly', () => new THREE.SphereGeometry(0.4, 20, 14)), white, 0, 1.1, -0.15); belly.scale.set(0.8, 1.15, 0.65);
+    add(gq('pgTie', () => new THREE.ConeGeometry(0.07, 0.14, 4).rotateZ(Math.PI / 2)), red, -0.07, 1.62, -0.3); add(gq('pgTie', () => new THREE.ConeGeometry(0.07, 0.14, 4).rotateZ(Math.PI / 2)), red, 0.07, 1.62, -0.3).rotation.z = Math.PI;
+    head.position.y = 1.92;
+    add(gq('pgH', () => new THREE.SphereGeometry(0.28, 20, 14)), black, 0, 0, 0, head).castShadow = true;
+    for (const sx of [-1, 1]) { add(gq('pgFace', () => new THREE.SphereGeometry(0.1, 12, 10)), white, sx * 0.09, 0.03, -0.24, head).scale.z = 0.5; add(gq('pgEye', () => new THREE.SphereGeometry(0.035, 8, 6)), black, sx * 0.09, 0.04, -0.29, head); }
+    add(gq('pgBeak', () => new THREE.ConeGeometry(0.07, 0.18, 10).rotateX(-Math.PI / 2)), orange, 0, -0.07, -0.33, head);
+    const legs = [-1, 1].map(sx => {
+      const g = new THREE.Group(); g.position.set(sx * 0.18, 0.5, 0); c.rig.add(g);
+      add(gq('pgLeg', () => new THREE.CapsuleGeometry(0.07, 0.3, 4, 8)), black, 0, -0.22, 0, g);
+      add(gq('pgFoot', () => new THREE.BoxGeometry(0.2, 0.06, 0.3)), orange, 0, -0.47, -0.08, g).castShadow = true;
+      return g;
+    });
+    return { arm: { x: 0.44, y: 1.5, len: 0.45, r: 0.07, spread: 0.3 }, legs, limb: black, hat: [0.29, 0.25] };
+  },
+  pizzaguy: c => {
+    const { add, head, M } = c, cheese = M(0xffcf5a, { roughness: 0.55 }), crust = M(0xd8902a, { roughness: 0.8 }), pep = M(0xc41e1e, { roughness: 0.5 }), black = M(0x111111), white = M(0xffffff), olive = M(0x2a2a20);
+    const slice = add(gq('pzS', () => new THREE.CylinderGeometry(0.62, 0.62, 0.3, 3).rotateX(Math.PI / 2).rotateZ(Math.PI)), cheese, 0, 1.38, 0); slice.castShadow = true;
+    add(gq('pzCr', () => new THREE.CapsuleGeometry(0.16, 0.9, 6, 12).rotateZ(Math.PI / 2)), crust, 0, 1.72, 0).castShadow = true;
+    for (const [x, y] of [[-0.18, 1.5], [0.2, 1.42], [0.02, 1.15], [-0.05, 0.95]]) add(gq('pzP', () => new THREE.CylinderGeometry(0.075, 0.075, 0.03, 14).rotateX(Math.PI / 2)), pep, x, y, -0.16);
+    for (const [x, y] of [[0.14, 1.25], [-0.15, 1.28]]) add(gq('pzO', () => new THREE.TorusGeometry(0.03, 0.012, 6, 10)), olive, x, y, -0.16);
+    // drips of cheese off the tip
+    for (const [x, l] of [[-0.05, 0.12], [0.06, 0.18]]) add(gq('pzD' + l, () => new THREE.CapsuleGeometry(0.025, l, 4, 6)), cheese, x, 0.78 - l / 2, -0.02);
+    head.position.y = 1.5;
+    for (const sx of [-1, 1]) { add(gq('pzEye', () => new THREE.SphereGeometry(0.06, 12, 8)), white, sx * 0.13, 0.08, -0.16, head).scale.z = 0.5; add(gq('pzPu', () => new THREE.SphereGeometry(0.03, 8, 6)), black, sx * 0.13, 0.08, -0.19, head); }
+    add(gq('pzM', () => new THREE.TorusGeometry(0.08, 0.016, 6, 14, Math.PI).rotateZ(Math.PI)), M(0x7a1a0a), 0, -0.06, -0.165, head);
+    return { arm: { x: 0.36, y: 1.45, len: 0.42, r: 0.06, spread: 0.2 }, legs: humanLegs(c, crust, M(0x2a2a32), 0.12, 0.07, 0.8), limb: crust, hat: [0.3, 0.32] };
+  },
+  scarecrow: c => {
+    const { add, head, M } = c, burlap = M(0xd8b878, { roughness: 1 }), straw = M(0xf0d060, { roughness: 1 }), black = M(0x111111), hatM = M(0x5a3a1a, { roughness: 0.9 });
+    const shirt = new THREE.MeshStandardMaterial({ map: lumberTex(), roughness: 0.9 }), jeans = new THREE.MeshStandardMaterial({ map: denimTex(), roughness: 0.95 }); c.extra.push(shirt, jeans);
+    const B = person(c, shirt, jeans, M(0x4a2a14), { tw: 1.05 });
+    add(gq('scRope', () => new THREE.TorusGeometry(0.3, 0.025, 6, 18).rotateX(Math.PI / 2)), M(0xb8963a), 0, 1.08, 0).scale.z = 0.84;
+    for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; add(gq('scTuft', () => new THREE.ConeGeometry(0.03, 0.18, 4)), straw, Math.cos(a) * 0.12, 1.72, Math.sin(a) * 0.12).rotation.set(Math.sin(a) * 0.6, 0, -Math.cos(a) * 0.6); }
+    add(gq('scPatch', () => new THREE.BoxGeometry(0.12, 0.12, 0.02)), M(0x3a7a3a), 0.12, 1.25, -0.25);
+    head.position.y = 1.97;
+    const h = add(gq('scH', () => new THREE.SphereGeometry(0.25, 18, 14)), burlap, 0, 0, 0, head); h.scale.y = 1.08; h.castShadow = true;
+    for (const sx of [-1, 1]) { add(gq('scEye', () => new THREE.CylinderGeometry(0.045, 0.045, 0.02, 12).rotateX(Math.PI / 2)), black, sx * 0.09, 0.06, -0.24, head); add(gq('scX', () => new THREE.BoxGeometry(0.06, 0.012, 0.01)), M(0xd8b878), sx * 0.09, 0.06, -0.252, head).rotation.z = 0.78; }
+    for (let k = 0; k < 5; k++) add(gq('scSt', () => new THREE.BoxGeometry(0.012, 0.05, 0.01)), black, -0.1 + k * 0.05, -0.09, -0.24, head);
+    add(gq('scMouth', () => new THREE.BoxGeometry(0.22, 0.012, 0.01)), black, 0, -0.09, -0.242, head);
+    // a floppy pointed hat with straw poking out underneath
+    add(gq('scBrim', () => new THREE.CylinderGeometry(0.42, 0.42, 0.03, 22)), hatM, 0, 0.17, 0, head).rotation.x = 0.08;
+    const cone = add(gq('scCone', () => new THREE.ConeGeometry(0.24, 0.4, 14)), hatM, 0, 0.36, 0.02, head); cone.rotation.x = -0.25;
+    for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2; add(gq('scHs', () => new THREE.ConeGeometry(0.02, 0.14, 4)), straw, Math.cos(a) * 0.25, 0.12, Math.sin(a) * 0.25 + 0.02, head).rotation.set(Math.PI + Math.sin(a) * 0.4, 0, Math.cos(a) * 0.4); }
+    return { ...B, limb: shirt, hat: [0.27, 0.42] };
+  },
+});
 function makeAvatar(look, label, through, skin = 'standard', finish = 'factory', cls = '', hat = 'none', pet = '') {
   const av = new THREE.Group(), rig = new THREE.Group(); av.add(rig);
   const mat = suitMaterial(skin, look.col, look.gl);
@@ -5959,6 +6164,8 @@ function emoteProp(id, a) {
     tick = et => { const pp = fg.attributes.position; for (let i = 0; i < pp.count; i++) { const u = base[i * 3]; pp.setZ(i, Math.sin(u * 9 - et * 9) * u * 0.18); } pp.needsUpdate = true; };
   } else if (id === 'celebrate') {
     tick = et => { if (Math.random() < 0.35) { const w = a.av.localToWorld(tmpEm.set(rand(-0.3, 0.3), 2.6, rand(-0.3, 0.3))); burst(w, 6, new THREE.Color().setHSL(Math.random(), 1, 0.6).multiplyScalar(2.2), 4, 1.2, 0.08, 6); } };
+  } else if (id === 'zombie') {
+    tick = () => { if (Math.random() < 0.12) { const w = a.av.localToWorld(tmpEm.set(rand(-0.3, 0.3), rand(0.6, 1.9), rand(-0.3, 0.3))); burst(w, 1, new THREE.Color(0.5, 2.4, 0.4), 0.6, 0.8, 0.08, 2); } };
   } else if (id === 'icecream') {
     parent = hand;
     mesh(new THREE.ConeGeometry(0.07, 0.24, 14), M(0xd9a05a, { roughness: 0.9 }), 0, hy - 0.16, -0.03);
@@ -6007,6 +6214,19 @@ function emotePose(a) {
     case 'prideflag': P.r = [0.5, 2.3 + s(et * 5) * 0.35]; P.hop = Math.abs(s(et * 5)) * 0.08; break;
     case 'icecream': P.r = [2.1, 0.25]; P.nod = 0.15; break;
     case 'hotdog': P.spin = et * 12; P.hop = Math.abs(s(et * 6)) * 0.4; P.l = [0, -1.5]; P.r = [0, 1.5]; break;
+    case 'floss': { const k = s(et * 9) * 0.55; P.l = [k, -0.3 + k * 0.6]; P.r = [-k, 0.3 + k * 0.6]; P.tilt = -k * 0.25; P.hop = Math.abs(s(et * 9)) * 0.05; break; }
+    case 'chicken': { const f = Math.abs(s(et * 10)); P.l = [0.2, -0.4 - f * 0.9]; P.r = [0.2, 0.4 + f * 0.9]; P.nod = 0.25 + s(et * 10) * 0.15; P.hop = Math.abs(s(et * 5)) * 0.12; break; }
+    case 'airguitar': P.l = [1.4, 0.5]; P.r = [0.7 + s(et * 16) * 0.35, 0.3]; P.nod = 0.15 + Math.abs(s(et * 8)) * 0.3; P.tilt = s(et * 2) * 0.12; break;
+    case 'clap': { const k = s(et * 5) * 0.18; P.l = [1.35, 0.35 - k]; P.r = [1.35, -0.35 + k]; break; }
+    case 'karate': { const a = s(et * 7) > 0; P.l = [a ? 1.55 : 0.6, a ? 0 : -0.5]; P.r = [a ? 0.6 : 1.55, a ? 0.5 : 0]; P.spin = a ? 0.2 : -0.2; P.hop = Math.abs(s(et * 7)) * 0.06; break; }
+    case 'jacks': { const k = Math.abs(s(et * 6)); P.l = [0, -0.3 - k * 2.5]; P.r = [0, 0.3 + k * 2.5]; P.hop = k * 0.32; break; }
+    case 'ballerina': P.spin = et * 7; P.l = [0, -2.7]; P.r = [0, 2.7]; P.hop = 0.12 + Math.abs(s(et * 3.5)) * 0.1; break;
+    case 'bow': { const k = Math.min(1, et * 2.5) * (et > 2.4 ? Math.max(0, 1 - (et - 2.4) * 3) : 1); P.nod = 0.95 * k; P.r = [0.9 * k, -0.6 * k]; P.l = [0.3 * k, 0]; break; }
+    case 'golfswing': { const k = Math.min(1, et / 1.4), sw = et < 1.4 ? -1.6 * k : -1.6 + Math.min(1, (et - 1.4) * 4) * 3.4; P.l = [1.1, sw]; P.r = [1.1, sw]; P.spin = sw * 0.35; break; }
+    case 'think': P.r = [2.45, -0.15]; P.l = [1.0, 0.45]; P.nod = 0.12; P.tilt = 0.1 + s(et * 1.5) * 0.05; break;
+    case 'scared': P.l = [0.3, -2.4 + s(et * 30) * 0.12]; P.r = [0.3, 2.4 + s(et * 31) * 0.12]; P.tilt = s(et * 40) * 0.05; P.nod = -0.12; break;
+    case 'victory': P.r = [0.1, 2.9]; P.l = [0, -0.6 + s(et * 6) * 0.3]; P.spin = et * 2.2; P.hop = Math.abs(s(et * 6)) * 0.2; break;
+    case 'zombie': P.l = [1.55, 0.05]; P.r = [1.5, -0.05]; P.tilt = s(et * 2.4) * 0.18; P.nod = 0.15 + s(et * 1.2) * 0.1; P.hop = Math.abs(s(et * 2.4)) * 0.05; break;
   }
   return P;
 }
@@ -6071,6 +6291,7 @@ function equip(kind, id) {
     if (curW === 'lmg') setWeapon('lmg', true);
     preview.addon = null; buildShowcase(); renderShop(); return;
   }
+  if (kind === 'horn') { settings.horn = id; store.set('horn', id); toast(`${HORNS[id].icon} ${HORNS[id].name} horn equipped · press ${bindLabel('horn').toUpperCase()} while driving`); initAudio(); playHorn(id); renderShop(); return; }
   if (kind === 'kart') { settings.kart = id; store.set('kart', id); toast(`${KARTS[id].name} golf cart equipped`); if (DRV && (DRV.t === 'cart' || DRV.t === 'kart')) skinVeh(DRV, id); renderShop(); return; }
   if (kind === 'spray') { settings.spray = id; store.set('spray', id); toast(`${SPRAYS[id].icon} ${SPRAYS[id].name} spray equipped · press ${bindLabel('spray').toUpperCase()} in a match`); renderShop(); return; }
   if (kind === 'suit') { settings.skin = id; store.set('skin', id); } else if (kind === 'hat') { settings.hat = id; store.set('hat', id); } else if (kind === 'pet') { settings.pet = id; store.set('pet', id); } else { settings.finish = id; store.set('finish', id); }
@@ -6092,7 +6313,7 @@ function shopItem(kind, id, def, cur, el) {
   const own = owns(kind, id), eq = cur === id, closed = def.season && !seasonActive(def.season) && !own;
   const b = document.createElement('button');
   b.className = 'item' + (eq ? ' eq' : own ? ' owned' : '') + (!own && (def.bundle || closed || wallet.coins < def.price) ? ' poor' : '');
-  b.style.setProperty('--pv', def.pv || (kind === 'pet' || kind === 'emote' ? 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))' : `linear-gradient(135deg,hsl(${settings.hue},75%,66%),hsl(${settings.hue},60%,36%))`));
+  b.style.setProperty('--pv', def.pv || (kind === 'pet' || kind === 'emote' || kind === 'horn' ? 'linear-gradient(135deg,rgba(95,242,255,.18),rgba(255,79,163,.18))' : `linear-gradient(135deg,hsl(${settings.hue},75%,66%),hsl(${settings.hue},60%,36%))`));
   b.style.setProperty('--hc', `hsl(${settings.hue},100%,60%)`);
   const pv = document.createElement('div'); pv.className = 'pv' + (def.icon ? ' em' : ''); if (def.icon) pv.textContent = def.icon;
   const nm = document.createElement('b'); nm.textContent = def.name;
@@ -6104,7 +6325,8 @@ function shopItem(kind, id, def, cur, el) {
   const rar = kind === 'suit' && suitRarity(id);
   if (rar) { const t = document.createElement('span'); t.className = 'tagS rar'; t.textContent = `${rar.icon ? rar.icon + ' ' : ''}${rar.n.toUpperCase()}`; b.style.setProperty('--rc', rar.c); b.classList.add('hasr'); b.insertBefore(t, nm); }
   else if (def.season) { const t = document.createElement('span'); t.className = 'tagS'; t.textContent = `${SEASONS[def.season].icon} ${kind.toUpperCase()}`; b.insertBefore(t, nm); }
-  if (kind !== 'emote' && kind !== 'spray') {
+  if (kind === 'horn') b.addEventListener('mouseenter', () => { initAudio(); playHorn(id, 0, 0.8); });
+  else if (kind !== 'emote' && kind !== 'spray') {
     b.addEventListener('mouseenter', () => { preview[kind] = id; refreshPreview(); });
     b.addEventListener('mouseleave', () => { preview[kind] = null; refreshPreview(); });
   }
@@ -6142,7 +6364,8 @@ function renderShop() {
 // This season's items are always there. Featured items join every rotation until their entry's `until`.
 const ROT_N = { suit: 12, hat: 6, finish: 4, pet: 5, emote: 5, spray: 2 };
 const FEATURED = [{ until: 1791591600000, suit: ['saltbeard', 'ronin', 'arcanos', 'zorbo', 'pricklypete', 'aurora', 'marble', 'denim', 'graffiti', 'checker', 'honeycomb', 'snakeskin', 'stainedglass', 'thunder', 'koi']},
-  { until: 1792196400000, suit: ['jc', 'jcmom', 'jcwilliam', 'jcryan', 'jcnicolas', 'jcnicky', 'golfer'] }];
+  { until: 1792196400000, suit: ['jc', 'jcmom', 'jcwilliam', 'jcryan', 'jcnicolas', 'jcnicky', 'golfer'] },
+  { until: 1792267200000, suit: ['viking', 'chef', 'pengu', 'pizzaguy', 'tiedye', 'plaid', 'polka', 'comic', 'hologram', 'carbonfiber'], emote: ['floss', 'chicken', 'airguitar', 'jacks', 'victory'] }];
 const shopHour = () => Math.floor(Date.now() / 3600000);
 let rotCache = null;
 function shopRotation() {
@@ -6172,11 +6395,11 @@ function renderShopInner() {
     const S = SEASONS[k], left = seasonDaysLeft(k), box = document.createElement('div'); box.className = 'seasonbox'; box.style.setProperty('--sc', S.css);
     box.innerHTML = `<div class="seasonhead"><b>${S.icon} ${S.name.toUpperCase()} SHOP</b><span>Leaves in ${left} day${left === 1 ? '' : 's'} · yours forever once bought</span></div>`;
     const el = document.createElement('div'); el.className = 'items hrow'; box.appendChild(el); boxes.appendChild(box);
-    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet], ['emote', EMOTES, ''], ['spray', SPRAYS, settings.spray]])
+    for (const [kind, defs, cur] of [['suit', SUITS, settings.skin], ['hat', HATS, settings.hat], ['finish', FINISHES, settings.finish], ['pet', PETS, settings.pet], ['emote', EMOTES, ''], ['spray', SPRAYS, settings.spray], ['horn', HORNS, settings.horn]])
       for (const [id, def] of Object.entries(defs)) if (def.season === k) shopItem(kind, id, def, cur, el);
   }
   // Shop rows only list what you can still buy; Customize lists everything you own
-  for (const [kind, defs, box, cbox, cur] of [['suit', SUITS, 'suitItems', 'cSuitItems', settings.skin], ['hat', HATS, 'hatItems', 'cHatItems', settings.hat], ['finish', FINISHES, 'finishItems', 'cFinishItems', settings.finish], ['pet', PETS, 'petItems', 'cPetItems', settings.pet], ['spray', SPRAYS, 'sprayItems', 'cSprayItems', settings.spray], ['emote', EMOTES, 'emoteItems', 'cEmoteItems', ''], ['kart', KARTS, 'kartItems', 'cKartItems', settings.kart]]) {
+  for (const [kind, defs, box, cbox, cur] of [['suit', SUITS, 'suitItems', 'cSuitItems', settings.skin], ['hat', HATS, 'hatItems', 'cHatItems', settings.hat], ['finish', FINISHES, 'finishItems', 'cFinishItems', settings.finish], ['pet', PETS, 'petItems', 'cPetItems', settings.pet], ['spray', SPRAYS, 'sprayItems', 'cSprayItems', settings.spray], ['emote', EMOTES, 'emoteItems', 'cEmoteItems', ''], ['kart', KARTS, 'kartItems', 'cKartItems', settings.kart], ['horn', HORNS, 'hornItems', 'cHornItems', settings.horn]]) {
     const el = $(box), cel = $(cbox); el.textContent = ''; cel.textContent = '';
     for (const [id, def] of Object.entries(defs)) {
       if (owns(kind, id)) shopItem(kind, id, def, cur, cel);
@@ -6881,8 +7104,8 @@ function makeDroneVis(e) {
 }
 function makeBotVis(e) {
   const look = avatarLook(e.team, (hashStr(e.id) * 37) % 360);
-  const a = makeAvatar(look, e.name, teamMode() && e.team === myTeam, mode === 'infect' && e.team === 1 ? 'infected' : 'standard');
-  a.body.userData.ent = e.id; a.hit = a.body; e.vis = a; e.visTeam = e.team; e.visThr = teamMode() && e.team === myTeam;
+  const a = makeAvatar(look, e.name, mateOf(e.team), mode === 'infect' && e.team === 1 ? 'infected' : 'standard');
+  a.body.userData.ent = e.id; a.hit = a.body; e.vis = a; e.visTeam = e.team; e.visThr = mateOf(e.team);
 }
 function addEnt(e) {
   e.tpos = e.pos.clone(); e.flash = 0;
@@ -6922,7 +7145,7 @@ function syncEntVis(e, dt) {
     v.coreMat.emissive.setScalar(e.flash * 1.5);
     const ch = e.charge || 0; v.eye.scale.setScalar(1 + ch * 0.9 + (e.type === 'charger' ? Math.sin(time * 20 + hashStr(e.id)) * 0.2 : 0));
   } else {
-    if (e.visTeam !== e.team || e.visThr !== (teamMode() && e.team === myTeam)) { disposeAvatar(e.vis); makeBotVis(e); }
+    if (e.visTeam !== e.team || e.visThr !== mateOf(e.team)) { disposeAvatar(e.vis); makeBotVis(e); }
     const v = e.vis; v.av.position.copy(e.pos); v.av.rotation.y = e.yaw; v.av.visible = !!e.alive && (!(ROYALE || RALLY) || Math.abs(e.pos.x - camera.position.x) + Math.abs(e.pos.z - camera.position.z) < 240);
     if (mode === 'rally') rkBotVis(e, dt);
     v.flash = e.flash; avatarFX(v);
@@ -7533,6 +7756,8 @@ function botGoal(e, acts) {
     const zc = GS.zc, zt = GS.zt;
     if (Math.hypot(e.pos.x - zc[0], e.pos.z - zc[1]) > zc[2] - 4) return new V3(zc[0], 0, zc[1]);
     if (e.target) return e.target.pos;
+    // Duos / Squads: bots stick near a person on their team
+    if (brTeams() && e.team >= 0) { const lead = acts.find(a => !a.ent && a.alive && a.team === e.team); if (lead && lead.pos.distanceTo(e.pos) > 16) return lead.pos; }
     // looting: short trips around where they are, with a pause at each stop; drift toward the next circle when it's far
     if (!e.patrol || Math.hypot(e.patrol.x - zt[0], e.patrol.z - zt[1]) > zt[2]) e.patrol = null;
     if (e.patrol && (e.pos.distanceTo(e.patrol) < 3 || time - (e.patrolT || 0) > 9)) { if (e.pos.distanceTo(e.patrol) < 3 && Math.random() < 0.5) e.idleUntil = time + rand(1, 4); e.patrol = null; }
@@ -7687,7 +7912,7 @@ function hostPhase(dt) {
       for (const e of ents.values()) if (e.kind === 'bot') { e.lv = 0; e.f = 0; e.d = 0; e.alive = false; e.respawnT = rand(0.2, 1); if (mode === 'gungame') e.wp = LADDER[0]; if (mode === 'infect') { e.team = 0; e.wp = e.gun || 'rifle'; } }
       if (mode === 'infect') { GS.inf = []; GS.ip = INF_PRE; GS.it = INF_TIME; H.I = { pre: INF_PRE, alive: new Map(), last: '' }; }
       if (mode === 'rally') { Object.assign(GS, { kg: GS.kg + 1, kst: 0, kph: 0, ktm: 0, kres: [], kpt: [], kgrid: [], kord: [], kbp: [] }); H.K = null; }
-      if (mode === 'royale') { Object.assign(GS, { sd: [], rph: 0, rsd: 0, zs: 0, zk: 0, ztm: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R] }); H.R = null; for (const e of ents.values()) if (e.kind === 'bot') e.respawnT = 1e9; }
+      if (mode === 'royale') { Object.assign(GS, { sd: [], rph: 0, rsd: 0, zs: 0, zk: 0, ztm: 0, rtm: 0, zc: [0, 0, ARENA_R], zt: [0, 0, ARENA_R], bt: {} }); H.R = null; for (const e of ents.values()) if (e.kind === 'bot') { e.respawnT = 1e9; e.team = -1; } }
     }
   }
 }
@@ -7742,6 +7967,7 @@ function mirrorHost(hd) {
   for (const k of ['zc', 'zt']) if (Array.isArray(hd[k]) && hd[k].length === 3) GS[k] = hd[k].map(v => +v || 0);
   for (const k of ['kres', 'kpt', 'kord', 'kbp']) if (Array.isArray(hd[k])) GS[k] = hd[k].slice(0, 64).filter(Array.isArray);
   if (Array.isArray(hd.kgrid)) GS.kgrid = hd.kgrid.slice(0, 64).map(String);
+  if (hd.bt && typeof hd.bt === 'object' && !Array.isArray(hd.bt)) { const o = {}; let n = 0; for (const k in hd.bt) { if (++n > 64) break; o[String(k).slice(0, 40)] = +hd.bt[k] | 0; } GS.bt = o; }
   if (Array.isArray(hd.inf)) GS.inf = hd.inf.slice(0, 32).map(String);
   if (Array.isArray(hd.dp)) GS.dp = hd.dp.slice(0, 2).map(String); if (Array.isArray(hd.ds)) GS.ds = [+hd.ds[0] || 0, +hd.ds[1] || 0];
   if (Array.isArray(hd.sd)) GS.sd = hd.sd.slice(0, 6).filter(Array.isArray);
@@ -7839,7 +8065,7 @@ function onGSChange() {
   if (GS.ph !== 1 && podium) stopPodium();
   if (GS.ph === 1 && GS.pwid && !podium && !coop()) startPodium();
   if (GS.ph === 1 && p.ph !== 1) {
-    const mine = mode === 'infect' ? (GS.pw.startsWith('THE INFECTED') ? amInfected() : !amInfected()) : GS.pw === `${settings.name} WINS`;
+    const mine = mode === 'infect' ? (GS.pw.startsWith('THE INFECTED') ? amInfected() : !amInfected()) : brTeams() ? !!GS.pwid && (GS.pwid === myId || mateOf(teamOfId(GS.pwid))) : GS.pw === `${settings.name} WINS`;
     announce(GS.pw, mine ? 'Victory' : 'Next match starts shortly', mine ? '#74ffb5' : '#ffbf6b', true); sfx.win();
     if (mine && state !== 'menu') { chal('win'); bumpStat('w'); if (clanTag) netSend({ t: 'clan', op: 'win' }); if (mode === 'infect' && !amInfected()) chal('survive'); }
   }
@@ -9251,6 +9477,14 @@ function updateWeapon(dt) {
 // ================= damage / death / scoring =================
 function hurt(dmg, src) {
   if ((mode === 'royale' && GS.rph !== 1) || mode === 'rally') return;
+  // knocked down in Duos / Squads: enemies can still finish you off
+  if (player.downed && brTeams()) {
+    if (!inMatch() || GS.ph === 1) return;
+    if (src.killer) { player.lastHitBy = src.killer; player.lastHitT = time; }
+    player.downHp -= src.fatal ? 9999 : dmg; dmgFlash = Math.min(1, dmgFlash + 0.3);
+    if (player.downHp <= 0) brFinish(src);
+    return;
+  }
   if (!player.alive || player.invuln > 0 || !inMatch() || GS.ph === 1) return;
   if (coop() && inShield(player.pos)) { shockRing(player.pos.clone().setY(player.pos.y + 1), new THREE.Color(0.6, 2.2, 3), 1.5, 0.25); return; }
   if (coop() && deploys.some(d => d.kind === 'taunt' && d.owner === myId)) dmg *= 0.5;
@@ -9262,12 +9496,21 @@ function hurt(dmg, src) {
   if (src.poison) tone(160, 120, 0.08, 0.05, 'sine');
   else { dmgFlash = Math.min(1, dmgFlash + 0.5 + dmg / 40); shake = Math.max(shake, 0.18); sfx.hurt(); }
   if (src.killer) { player.lastHitBy = src.killer; player.lastHitT = time; }
-  if (player.hp <= 0) { player.hp = 0; if (coop()) goDown(src); else die(src); }
+  if (player.hp <= 0) { player.hp = 0; if (coop() || (brTeams() && GS.rph === 1 && !src.fatal && brMateUp())) goDown(src); else die(src); }
+}
+// Duos / Squads: is anyone else on my team still standing?
+const brMateUp = () => myTeam >= 0 && allActors().some(a => !a.me && a.alive && a.team === myTeam);
+// knocked down and then finished off (or bled out): whoever knocked you down gets the kill
+function brFinish(src) {
+  if (!player.downed) return;
+  const k = src.killer || (time - (player.lastHitT || -99) < 60 ? player.lastHitBy : '') || '';
+  die({ ...src, killer: k });
 }
 let killSeq = 0, killRec = null;
 function die(src) {
-  if (!player.alive) return;
-  player.alive = false; state = 'dead'; deaths++; firing = false; clearAds(); ksKills = 0; closeEmotes(); bumpStat('d');
+  if (!player.alive && !(player.downed && brTeams())) return;
+  const wasDown = player.downed; player.downed = false; clearReviveUI();
+  player.alive = false; state = 'dead'; if (!wasDown) { deaths++; bumpStat('d'); } firing = false; clearAds(); ksKills = 0; closeEmotes();
   let k = src.killer || '';
   if (droneKiller(k)) { k = ''; src = { text: 'A charger rammed you' }; }
   const killerKey = k && (ents.has(k) ? 'e:' + k : k);
@@ -9295,7 +9538,9 @@ function goDown(src) {
   player.downT = time; player.alive = false; player.downed = true; player.hp = 0; deaths++; firing = false; clearAds(); closeEmotes(); bumpStat('d');
   closeChat(); feedHTML(`<em>${esc(settings.name)}</em> <i>is down</i>`);
   sfx.hurt(); tone(300, 90, 0.6, 0.2, 'sawtooth'); shake = 0.35;
-  announce('DOWNED', humans().some(a => a.alive && !a.me) ? `Hold on. A teammate can revive you with ${bindLabel('use')}.` : 'Nobody left standing…', '#ff4d6a');
+  player.downHp = 100; RY.noMateT = 0; if (DRV) leaveVehicle(); RY.using = null;
+  if (brTeams()) announce('KNOCKED DOWN', `Crawl to cover. A teammate can revive you with ${bindLabel('use')}.`, '#ff4d6a');
+  else announce('DOWNED', humans().some(a => a.alive && !a.me) ? `Hold on. A teammate can revive you with ${bindLabel('use')}.` : 'Nobody left standing…', '#ff4d6a');
 }
 // Poisoner hits keep ticking at your shield until it wears off or you get healed (medic zone or bubble, health pickup, revive)
 function poisonMe() {
@@ -9331,18 +9576,18 @@ function clearReviveUI() {
 }
 function updateRevive(dt) {
   beingRevived = 0;
-  if (!coop()) { reviveT = 0; reviveTarget = null; clearReviveUI(); return; }
+  if (!coop() && !brTeams()) { reviveT = 0; reviveTarget = null; clearReviveUI(); return; }
   for (const o of peers.values()) if (Array.isArray(o.d.rp) && o.d.rp[0] === myId) beingRevived = Math.max(beingRevived, +o.d.rp[1] || 0);
   let tgt = null;
   if (player.alive && state === 'playing') {
     let bd = 2.6;
-    for (const o of peers.values()) if (o.d.dn && o.d.st === 'p') { const d = Math.hypot(o.pos.x - player.pos.x, o.pos.z - player.pos.z); if (d < bd && Math.abs(o.pos.y - player.pos.y) < 2) { bd = d; tgt = o; } }
+    for (const o of peers.values()) if (o.d.dn && o.d.st === 'p' && (coop() || mateOf(o.team))) { const d = Math.hypot(o.pos.x - player.pos.x, o.pos.z - player.pos.z); if (d < bd && Math.abs(o.pos.y - player.pos.y) < 2) { bd = d; tgt = o; } }
   }
   if (tgt && held.use) {
     if (reviveTarget !== tgt.id) { reviveTarget = tgt.id; reviveT = 0; }
     // everyone reviving the same teammate adds their speed together
     const helpers = 1 + [...peers.values()].filter(o => Array.isArray(o.d.rp) && o.d.rp[0] === tgt.id && o.d.st === 'p').length;
-    reviveT += dt / (settings.cls === 'medic' ? MEDIC_REVIVE_TIME : REVIVE_TIME) * helpers;
+    reviveT += dt / (coop() && settings.cls === 'medic' ? MEDIC_REVIVE_TIME : REVIVE_TIME) * helpers;
     if (Math.random() < dt * 10) burst(tA.copy(tgt.pos).setY(tgt.pos.y + 0.5), 1, GREEN, 1.5, 0.6, 0.08, -3);
     if (reviveT >= 1) {
       pushAb('rev', tgt.pos, tgt.id); applyAb('rev', tgt.pos.x, tgt.pos.y, tgt.pos.z, tgt.id, settings.name);
@@ -9355,14 +9600,14 @@ function updateRevive(dt) {
   if (show) { setText('useTxt', reviveT > 0 ? `REVIVING ${tgt.name.toUpperCase()}` : `HOLD ${bindLabel('use').toUpperCase()} TO REVIVE ${tgt.name.toUpperCase()}`); setStyle($('useBar'), 'width', Math.round(reviveT * 100) + '%'); }
   $('downUI').hidden = !player.downed;
   if (player.downed) {
-    const anyone = humans().some(a => a.alive && !a.me);
-    setText('downTxt', beingRevived > 0 ? 'A teammate is reviving you…' : anyone ? 'Hang on. A teammate can revive you.' : 'Nobody left standing…');
+    const anyone = coop() ? humans().some(a => a.alive && !a.me) : brMateUp();
+    setText('downTxt', (beingRevived > 0 ? 'A teammate is reviving you…' : anyone ? 'Hang on. A teammate can revive you.' : 'Nobody left standing…') + (brTeams() ? ` · ${Math.max(0, Math.ceil(player.downHp))} HP` : ''));
     $('downBarWrap').hidden = !(beingRevived > 0); setStyle($('downBar'), 'width', Math.round(beingRevived * 100) + '%');
   }
   // world markers over downed teammates (visible through walls)
   const seen = new Set();
   if (!$('hud').hidden) for (const o of peers.values()) {
-    if (!o.d.dn || o.d.st !== 'p') continue;
+    if (!o.d.dn || o.d.st !== 'p' || !(coop() || mateOf(o.team))) continue;
     const v = tB.copy(o.pos).setY(o.pos.y + 1.6).project(camera); if (v.z > 1) continue;
     seen.add(o.id);
     let el = markEls.get(o.id); if (!el) { el = document.createElement('div'); el.className = 'dmark'; $('marks').appendChild(el); markEls.set(o.id, el); }
@@ -9557,8 +9802,8 @@ function updatePeers(dt, list) {
     seen.add(p.id);
     let o = peers.get(p.id);
     const hue = typeof d.h === 'number' ? ((d.h % 360) + 360) % 360 : 180;
-    const team = mode === 'infect' ? (GS.inf.includes(p.id) ? 1 : 0) : mode === 'prophunt' ? (GS.hunt.includes(p.id) ? 1 : 0) : -1;
-    const thr = teamMode() && team === myTeam;
+    const team = mode === 'infect' ? (GS.inf.includes(p.id) ? 1 : 0) : mode === 'prophunt' ? (GS.hunt.includes(p.id) ? 1 : 0) : brTeams() && GS.rph === 1 ? (GS.bt[p.id] ?? -1) : -1;
+    const thr = mateOf(team);
     const blighted = mode === 'infect' && team === 1;
     const nm = String(d.n || 'Pilot').replace(/[\u0000-\u001f]/g, '').slice(0, 14) || 'Pilot';
     const pt = PETS[d.pt] && mode !== 'prophunt' ? String(d.pt) : '', cn = /^[A-Z0-9]{2,5}$/.test(String(d.cn || '')) ? String(d.cn) : '';
@@ -9638,11 +9883,11 @@ function buildPresence() {
       : ['b', e.id, Math.max(0, BOT_NAMES.indexOf(e.name)), r1(e.pos.x), r1(e.pos.y), r1(e.pos.z), r2(e.yaw), Math.round(e.hp), e.team, e.alive ? 1 : 0, WIDS.indexOf(e.wp), e.lv || 0, e.f || 0, e.d || 0]);
     if (mode === 'rally') Object.assign(o, { kg: GS.kg, kst: GS.kst, kph: GS.kph, ktm: GS.ktm, kres: GS.kres, kpt: GS.kpt, kgrid: GS.kgrid, kord: GS.kord, kbp: GS.kbp });
     Object.assign(o, { ob: H.ob, bs: H.bs, ek: H.ek, ev: H.ev, bd: H.bd, wv: GS.wv, wst: GS.wst, ph: GS.ph, pw: GS.pw, pwid: GS.pwid, gm: GS.gm });
-    if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, mcar: GS.mcar, mdp: GS.mdp, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral, sd: GS.sd });
+    if (mode === 'infect') Object.assign(o, { inf: GS.inf, it: GS.it, ip: GS.ip }); else if (mode === 'boss') Object.assign(o, { bhp: GS.bhp, bp: GS.bp }); else if (mode === 'duel') Object.assign(o, { dp: GS.dp, ds: GS.ds, dr: GS.dr, drs: GS.drs, dtm: GS.dtm }); else if (mode === 'mission') Object.assign(o, { mi: GS.mi, mst: GS.mst, mp: GS.mp, mc: GS.mc, mhk: GS.mhk.map(Math.round), mt: GS.mt, mh: GS.mh, mres: GS.mres, mpos: Math.round(GS.mpos * 1000) / 1000, mcar: GS.mcar, mdp: GS.mdp, bhp: GS.bhp, bp: GS.bp }); else if (mode === 'prophunt') Object.assign(o, { pph: GS.pph, ptm: GS.ptm, hunt: GS.hunt, prn: GS.prn }); else if (mode === 'waves') Object.assign(o, { wt: GS.wt, wr: GS.wr }); else if (mode === 'royale') Object.assign(o, { rph: GS.rph, rsd: GS.rsd, rtm: GS.rtm, zc: GS.zc, zt: GS.zt, zs: GS.zs, zk: GS.zk, ztm: GS.ztm, ral: GS.ral, sd: GS.sd, bt: GS.bt });
   }
   if (mode === 'royale') Object.assign(o, { rs: RL.seed, rk: RY.picked, rco: RY.opened, rx: RY.drops, ri: player.alive ? royaleInvCodes() : RY.lastInv });
   if (mode === 'rally') Object.assign(o, { kp: [GS.kg, RK.stage, Math.round(RK.prog), RK.fin, RK.shieldT > 0 ? 1 : 0], kv: RK.evOut });
-  if (mode === 'royale' || mode === 'rally' || VEH.size) Object.assign(o, { vh: DRV ? [DRV.id, r2(DRV.body.pos.x), r2(DRV.body.pos.y), r2(DRV.body.pos.z), r2(DRV.yaw), r2(DRV.speed)] : null, vd: vdOut, vl: vlOut, ks: settings.kart });
+  if (mode === 'royale' || mode === 'rally' || VEH.size) Object.assign(o, { vh: DRV ? [DRV.id, r2(DRV.body.pos.x), r2(DRV.body.pos.y), r2(DRV.body.pos.z), r2(DRV.yaw), r2(DRV.speed), ...(DRV.T.fly ? [r2(DRV.pitch || 0), r2(DRV.roll || 0)] : [])] : null, vd: vdOut, vl: vlOut, ks: settings.kart, hn: hornOut });
   // keep within the 4 KB presence budget
   let s = JSON.stringify(o);
   if (s.length > 3900) { o.ev = H.ev.slice(-2); o.bs = H.bs.slice(-2); o.ob = H.ob.slice(-3); o.ek = H.ek.slice(-2); s = JSON.stringify(o); }
@@ -9781,16 +10026,17 @@ function updateHUD() {
     if (player.poisonUntil > time) fx.push(`☠ POISONED ${Math.ceil(player.poisonUntil - time)}s`);
     if (fx.length) setText('hint', fx.join(' · '));
   }
-  // squad panel: teammates' face, name and health (co-op modes)
-  const tmOn = coop() && peers.size > 0 && state !== 'menu';
+  // squad panel: teammates' face, name and health (co-op modes, and your team in Duos / Squads)
+  const brT = brTeams() && myTeam >= 0 && GS.rph === 1;
+  const tmOn = ((coop() && peers.size > 0) || brT) && state !== 'menu';
   $('team').hidden = !tmOn;
   if (tmOn) {
-    const rows = [...peers.values()].filter(o => o.d.st !== 'm').slice(0, 6).map(o => {
+    const rows = [...peers.values()].filter(o => o.d.st !== 'm' && (!brT || mateOf(o.team))).slice(0, 6).map(o => {
       const mh = +o.d.mh || 100, hp = clamp(+o.d.hp || 0, 0, mh), dn = !!o.d.dn, dead = o.d.st === 'x';
       const face = SUITS[o.sk]?.pv && o.sk !== 'standard' ? SUITS[o.sk].pv : `hsl(${o.hue},70%,55%)`;
       const tag = dn ? 'DOWNED' : dead ? 'OUT' : CLASSES[o.cl] ? CLASSES[o.cl].name.toUpperCase() : '';
       return `<div class="tm${dn ? ' down' : ''}"><span class="face" style="--fc:${face}"></span><b>${esc(o.name)}<i>${tag}</i></b><div class="bar"><span style="width:${dn ? 100 : Math.round(hp / mh * 100)}%"></span></div></div>`;
-    }).join('');
+    }).concat(brT ? [...ents.values()].filter(e => e.kind === 'bot' && mateOf(e.team)).map(e => `<div class="tm"><span class="face" style="--fc:hsl(${(hashStr(e.id) * 37) % 360},70%,55%)"></span><b>${esc(e.name)}<i>${e.alive ? 'BOT' : 'OUT'}</i></b><div class="bar"><span style="width:${e.alive ? Math.round(clamp(e.hp, 0, 100)) : 0}%"></span></div></div>`) : []).join('');
     if (hudCache.team !== rows) { hudCache.team = rows; $('team').innerHTML = rows; }
   }
   // wave progress
@@ -10074,7 +10320,8 @@ function toggleStudy() {
 }
 function actionDown(a) {
   switch (a) {
-    case 'fire': if (player.downed && specOn) { specNext(); break; } firing = true; break;
+    case 'fire': if (player.downed && specOn) { specNext(); break; } if (DRV && mode !== 'rally') { honk(); break; } firing = true; break;
+    case 'horn': honk(); break;
     case 'spray': doSpray(); break;
     case 'zoom': if (mechOn) mechSalvo(); else if (curW === 'dual') tryParry(); else adsKey = true; break;
     case 'zoomToggle': if (mechOn) mechSalvo(); else if (curW === 'dual') tryParry(); else adsToggle = !adsToggle; break;
@@ -10266,8 +10513,8 @@ function podiumCam(dt) {
 }
 // ================= spectating =================
 let specIdx = 0, specLock = '', specOn = false;
-function specList() { const a = allActors().filter(x => x.alive && !x.me); return coop() ? a.filter(x => !x.ent) : a; }
-function wantSpec() { return (state === 'dead' && respawnAt > time) || (state === 'playing' && player.downed && time - (player.downT || 0) > 1.2); }
+function specList() { const a = allActors().filter(x => x.alive && !x.me); if (brTeams()) { const m = a.filter(x => mateOf(x.team)); if (m.length) return m; } return coop() ? a.filter(x => !x.ent) : a; }
+function wantSpec() { return (state === 'dead' && respawnAt > time) || (state === 'playing' && player.downed && !brTeams() && time - (player.downT || 0) > 1.2); }
 function specNext(d = 1) { specLock = ''; specIdx += d; tone(900, 1100, 0.04, 0.04, 'triangle'); }
 function specCam(dt) {
   const L = specList(); if (!L.length) return false;
@@ -10287,7 +10534,7 @@ function specCam(dt) {
   return true;
 }
 // ================= gifts and trades =================
-const KIND_DEFS = { suit: () => SUITS, hat: () => HATS, finish: () => FINISHES, pet: () => PETS, emote: () => EMOTES, spray: () => SPRAYS, kart: () => KARTS };
+const KIND_DEFS = { suit: () => SUITS, hat: () => HATS, finish: () => FINISHES, pet: () => PETS, emote: () => EMOTES, spray: () => SPRAYS, kart: () => KARTS, horn: () => HORNS };
 const ITEM_OK = /^(suit|hat|finish|pet|emote|spray):[a-z0-9]{1,24}$/;
 function itemDef(it) { const [k, id] = String(it).split(':'); const D = KIND_DEFS[k]; return D ? D()[id] || null : null; }
 const tradeable = it => { const d = itemDef(it); return !!d && d.price > 0 && !d.bundle && ITEM_OK.test(it); };
@@ -10298,6 +10545,7 @@ function fixEquipped() {
   if (!owns('finish', settings.finish)) { settings.finish = 'factory'; store.set('finish', 'factory'); }
   if (!owns('pet', settings.pet)) { settings.pet = 'none'; store.set('pet', 'none'); }
   if (!owns('spray', settings.spray)) { settings.spray = 'prism'; store.set('spray', 'prism'); }
+  if (!owns('horn', settings.horn)) { settings.horn = 'beep'; store.set('horn', 'beep'); }
 }
 let giftOut = store.get('giftout', []); if (!Array.isArray(giftOut)) giftOut = [];
 let giftRecv = store.get('giftrecv', []); if (!Array.isArray(giftRecv)) giftRecv = [];
@@ -11351,9 +11599,13 @@ function hostRoyale(dt) {
   // the storm hurts bots too
   for (const e of ents.values()) if (e.kind === 'bot' && e.alive && Math.hypot(e.pos.x - GS.zc[0], e.pos.z - GS.zc[1]) > GS.zc[2]) { e.zT = (e.zT ?? 0.5) - dt; if (e.zT <= 0) { e.zT = 0.5; hostDamageEnt(e, S[3] * 0.5, '', 'zone'); } }
   const alive = acts.filter(a => a.alive); GS.ral = alive.length;
-  if (time - R.t0 > 4 && alive.length <= 1) {
-    const w = alive[0]; GS.ph = 1; GS.pw = w ? `${w.name} WINS` : 'NOBODY SURVIVED'; GS.pwid = w ? w.id : ''; H.phT = 10;
-    hostEvent(w ? `${w.name} won the Battle Royale` : 'Nobody survived the storm');
+  // Duos / Squads: the last team with anyone standing wins
+  const sides = new Set(alive.map(a => brTeams() && a.team >= 0 ? 't' + a.team : a.id));
+  if (time - R.t0 > 4 && sides.size <= 1) {
+    const w = alive[0], team = w && brTeams() && w.team >= 0 ? acts.filter(a => a.team === w.team).map(a => a.name) : [];
+    const names = team.length > 1 ? `${team.slice(0, -1).join(', ')} & ${team[team.length - 1]} WIN` : w ? `${w.name} WINS` : '';
+    GS.ph = 1; GS.pw = w ? names : 'NOBODY SURVIVED'; GS.pwid = w ? w.id : ''; H.phT = 10;
+    hostEvent(w ? `${team.length > 1 ? 'Team ' + team.join(', ') : w.name} won the Battle Royale` : 'Nobody survived the storm');
   }
 }
 function royaleStart(R) {
@@ -11362,6 +11614,15 @@ function royaleStart(R) {
   R.timer = RZ[0][0]; R.from = GS.zc.slice(); R.t0 = time; R.lobbyT = null; GS.ztm = RZ[0][0]; R.sd = []; R.sdN = 0; R.sdT = 90; GS.sd = [];
   for (const e of ents.values()) if (e.kind === 'bot') { const g = royaleGroundSpot(Math.random), cl = Math.hypot(g.x, g.z) || 1; e.pos.set(g.x, rand(150, 165), g.z); e.tpos.copy(e.pos); e.vel.set(0, 0, 0); e.glide = true; e.gdx = -g.x / cl * 0.6 + rand(-0.5, 0.5); e.gdz = -g.z / cl * 0.6 + rand(-0.5, 0.5); e.hp = 100; e.alive = true; e.invuln = 1e9; e.target = null; e.patrol = null; e.skill = Math.random() < 0.25 ? 'hard' : 'medium'; e.wp = 'pick'; e.rar = 0; e.lootT = time + (e.skill === 'hard' ? rand(15, 40) : rand(25, 75)); e.f = 0; e.d = 0; e.respawnT = 1e9; }
   GS.ral = allActors().filter(a => a.alive).length;
+  // Duos / Squads: people first (clan mates next to each other), then bots fill the gaps
+  GS.bt = {};
+  if (brTeams()) {
+    const n = settings.brSize, key = a => (a.me ? clanTag : a.peer.cn) || '~';
+    const hs = allActors().filter(a => !a.ent && (a.me ? state !== 'menu' && state !== 'editor' : a.peer.d.st !== 'm')).sort((a, b) => key(a).localeCompare(key(b)) || String(a.id).localeCompare(String(b.id)));
+    hs.forEach((a, i) => { GS.bt[a.id] = Math.floor(i / n); });
+    let k = hs.length; for (const e of ents.values()) if (e.kind === 'bot') e.team = Math.floor(k++ / n);
+    if (GS.bt[myId] != null) myTeam = GS.bt[myId];
+  }
   hostEvent('The match has started');
 }
 // ---------- storm visuals, prompts, HUD extras ----------
@@ -11404,6 +11665,12 @@ function drawRoyaleMap() {
     if (GS.zk === 0) { x.setLineDash([8, 6]); x.lineWidth = 2.5; x.beginPath(); x.arc(X(GS.zt[0]), X(GS.zt[1]), Math.max(0, GS.zt[2] * k), 0, Math.PI * 2); x.stroke(); x.setLineDash([]); }
   }
   for (const sp of SUP.values()) if (!sp.open) { x.fillStyle = '#2f8fff'; x.strokeStyle = '#ffffff'; x.lineWidth = 2; x.fillRect(X(sp.pos.x) - 6, X(sp.pos.z) - 6, 12, 12); x.strokeRect(X(sp.pos.x) - 6, X(sp.pos.z) - 6, 12, 12); }
+  // teammates
+  if (brTeams() && myTeam >= 0) {
+    const dot = (p, c) => { x.fillStyle = c; x.strokeStyle = '#08131a'; x.lineWidth = 2; x.beginPath(); x.arc(X(p.x), X(p.z), 6, 0, 7); x.fill(); x.stroke(); };
+    for (const o of peers.values()) if (mateOf(o.team) && o.d.st === 'p') dot(o.pos, o.d.dn ? '#ff4d6a' : '#ffd23a');
+    for (const e of ents.values()) if (e.kind === 'bot' && e.alive && mateOf(e.team)) dot(e.pos, '#ffd23a');
+  }
   x.translate(X(player.pos.x), X(player.pos.z)); x.rotate(-player.yaw);
   x.fillStyle = '#5ff2ff'; x.strokeStyle = '#08131a'; x.lineWidth = 2; x.beginPath(); x.moveTo(0, -12); x.lineTo(9, 9); x.lineTo(0, 4); x.lineTo(-9, 9); x.closePath(); x.fill(); x.stroke();
   x.restore();
@@ -11417,6 +11684,10 @@ const VTYPES = {
   cart: { name: 'Golf Cart', hp: 300, r: 1.0, h: 1.9, top: 21, acc: 13, turn: 1.8, hop: 6, seat: [-0.3, -0.23, 0.12], legs: 1.35, ram: true, wheelR: 0.28 },
   bike: { name: "JC's eBike", hp: 150, r: 0.5, h: 1.8, top: 24, acc: 17, turn: 2.5, hop: 7.5, seat: [0, 0.08, 0.5], legs: 0.55, ram: false, wheelR: 0.5 },
 };
+// helicopters: mouse turns it, W/A/S/D fly, jump climbs, dash drops. The pilot sits behind glass, so they can be shot,
+// and if it blows up with you in it you're done
+VTYPES.heli = { name: 'Helicopter', hp: 450, r: 1.5, h: 2.3, top: 30, acc: 16, turn: 1.7, hop: 0, seat: [0, -0.17, -0.25], legs: 1.35, ram: false, wheelR: 1, fly: 1 };
+const HELI_CEIL = 140;
 const VEH = new Map(), vdOut = {}, vlOut = [], ramT = new Map();
 let DRV = null, vlSeq = 0, engine = null;
 if (ROYALE) $('abDash').hidden = true;
@@ -11586,9 +11857,46 @@ function buildBike() {
   const hit = new THREE.Mesh(gq('vHitB', () => new THREE.BoxGeometry(0.4, 1.0, 2.3)), hitMat); hit.position.y = 0.55; g.add(hit);
   return { g, wheels, hit, spin: 'z' };
 }
+function buildHeli() {
+  const g = new THREE.Group(), top = new THREE.Group(); g.add(top);
+  const H = buildHeli.M || (buildHeli.M = {
+    body: new THREE.MeshStandardMaterial({ color: 0x23324f, roughness: 0.35, metalness: 0.35 }), stripe: new THREE.MeshStandardMaterial({ color: 0xffc83a, roughness: 0.4 }),
+    glass: new THREE.MeshPhysicalMaterial({ color: 0x9fd8ff, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false }),
+    dark: new THREE.MeshStandardMaterial({ color: 0x1a1a20, roughness: 0.6, metalness: 0.5 }), seat: new THREE.MeshStandardMaterial({ color: 0x3a2a20, roughness: 0.8 }),
+    red: new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.2, 0.2) }), disc: new THREE.MeshBasicMaterial({ color: 0x202028, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }) });
+  const add = (key, geo, m, x, y, z, rx = 0, ry = 0, rz = 0, p = top) => { const o = new THREE.Mesh(gq(key, geo), m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = m !== H.glass; p.add(o); return o; };
+  // a bubble cabin: the back half is solid, the front half is glass
+  add('hcBack', () => new THREE.SphereGeometry(1, 22, 14, 0, Math.PI), H.body, 0, 1.45, -0.1).scale.set(1.1, 0.95, 1.55);
+  add('hcGlass', () => new THREE.SphereGeometry(1, 22, 14, Math.PI, Math.PI), H.glass, 0, 1.45, -0.1).scale.set(1.1, 0.95, 1.55);
+  add('hcBelt', () => new THREE.TorusGeometry(1, 0.035, 6, 40).rotateX(Math.PI / 2), H.stripe, 0, 1.3, -0.1).scale.set(1.08, 1, 1.53);
+  add('hcFloor', () => new THREE.CylinderGeometry(0.95, 0.95, 0.08, 20), H.dark, 0, 0.72, -0.1).scale.set(1, 1, 1.35);
+  add('hcSeat', () => new THREE.BoxGeometry(1.5, 0.12, 0.6), H.seat, 0, 0.98, -0.1); add('hcSeatB', () => new THREE.BoxGeometry(1.5, 0.6, 0.12), H.seat, 0, 1.3, 0.25);
+  add('hcStick', () => new THREE.CylinderGeometry(0.025, 0.025, 0.3, 6), H.dark, 0.25, 0.9, -0.55, -0.3);
+  add('hcEng', () => new THREE.BoxGeometry(0.8, 0.5, 1.3), H.body, 0, 2.35, 0.55);
+  add('hcMast', () => new THREE.CylinderGeometry(0.07, 0.07, 0.5, 8), H.dark, 0, 2.75, 0.05);
+  // tail boom, fins and the little rotor at the back
+  add('hcBoom', () => new THREE.CylinderGeometry(0.09, 0.2, 3.9, 10).rotateX(Math.PI / 2), H.body, 0, 1.75, 3.2);
+  add('hcFin', () => new THREE.BoxGeometry(0.06, 0.85, 0.55), H.body, 0, 2.05, 5.05);
+  add('hcStab', () => new THREE.BoxGeometry(1.1, 0.05, 0.32), H.stripe, 0, 1.75, 4.75);
+  add('hcBeacon', () => new THREE.SphereGeometry(0.06, 8, 6), H.red, 0, 2.5, 5.05);
+  const tail = new THREE.Group(); tail.position.set(0.1, 2.0, 5.2); top.add(tail);
+  add('hcTBl', () => new THREE.BoxGeometry(0.03, 1.0, 0.1), H.dark, 0, 0, 0, 0, 0, 0, tail); add('hcTBl', () => new THREE.BoxGeometry(0.03, 1.0, 0.1), H.dark, 0, 0, 0, Math.PI / 2, 0, 0, tail);
+  // skids
+  for (const sx of [-1, 1]) {
+    add('hcSkid', () => new THREE.CylinderGeometry(0.05, 0.05, 3.0, 8).rotateX(Math.PI / 2), H.dark, sx * 0.85, 0.06, -0.1);
+    for (const z of [-0.8, 0.6]) add('hcStrut', () => new THREE.CylinderGeometry(0.035, 0.035, 0.75, 6), H.dark, sx * 0.72, 0.4, z, 0, 0, sx * 0.35);
+  }
+  // main rotor (and a faint disc that shows when it's spinning fast)
+  const rotor = new THREE.Group(); rotor.position.set(0, 3.02, 0.05); top.add(rotor);
+  add('hcHub', () => new THREE.CylinderGeometry(0.16, 0.16, 0.12, 12), H.dark, 0, 0, 0, 0, 0, 0, rotor);
+  for (const a of [0, Math.PI / 2]) add('hcBlade', () => new THREE.BoxGeometry(8.6, 0.04, 0.28), H.dark, 0, 0.02, 0, 0, a, 0, rotor);
+  const disc = add('hcDisc', () => new THREE.CircleGeometry(4.3, 32).rotateX(-Math.PI / 2), H.disc.clone(), 0, 3.04, 0.05); disc.castShadow = false;
+  const hit = new THREE.Mesh(gq('vHitH', () => new THREE.BoxGeometry(2.0, 0.85, 3.0)), hitMat); hit.position.y = 0.95; g.add(hit); // low, so the pilot behind the glass can still be shot
+  return { g, wheels: [], hit, spin: 'x', rotor, tail, disc };
+}
 function addVeh(id, t, x, z, yaw, skin = 'classic', y = 0) {
-  const T = VTYPES[t], m = t === 'bike' ? buildBike() : buildCart(skin);
-  const v = { id, t, T, ...m, skin: t === 'bike' ? '' : skin, yaw, speed: 0, dead: false, driver: null, dmg: new Map(), smokeT: 0, lastBy: '',
+  const T = VTYPES[t], m = t === 'bike' ? buildBike() : t === 'heli' ? buildHeli() : buildCart(skin);
+  const v = { id, t, T, ...m, skin: t === 'bike' || t === 'heli' ? '' : skin, yaw, speed: 0, dead: false, driver: null, dmg: new Map(), smokeT: 0, lastBy: '',
     body: { pos: new V3(x, y, z), vel: new V3(), r: T.r, h: T.h, grav: 1, lastGround: 0, onGround: true, jumps: 0 } };
   m.hit.userData.veh = id; m.g.position.set(x, y, z); m.g.rotation.order = 'YXZ'; m.g.rotation.y = yaw; scene.add(m.g); VEH.set(id, v);
   return v;
@@ -11612,6 +11920,16 @@ function royaleVehicles(seed) {
       addVeh('v' + n++, t, x, z, yaw); break;
     }
   }
+  // three helicopters: always one on the Airport grounds, and two more at other places
+  const others = RL.pois.filter(p => p[0] !== 'AIRPORT').map(p => [r(), p]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
+  const spots = [...RL.pois.filter(p => p[0] === 'AIRPORT'), ...others].slice(0, 3);
+  spots.forEach(([, cx, cz, rad], i) => {
+    for (let tries = 0; tries < 24; tries++) {
+      const air = i === 0 && tries < 16, a = r() * Math.PI * 2, d = air ? 12 + r() * (rad - 24) : rad + 8 + r() * 14, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d;
+      if (Math.hypot(x, z) > ARENA_R - 15 || vehBlocked(x, 0, z, 4.6, 3.4)) continue;
+      addVeh('h' + i, 'heli', x, z, r() * Math.PI * 2); break;
+    }
+  });
 }
 const vehHp = v => v.T.hp - [...v.dmg.values()].reduce((a, b) => a + b, 0) - (vdOut[v.id] || 0);
 function nearVehicle() {
@@ -11625,6 +11943,7 @@ function nearVehicle() {
 }
 function damageVeh(v, dmg, point, quiet) {
   if (v.dead || !vehLive() || mode === 'rally') return;
+  if (v.driver && v.driver !== myId && mateOf(teamOfId(v.driver))) return; // your teammate's ride
   vdOut[v.id] = (vdOut[v.id] || 0) + dmg; v.lastBy = myId;
   burst(point, 8, new THREE.Color(2.6, 1.8, 0.6), 5, 0.3, 0.07);
   if (!quiet) { hitmarker(false); tone(900, 700, 0.04, 0.05, 'square'); }
@@ -11645,9 +11964,11 @@ function seatPos(v, out) {
 function enterVehicle(v) {
   if (v.dead || v.driver || !player.alive) return;
   DRV = v; v.driver = myId; v.speed = 0; player.yaw = v.yaw; player.pitch = -0.08; skinVeh(v, settings.kart);
-  firing = false; clearAds(); RY.using = null; jetting = false;
+  firing = false; clearAds(); RY.using = null; jetting = false; RY.glide = false;
+  if (v.T.fly) v.spool = v.rotorS || 0;
   startEngine(v.t);
-  toast(`${v.T.name}: W gas, S brake / reverse, A / D steer, ${bindLabel('jump').toUpperCase()} handbrake (drift), ${bindLabel('use').toUpperCase()} to get out`);
+  if (v.T.fly) toast(`Helicopter: mouse to turn, W / A / S / D to fly, ${bindLabel('jump').toUpperCase()} up, ${bindLabel('dash').toUpperCase()} down, ${bindLabel('use').toUpperCase()} to jump out`);
+  else toast(`${v.T.name}: W gas, S brake / reverse, A / D steer, ${bindLabel('jump').toUpperCase()} handbrake (drift), ${bindLabel('use').toUpperCase()} to get out`);
 }
 function leaveVehicle() {
   const v = DRV; if (!v) return;
@@ -11658,6 +11979,8 @@ function leaveVehicle() {
   player.pos.set(v.body.pos.x - c * out, v.body.pos.y + 0.05, v.body.pos.z + s * out);
   player.vel.set(0, 0, 0); player.onGround = false; player.lastGround = time;
   if (bodyInside(player.pos)) { SAFE.t = 1; unstick(0); }
+  // jumping out of a helicopter high up opens your glider
+  if (v.T.fly && mode === 'royale' && v.body.pos.y > 12 && player.alive) { RY.glide = true; toast('Gliding · steer with WASD'); }
 }
 // drive one vehicle: the kart keeps its velocity while it turns, and the tyres pull that velocity back in line
 // with where it's pointing. With the handbrake on they barely grip, so the back steps out and you slide.
@@ -11703,6 +12026,7 @@ function driveTick(dt) {
   const v = DRV, T = v.T, b = v.body, rk = mode === 'rally';
   jetting = false;
   if (!player.alive || player.downed || v.dead) { leaveVehicle(); return; }
+  if (T.fly) { heliTick(v, dt); return; }
   const locked = rk && (GS.kph === 1 || RK.spinT > 0);
   const thr = locked ? 0 : (held.forward ? 1 : 0) - (held.back ? 1 : 0), steer = locked ? 0 : (held.left ? 1 : 0) - (held.right ? 1 : 0), hb = !locked && !!held.jump;
   v.off = rk && RK.off;
@@ -11728,6 +12052,46 @@ function driveTick(dt) {
   if (T.ram && Math.abs(v.speed) > 6) vehRam(v);
   if (engine) { const k = Math.abs(v.speed) / T.top; engine.o.frequency.setTargetAtTime((v.t === 'bike' ? 110 : 55) + k * (v.t === 'bike' ? 160 : 75) + (b.onGround ? 0 : 25), A.ctx.currentTime, 0.1); engine.g.gain.setTargetAtTime(0.025 + k * 0.05, A.ctx.currentTime, 0.1); }
 }
+function heliTick(v, dt) {
+  const T = v.T, b = v.body;
+  const fw = (held.forward ? 1 : 0) - (held.back ? 1 : 0), st = (held.right ? 1 : 0) - (held.left ? 1 : 0), up = (held.jump ? 1 : 0) - (held.dash ? 1 : 0);
+  // the rotor has to spin up before it lifts off
+  v.spool = Math.min(1, (v.spool || 0) + dt / 1.5); const lift = v.spool >= 1;
+  // it turns toward where you're looking
+  const turn = clamp(wrapA(player.yaw - v.yaw), -T.turn * dt, T.turn * dt); v.yaw += turn;
+  const fx = -Math.sin(v.yaw), fz = -Math.cos(v.yaw), rx = Math.cos(v.yaw), rz = -Math.sin(v.yaw);
+  if (lift && (!b.onGround || up > 0)) {
+    const tx = (fx * fw + rx * st * 0.7) * T.top, tz = (fz * fw + rz * st * 0.7) * T.top, k = 1 - Math.exp(-1.2 * dt);
+    b.vel.x += (tx - b.vel.x) * k; b.vel.z += (tz - b.vel.z) * k;
+    const ty = b.pos.y > HELI_CEIL && up > 0 ? 0 : up * (up > 0 ? 9 : 12); b.vel.y += (ty - b.vel.y) * (1 - Math.exp(-2.5 * dt));
+  } else {
+    // sitting on its skids
+    b.vel.x = damp(b.vel.x, 0, 6, dt); b.vel.z = damp(b.vel.z, 0, 6, dt); b.vel.y = lift ? 0 : b.vel.y - 30 * dt;
+  }
+  const vy0 = b.vel.y, wasGround = b.onGround, steps = Math.max(1, Math.ceil(dt / (1 / 120))), h = dt / steps; b.blocked = false;
+  for (let s = 0; s < steps; s++) {
+    b.pos.x += b.vel.x * h; collideBody(b, 'x'); b.pos.z += b.vel.z * h; collideBody(b, 'z');
+    const prevY = b.pos.y; b.onGround = false; b.pos.y += b.vel.y * h; collideBody(b, 'y', prevY);
+    if (b.pos.y < 0 && prevY >= -0.4) { b.pos.y = 0; b.onGround = true; }
+    if (b.onGround) { b.lastGround = time; if (b.vel.y < 0) b.vel.y = 0; }
+  }
+  // stay over the island
+  const dc = Math.hypot(b.pos.x, b.pos.z), lim = ARENA_R - 4; if (dc > lim) { b.pos.x *= lim / dc; b.pos.z *= lim / dc; }
+  const hs = Math.hypot(b.vel.x, b.vel.z);
+  if (b.blocked) { if (hs > 12) { damageVeh(v, Math.round(hs * 1.5), tA.copy(b.pos).setY(b.pos.y + 1), true); shake = Math.max(shake, 0.35); noise(0.3, 0.4, 500, 'lowpass'); tone(90, 45, 0.25, 0.3, 'sine'); } b.vel.x *= 0.3; b.vel.z *= 0.3; }
+  if (b.onGround && !wasGround && vy0 < -11) { damageVeh(v, Math.round(-vy0 * 3), tA.copy(b.pos), true); shake = Math.max(shake, 0.3); noise(0.25, 0.35, 300, 'lowpass'); }
+  // lean into the way it's flying
+  const vf = b.vel.x * fx + b.vel.z * fz, vl = b.vel.x * rx + b.vel.z * rz;
+  v.speed = vf; v.lat = vl; v.yawD = 0;
+  v.pitch = damp(v.pitch || 0, b.onGround ? 0 : -0.3 * vf / T.top, 4, dt); v.roll = damp(v.roll || 0, b.onGround ? 0 : -0.35 * vl / T.top, 4, dt);
+  seatPos(v, player.pos); player.vel.copy(b.vel); player.onGround = false; player.lastGround = time;
+  if (engine) {
+    const c = A.ctx, k = Math.min(1, hs / T.top);
+    engine.o.frequency.setTargetAtTime(38 + v.spool * 22 + k * 14 + (up > 0 ? 6 : 0), c.currentTime, 0.15);
+    engine.g.gain.setTargetAtTime(0.03 + v.spool * 0.05, c.currentTime, 0.15);
+    if (engine.lfo) engine.lfo.frequency.setTargetAtTime(4 + v.spool * 10, c.currentTime, 0.2);
+  }
+}
 // the golf cart sends anyone it hits flying
 function vehRam(v) {
   const b = v.body, fx = -Math.sin(v.yaw) * Math.sign(v.speed), fz = -Math.cos(v.yaw) * Math.sign(v.speed), sp = Math.abs(v.speed);
@@ -11749,6 +12113,7 @@ function peerVehicle(o, d, pid, myKey, dt) {
   o.seated = 0;
   if (Array.isArray(d.vh) && d.vh.length >= 6) {
     const vid = String(d.vh[0]), v = VEH.get(vid) || (mode === 'rally' && vid === 'k' + pid ? addVeh(vid, 'kart', +d.vh[1] || 0, +d.vh[3] || 0, +d.vh[4] || 0, KARTS[d.ks] ? d.ks : 'classic', +d.vh[2] || 0) : null);
+    if (v && v.T.fly && d.vh.length >= 8) { v.pitch = clamp(+d.vh[6] || 0, -0.6, 0.6); v.roll = clamp(+d.vh[7] || 0, -0.6, 0.6); }
     if (v && !v.dead) {
       if (v === DRV && pid < myId) { leaveVehicle(); toast('Someone else got in first'); }
       if (v !== DRV) {
@@ -11760,6 +12125,8 @@ function peerVehicle(o, d, pid, myKey, dt) {
       }
     }
   }
+  // their horn
+  if (Array.isArray(d.hn) && d.hn.length === 2) { if (o.hnSeen == null) o.hnSeen = d.hn[0]; else if (d.hn[0] !== o.hnSeen) { o.hnSeen = d.hn[0]; if (HORNS[d.hn[1]]) { const pf = panFor(o.pos); playHorn(String(d.hn[1]), pf.pan, pf.v * 1.3); } } }
   if (d.vd && typeof d.vd === 'object') for (const id in d.vd) { const v = VEH.get(id), n = +d.vd[id] || 0; if (v && n > (v.dmg.get(pid) || 0)) { v.dmg.set(pid, n); v.lastBy = pid; } }
   // run over by their golf cart?
   if (Array.isArray(d.vl)) {
@@ -11782,8 +12149,10 @@ function vehicleBoom(v) {
   const near = at.distanceTo(player.pos); if (near < 30) shake = Math.max(shake, 0.45 * (1 - near / 30));
   const by = v.lastBy && v.lastBy !== myId ? v.lastBy : '';
   if (DRV === v) {
-    leaveVehicle(); player.vel.y = 9; player.onGround = false; player.lastGround = -9; player.invuln = 0;
-    hurt(85, { killer: by, text: `Your ${v.T.name.replace("JC's ", '')} blew up` });
+    leaveVehicle(); player.vel.y = 9; player.onGround = false; player.lastGround = -9; player.invuln = 0; RY.glide = false;
+    // a helicopter going up takes the pilot with it
+    if (v.T.fly) { player.over = 0; hurt(9999, { killer: by, text: 'Your helicopter was shot down', fatal: true }); }
+    else hurt(85, { killer: by, text: `Your ${v.T.name.replace("JC's ", '')} blew up` });
   } else if (near < 6 && player.alive) { player.invuln = 0; hurt(Math.round(40 * (1 - near / 6)), { killer: by, text: `Caught in a ${v.T.name.replace("JC's ", '')} explosion` }); }
 }
 const vehLive = () => mode !== 'royale' || GS.rph === 1;
@@ -11804,7 +12173,13 @@ function updateVehicles(dt) {
     if (vehHp(v) <= 0) { vehicleBoom(v); continue; }
     const b = v.body;
     if (RTER && v !== DRV) { const fx = -Math.sin(v.yaw), fz = -Math.cos(v.yaw), a = groundY(b.pos.x + fx * 1.3, b.pos.z + fz * 1.3) - groundY(b.pos.x - fx * 1.3, b.pos.z - fz * 1.3); v.pitch = damp(v.pitch || 0, Math.atan2(a, 2.6), 8, dt); }
-    v.g.position.copy(b.pos); v.g.rotation.set(v.pitch || 0, v.yaw, 0);
+    // a helicopter nobody is flying drops to the ground
+    if (v.T.fly && v !== DRV && !v.driver) { b.vel.x = b.vel.z = 0; stepBody(b, dt); }
+    if (v.rotor) {
+      v.rotorS = damp(v.rotorS || 0, v === DRV ? v.spool || 0 : v.driver ? 1 : 0, v.driver ? 2 : 0.4, dt);
+      v.rotor.rotation.y += v.rotorS * 32 * dt; v.tail.rotation.x += v.rotorS * 45 * dt; v.disc.material.opacity = v.rotorS * 0.16;
+    }
+    v.g.position.copy(b.pos); v.g.rotation.set(v.pitch || 0, v.yaw, v.roll || 0);
     if (v.steerM) { v.steerM.rotation.z = (v.steerVis || 0) * 2.2; for (const w of v.front || []) w.rotation.y = (v.steerVis || 0) * 0.45; }
     v.g.visible = Math.abs(b.pos.x - cp.x) < 220 && Math.abs(b.pos.z - cp.z) < 220;
     if (!v.g.visible) continue;
@@ -11817,20 +12192,25 @@ function updateVehicles(dt) {
   const show = !!DRV && !$('hud').hidden && mode !== 'rally';
   $('vehUI').hidden = !show;
   if (show) {
-    const hp = Math.max(0, vehHp(DRV)), pct = Math.round(hp / DRV.T.hp * 100);
-    setText('vehName', `${DRV.T.name.toUpperCase()} · ${Math.round(Math.abs(DRV.speed) * 3.6)} KM/H`);
+    const hp = Math.max(0, vehHp(DRV)), pct = Math.round(hp / DRV.T.hp * 100), fly = DRV.T.fly;
+    setText('vehName', `${DRV.T.name.toUpperCase()} · ${Math.round((fly ? Math.hypot(DRV.body.vel.x, DRV.body.vel.z) : Math.abs(DRV.speed)) * 3.6)} KM/H${fly ? ` · ${Math.round(DRV.body.pos.y)} M UP` : ''}`);
     setStyle($('vehBar'), 'width', pct + '%'); $('vehBar').classList.toggle('low', pct <= 35);
-    setText('vehKeys', `${bindLabel('use').toUpperCase()} GET OUT · ${bindLabel('jump').toUpperCase()} HANDBRAKE${DRV.T.ram ? ' · RAM PEOPLE TO LAUNCH THEM' : ''}`);
+    setText('vehKeys', fly ? (DRV.spool < 1 ? 'STARTING THE ROTOR…' : `${bindLabel('use').toUpperCase()} JUMP OUT · ${bindLabel('jump').toUpperCase()} UP · ${bindLabel('dash').toUpperCase()} DOWN · ${bindLabel('horn').toUpperCase()} HORN`) : `${bindLabel('use').toUpperCase()} GET OUT · ${bindLabel('jump').toUpperCase()} HANDBRAKE · ${bindLabel('horn').toUpperCase()} HORN${DRV.T.ram ? ' · RAM PEOPLE TO LAUNCH THEM' : ''}`);
   }
 }
 function startEngine(t) {
   if (!A.ctx || engine) return;
   const c = A.ctx, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
-  o.type = t === 'cart' ? 'sawtooth' : 'triangle'; o.frequency.value = t === 'cart' ? 55 : 110; f.type = 'lowpass'; f.frequency.value = t === 'cart' ? 420 : 900;
-  g.gain.value = 0.0001; o.connect(f); f.connect(g); g.connect(A.sfx); o.start();
-  engine = { o, g };
+  o.type = t === 'cart' || t === 'heli' ? 'sawtooth' : 'triangle'; o.frequency.value = t === 'heli' ? 40 : t === 'cart' ? 55 : 110; f.type = 'lowpass'; f.frequency.value = t === 'heli' ? 280 : t === 'cart' ? 420 : 900;
+  g.gain.value = 0.0001; o.connect(f);
+  let lfo = null;
+  // the helicopter's thump: a slow wobble on the volume
+  if (t === 'heli') { const chop = c.createGain(), amp = c.createGain(); chop.gain.value = 0.6; amp.gain.value = 0.4; lfo = c.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 4; lfo.connect(amp); amp.connect(chop.gain); f.connect(chop); chop.connect(g); lfo.start(); }
+  else f.connect(g);
+  g.connect(A.sfx); o.start();
+  engine = { o, g, lfo };
 }
-function stopEngine() { if (!engine) return; const { o, g } = engine; engine = null; g.gain.setTargetAtTime(0.0001, A.ctx.currentTime, 0.08); o.stop(A.ctx.currentTime + 0.4); }
+function stopEngine() { if (!engine) return; const { o, g, lfo } = engine; engine = null; g.gain.setTargetAtTime(0.0001, A.ctx.currentTime, 0.08); o.stop(A.ctx.currentTime + 0.4); if (lfo) lfo.stop(A.ctx.currentTime + 0.4); }
 // ================= Rally Kart: the race =================
 // The host runs the stage clock and the points. Every racer tracks their own place on the track and reports it
 // (kp: race, stage, metres, finish time, shield), and items are shared as events (kv) like everything else.
@@ -12115,6 +12495,15 @@ function rkBotVis(e, dt) {
 }
 function updateRoyale(dt) {
   if (mode !== 'royale') return;
+  // your team for this match
+  { const t = brTeams() && GS.rph === 1 ? (GS.bt[myId] ?? -1) : -1; if (t !== myTeam) myTeam = t; }
+  // downed in Duos / Squads: you bleed out, faster in the storm, and if nobody on your team is still up you're out
+  if (player.downed && brTeams() && (state === 'playing' || state === 'paused')) {
+    const storm = Math.hypot(player.pos.x - GS.zc[0], player.pos.z - GS.zc[1]) > GS.zc[2];
+    player.downHp -= dt * (storm ? 9 : 3.5);
+    if (player.downHp <= 0 || GS.rph !== 1) brFinish({ text: 'knocked you out' });
+    else if (!brMateUp()) { RY.noMateT = (RY.noMateT || 0) + dt; if (RY.noMateT > 0.6) brFinish({ text: 'knocked you out' }); } else RY.noMateT = 0;
+  }
   // this match's loot
   const want = GS.rph === 1 ? GS.rsd : 0;
   if (RL.seed !== want) royaleLoot(want);
@@ -12171,7 +12560,7 @@ function updateRoyale(dt) {
   }
   const n = RY.near, show = !!n && !$('hud').hidden;
   $('useUI').hidden = !show;
-  if (show) { setText('useTxt', n.veh ? `${bindLabel('use').toUpperCase()} · ${VEH.get(n.veh) ? (VEH.get(n.veh).t === 'cart' ? 'DRIVE THE GOLF CART' : "RIDE JC'S EBIKE") : ''}` : n.it ? `${bindLabel('use').toUpperCase()} · PICK UP ${RAR[n.it.c.b].n.toUpperCase()} ${WEAPONS[n.it.c.a].name.toUpperCase()}` : n.sup != null ? `${bindLabel('use').toUpperCase()} · OPEN SUPPLY DROP` : `${bindLabel('use').toUpperCase()} · OPEN CHEST`); setStyle($('useBar'), 'width', '0%'); }
+  if (show) { setText('useTxt', n.veh ? `${bindLabel('use').toUpperCase()} · ${VEH.get(n.veh) ? ({ cart: 'DRIVE THE GOLF CART', heli: 'FLY THE HELICOPTER' }[VEH.get(n.veh).t] || "RIDE JC'S EBIKE") : ''}` : n.it ? `${bindLabel('use').toUpperCase()} · PICK UP ${RAR[n.it.c.b].n.toUpperCase()} ${WEAPONS[n.it.c.a].name.toUpperCase()}` : n.sup != null ? `${bindLabel('use').toUpperCase()} · OPEN SUPPLY DROP` : `${bindLabel('use').toUpperCase()} · OPEN CHEST`); setStyle($('useBar'), 'width', '0%'); }
   // healing
   if (RY.using) {
     const H = HEALS[RY.using.t], k = (time - RY.using.t0) / H.t;
