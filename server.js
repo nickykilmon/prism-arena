@@ -167,6 +167,25 @@ function lbMerge(client, entries, LB = BOARDS.waves) {
     for (const [pid] of all.slice(1000)) LB.delete(pid);
   }
 }
+// Rally Kart best stage times: "map:stage" -> Map(pid -> { n, t, k }). Saved to disk; players also re-send their own
+// bests when they connect, so the board survives a wiped disk.
+const RTIMES = new Map(), RT_FILE = path.join(__dirname, 'data', 'rally.json'), RT_KEY = /^rally(-[a-z]+)?:[0-2]$/, RT_MAP = /^rally(-[a-z]+)?$/;
+let rtDirty = false;
+const rtName = n => String(n || 'Racer').replace(/[\u0000-\u001f]/g, '').slice(0, 14) || 'Racer', rtKart = k => /^[a-z0-9]{1,16}$/.test(String(k || '')) ? String(k) : 'classic';
+function rtAdd(pid, key, time, n, k) {
+  const tm = Math.round(+time * 100) / 100;
+  if (!PID_RE.test(pid) || !RT_KEY.test(key) || !(tm >= 15 && tm < 900)) return false;
+  let m = RTIMES.get(key); if (!m) RTIMES.set(key, m = new Map());
+  const cur = m.get(pid);
+  if (cur && cur.t <= tm) { if (cur.n !== n) { cur.n = n; rtDirty = true; } return false; }
+  m.set(pid, { n, t: tm, k }); rtDirty = true;
+  if (m.size > 600) for (const [p] of [...m.entries()].sort((a, b) => a[1].t - b[1].t).slice(500)) m.delete(p);
+  return true;
+}
+const rtTop = map => [0, 1, 2].map(i => [...(RTIMES.get(map + ':' + i) || new Map()).entries()].map(([pid, v]) => ({ pid, n: v.n, t: v.t, k: v.k })).sort((a, b) => a.t - b.t).slice(0, 25));
+try { for (const [key, list] of Object.entries(JSON.parse(fs.readFileSync(RT_FILE, 'utf8')))) if (RT_KEY.test(key) && Array.isArray(list)) for (const e of list) if (e) rtAdd(String(e.pid), key, e.t, rtName(e.n), rtKart(e.k)); } catch {}
+rtDirty = false;
+setInterval(() => { if (!rtDirty) return; rtDirty = false; try { fs.mkdirSync(path.dirname(RT_FILE), { recursive: true }); fs.writeFileSync(RT_FILE, JSON.stringify(Object.fromEntries([...RTIMES].map(([k, m]) => [k, [...m].map(([pid, v]) => ({ pid, ...v }))])))); } catch {} }, 15000);
 // Player profiles (look + stats). Each player re-uploads their own whenever they connect.
 const PROF = new Map();
 const STAT_KEYS = ['k', 'd', 'w', 'bk', 'inf', 'gp', 'pt', 'ch', 'bw', 'bs', 'br', 'mp', 'gs', 'tr'];
@@ -399,6 +418,13 @@ wss.on('connection', ws => {
       const board = BOARDS[m.board] ? m.board : 'waves';
       lbMerge(client, m.entries, BOARDS[board]);
       send(ws, JSON.stringify({ t: 'lbtop', board, list: lbTop(BOARDS[board]) }));
+    } else if (m.t === 'rt' && client.pid && typeof m.key === 'string') {
+      rtAdd(client.pid, m.key, m.time, rtName(m.n), rtKart(m.k));
+      const map = m.key.split(':')[0]; if (RT_MAP.test(map)) send(ws, JSON.stringify({ t: 'rtop', map, st: rtTop(map) }));
+    } else if (m.t === 'rtall' && client.pid && Array.isArray(m.list)) {
+      for (const e of m.list.slice(0, 40)) if (Array.isArray(e) && typeof e[0] === 'string') rtAdd(client.pid, e[0], e[1], rtName(m.n), rtKart(m.k));
+    } else if (m.t === 'rtget' && typeof m.map === 'string' && RT_MAP.test(m.map)) {
+      send(ws, JSON.stringify({ t: 'rtop', map: m.map, st: rtTop(m.map) }));
     } else if (m.t === 'lbget') {
       const boards = Array.isArray(m.boards) ? m.boards.filter(b => BOARDS[b]) : ['waves'];
       for (const board of boards) send(ws, JSON.stringify({ t: 'lbtop', board, list: lbTop(BOARDS[board]) }));

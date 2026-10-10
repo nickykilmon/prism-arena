@@ -232,6 +232,8 @@ table.lb .you{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:6
 #useUI{position:absolute;left:50%;top:61%;transform:translateX(-50%);text-align:center;font-family:var(--display);font-size:14px;letter-spacing:.12em;color:var(--fg);text-shadow:0 2px 6px rgba(0,0,0,.85);white-space:nowrap}
 #useUI kbd{font-size:12px}
 .rallymode #br,.rallymode #bc,.rallymode #cross,.rallymode #bl,.rallymode #top,.rallymode #hint{display:none!important}
+.rkmaps{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}.rkmaps button{font:inherit;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}.rkmaps button.sel{border-color:var(--cyan);color:var(--cyan)}
+table.lb td.stg{font-family:var(--display);font-size:11px;letter-spacing:.16em;color:var(--amber);padding-top:12px}table.lb td.dim{color:var(--dim);font-size:12px}
 #rkUI{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;gap:16px;align-items:center;font-family:var(--display);text-shadow:0 2px 8px rgba(0,0,0,.7)}
 #rkUI .rkpos b{font-size:46px;font-weight:800;color:var(--amber)}#rkUI .rkpos span{font-size:20px;color:var(--fg)}
 #rkUI .rkinfo{display:flex;flex-direction:column;gap:2px}#rkUI .rkinfo b{font-size:12px;letter-spacing:.18em;color:var(--dim)}#rkUI .rkinfo span{font-size:24px;font-variant-numeric:tabular-nums}#rkUI .rkinfo small{font-size:12px;letter-spacing:.14em;color:var(--dim)}
@@ -621,9 +623,10 @@ table.lb tbody tr:hover td{background:rgba(255,255,255,.04)}
       </div>
     </div>
     <div class="pane" id="lbPane" hidden>
-      <div class="seg" id="lbTabs" style="grid-template-columns:1fr 1fr"><button data-b="waves">SQUAD WAVES</button><button data-b="boss">BOSS RAID</button></div>
+      <div class="seg" id="lbTabs" style="grid-template-columns:1fr 1fr 1fr"><button data-b="waves">SQUAD WAVES</button><button data-b="boss">BOSS RAID</button><button data-b="rally">RALLY KART</button></div>
       <div class="lbhead"><b id="lbTitle">SQUAD WAVES · BEST WAVE</b><p id="lbNote">Loading…</p></div>
-      <div class="lbwrap"><table class="lb"><thead><tr><th>#</th><th>Pilot</th><th class="n" id="lbCol">Wave</th><th class="n">Score</th></tr></thead><tbody id="lbBody"></tbody></table></div>
+      <div class="rkmaps" id="lbRally" hidden></div>
+      <div class="lbwrap"><table class="lb"><thead><tr><th>#</th><th>Pilot</th><th class="n" id="lbCol">Wave</th><th class="n" id="lbCol2">Score</th></tr></thead><tbody id="lbBody"></tbody></table></div>
     </div>
     <div class="pane" id="frPane" hidden>
       <div class="lbhead"><b>FRIENDS</b><p id="frNote"></p></div>
@@ -1174,6 +1177,7 @@ setInterval(() => { if (state === 'menu' || (state === 'paused' && !$('menu').hi
 // ================= news (newest first) =================
 // Add a new entry at the top whenever the game gets an update. Season cards below are automatic.
 const NEWS = [
+  { id: 'kart-models-lb', date: '2026-10-10', title: 'Wild Karts & Rally Records', lines: ['Six new golf cart skins with their own models: Shark Attack, Hot Dog, Rubber Duck, Rocket, Dragon and Bathtub', 'Rally Kart leaderboard: the fastest time on every stage of every rally map. Find it under Leaderboard → Rally Kart', 'The stage record shows when each stage starts, and you get a message when you beat your personal best'] },
   { id: 'rally-wrc', date: '2026-10-09', title: 'Rally Kart, Rally Style', lines: ['Rally stages are now narrow, twisty and walled in by trees, over rolling hills with crests and jumps that throw you into the air (warning boards tell you one is coming)', 'You drive in first person now, and the steering wheel and front wheels turn with you', 'W gas, S brake and reverse, A / D steer, Space is the handbrake: pull it to slide and drift round hairpins. No more hopping', 'Hover a golf cart skin in the Shop or Customize to see it, with you sitting in it'] },
   { id: 'rally-kart', date: '2026-10-09', title: 'Rally Kart, Golf Cart Skins & The Golfer', lines: ['New mode: Rally Kart. Race golf carts against players and bots over 3 rally stages, with points after every stage. Drive through ? boxes for a Turbo, Rocket, Oil Slick, Shield or Super Hop and click to use it. Boost pads and jump pads too, and R puts you back on the track', 'Seasonal rally maps with 3 themed stages each, only while their season is on. Spooky Rally is out now for Halloween', '10 golf cart skins in the shop, including Inferno, Neon Rider, 24K Gold, Galaxy and Monster Truck. Your skin shows in Rally Kart and in any cart you drive', 'New skin with its own model: The Golfer', 'Map editor: place golf carts (under Gameplay) so people can drive them on your map'] },
   { id: 'br-vehicles', date: '2026-10-09', title: "Golf Carts & JC's eBikes", lines: ['Battle Royale: golf carts and JC\'s eBikes are parked outside every named place. Press E to get in, W / S to drive, A / D to steer, Space to hop, E to get out', 'Ram people with a golf cart to send them flying (and hurt them)', 'Drivers can still be shot. Vehicles have health too: shoot one enough and it explodes, badly hurting whoever is inside', 'No more dashing in Battle Royale: use a vehicle to get around fast'] },
@@ -1476,6 +1480,12 @@ const KARTS = {
   neon: { name: 'Neon Rider', price: 2000, cool: 1, b: 0x0c0a16, r: 0x0c0a16, s: 0x1a1430, neon: 1, glow: [0.4, 2.6, 3], pv: 'linear-gradient(180deg,transparent 46%,#5ff2ff 46% 50%,transparent 50% 86%,#5ff2ff 86% 92%,transparent 92%),linear-gradient(180deg,#ff4fd8 0 4%,#0c0a16 4%)' },
   gold: { name: '24K Gold', price: 2500, cool: 1, b: 'gold', r: 0x16161a, s: 0x3a1a0a, pv: 'linear-gradient(180deg,#16161a 0 20%,transparent 20% 24%,transparent 74%,#d8dce6 74%),linear-gradient(135deg,#fff3c4,#e8a92e 45%,#ffe08a 60%,#9a6510)' },
   galaxy: { name: 'Galaxy', price: 2200, cool: 1, b: 'galaxy', r: 0x2a0f45, s: 0x150c30, glow: [1.6, 0.6, 3], pv: 'radial-gradient(circle at 70% 40%,#b06bff66,transparent 40%),radial-gradient(#fff 1px,transparent 1.5px) 0 0/9px 9px,linear-gradient(180deg,#2a0f45 0 20%,#150c30 20%)' },
+  shark: { name: 'Shark Attack', price: 3000, cool: 1, model: 'shark', b: 0x6f8fa8, r: 0x6f8fa8, s: 0x16161a, pv: 'radial-gradient(circle at 26% 46%,#111 0 4%,transparent 5%),linear-gradient(170deg,transparent 30%,#f4f6fa 30% 42%,transparent 42%),conic-gradient(from 200deg at 60% 30%,#6f8fa8 0 40deg,transparent 40deg),linear-gradient(180deg,transparent 35%,#6f8fa8 35% 70%,#f4f6fa 70% 80%,transparent 80%)' },
+  hotdog: { name: 'Hot Dog', price: 2600, cool: 1, model: 'hotdog', b: 0xe2a65a, r: 0xe2a65a, s: 0xd8343c, pv: 'linear-gradient(90deg,transparent 10%,#ffd21f 10% 14%,transparent 14% 30%,#ffd21f 30% 34%,transparent 34% 50%,#ffd21f 50% 54%,transparent 54% 70%,#ffd21f 70% 74%,transparent 74%) 0 45%/100% 8% no-repeat,linear-gradient(180deg,transparent 30%,#e2a65a 30% 44%,#b8402a 44% 58%,#e2a65a 58% 72%,transparent 72%)' },
+  duck: { name: 'Rubber Duck', price: 2800, cool: 1, model: 'duck', b: 0xffd23a, r: 0xffd23a, s: 0xff8a1f, pv: 'radial-gradient(circle at 70% 30%,#111 0 3%,transparent 4%),radial-gradient(ellipse at 84% 38%,#ff8a1f 0 9%,transparent 10%),radial-gradient(circle at 66% 34%,#ffd23a 0 16%,transparent 17%),radial-gradient(ellipse at 45% 68%,#ffd23a 0 34%,transparent 35%),#7fd0ff' },
+  rocket: { name: 'Rocket', price: 3200, cool: 1, model: 'rocket', b: 0xf4f4f0, r: 0xd8343c, s: 0x16161a, pv: 'radial-gradient(ellipse at 8% 55%,#ffd23a 0 8%,#ff6a1a 9% 16%,transparent 17%),conic-gradient(from 60deg at 88% 55%,#d8343c 0 60deg,transparent 60deg),linear-gradient(180deg,transparent 38%,#f4f4f0 38% 72%,transparent 72%) 20% 0/68% 100% no-repeat,#1d2440' },
+  dragon: { name: 'Dragon', price: 3500, cool: 1, model: 'dragon', b: 0x2f8a3a, r: 0x2f8a3a, s: 0x16161a, pv: 'radial-gradient(circle at 78% 28%,#ff3a1a 0 3%,transparent 4%),conic-gradient(from 300deg at 50% 50%,#1f5a2a 0 70deg,transparent 70deg 290deg,#1f5a2a 290deg),radial-gradient(ellipse at 50% 62%,#2f8a3a 0 34%,transparent 35%),#1d2440' },
+  tub: { name: 'Bathtub', price: 2600, cool: 1, model: 'tub', b: 0xf8f8f4, r: 0xf8f8f4, s: 0x9ad8ff, pv: 'radial-gradient(circle at 30% 40%,#fff 0 6%,transparent 7%),radial-gradient(circle at 45% 34%,#fff 0 4%,transparent 5%),linear-gradient(180deg,transparent 36%,#7fd0ff 36% 46%,#f8f8f4 46% 74%,transparent 74%),radial-gradient(circle at 20% 82%,#ffc84a 0 5%,transparent 6%),radial-gradient(circle at 80% 82%,#ffc84a 0 5%,transparent 6%),#1d2440' },
   monster: { name: 'Monster Truck', price: 2500, cool: 1, b: 0x6adf2a, r: 0x16161a, s: 0x16161a, big: 1, pv: 'radial-gradient(circle at 25% 80%,#16161a 0 17%,#d8dce6 17% 20%,transparent 21%),radial-gradient(circle at 75% 80%,#16161a 0 17%,#d8dce6 17% 20%,transparent 21%),linear-gradient(180deg,#16161a 0 14%,transparent 14% 20%,#6adf2a 20% 55%,transparent 55%)' },
 };
 const FINISHES = {
@@ -4540,7 +4550,7 @@ function wsAdapter(name) {
   const pm = new Map(); let id = null, ws = null, alive = true, mine = {};
   function connect() {
     try { ws = new WebSocket(base + '/ws'); } catch { return; }
-    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); { const k = store.get('linktok', null); if (k && Array.isArray(k.g)) ws.send(JSON.stringify({ t: 'link', op: 'restore', g: k.g, sig: k.sig })); } ws.send(JSON.stringify({ t: 'clan', op: 'get' })); if (Object.keys(myMaps).length) ws.send(JSON.stringify({ t: 'mapmine', ids: Object.keys(myMaps) })); ws.send(JSON.stringify({ t: 'join', room: name })); for (const k of Object.keys(LBD)) ws.send(JSON.stringify({ t: 'lb', board: k, entries: lbPayload(true, k) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
+    ws.onopen = () => { ws.send(JSON.stringify({ t: 'id', pid: PID })); setTimeout(rtSync, 600); { const k = store.get('linktok', null); if (k && Array.isArray(k.g)) ws.send(JSON.stringify({ t: 'link', op: 'restore', g: k.g, sig: k.sig })); } ws.send(JSON.stringify({ t: 'clan', op: 'get' })); if (Object.keys(myMaps).length) ws.send(JSON.stringify({ t: 'mapmine', ids: Object.keys(myMaps) })); ws.send(JSON.stringify({ t: 'join', room: name })); for (const k of Object.keys(LBD)) ws.send(JSON.stringify({ t: 'lb', board: k, entries: lbPayload(true, k) })); ws.send(JSON.stringify({ t: 'prof', p: myProfile() })); if (friends.length) ws.send(JSON.stringify({ t: 'who', pids: friends.map(f => f.pid) })); };
     ws.onmessage = e => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'hello') id = m.id;
@@ -4548,6 +4558,7 @@ function wsAdapter(name) {
       else if (m.t === 'u') pm.set(m.id, m.d || {});
       else if (m.t === 'bye') pm.delete(m.id);
       else if (m.t === 'lbtop') onLBTop(m.list, m.board || 'waves');
+      else if (m.t === 'rtop') onRTop(m);
       else if (m.t === 'pay' || m.t === 'ack') onPayMessage(m, o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); });
       else if (/^(gift|giftack|trade|tradeacc|tradedone|tradeno)$/.test(m.t)) onTrade(m);
       else if (/^map/.test(m.t)) onMaps(m);
@@ -6207,7 +6218,7 @@ function setMenuTab(t) {
   document.querySelector('#menu .slab').classList.toggle('wide', t === 'shop' || t === 'custom'); $('setPane').hidden = t !== 'set'; $('lbPane').hidden = t !== 'lb'; $('frPane').hidden = t !== 'friends'; $('profPane').hidden = t !== 'prof';
   if (t === 'friends') { renderFriends(); askWho(); renderClan(); clanOp({ op: 'top' }); }
   if (t === 'prof' || was === 'prof') buildShowcase();
-  if (t === 'lb') { renderLB(); if (conn && conn.send && conn.connected()) conn.send({ t: 'lbget', boards: Object.keys(LBD) }); }
+  if (t === 'lb') { if (RALLY && lbBoard === 'waves' && !renderLB.opened) lbBoard = 'rally'; renderLB.opened = true; renderLB(); if (conn && conn.send && conn.connected()) { conn.send({ t: 'lbget', boards: Object.keys(LBD) }); conn.send({ t: 'rtget', map: rtMap }); } }
   if (t === 'set') { syncSettingsUI(); renderBinds(); }
   else if (bindCapture) { bindCapture = null; }
   if (t === 'shop' || t === 'custom') { renderShop(); buildShowcase(); }
@@ -9384,6 +9395,43 @@ const LBD = {
   waves: { cache: 'lbcache', title: 'SQUAD WAVES · BEST WAVE', col: 'Wave', empty: 'No runs yet. Survive a wave in Squad Waves to get on the board.' },
   boss: { cache: 'lbcache_boss', title: 'BOSS RAID · FURTHEST ROUND', col: 'Round', empty: 'No raids yet. Reach a round in Boss Raid to get on the board.' },
 };
+// Rally Kart best stage times: your own bests are kept here (and re-sent when you connect); the server keeps everyone's
+const RKB = (() => { const o = store.get('rkbest', {}); return o && typeof o === 'object' ? o : {}; })();
+const RTOP = {}; let rtMap = RALLY ? settings.map : 'rally';
+const rkKey = () => settings.map + ':' + GS.kst;
+function rkRecord(t) {
+  const key = rkKey(), old = RKB[key];
+  if (!(old > 0) || t < old) { RKB[key] = t; store.set('rkbest', RKB); if (old > 0) toast(`New personal best: ${rkFmt(t)} (was ${rkFmt(old)})`); }
+  if (conn && conn.send && conn.connected()) conn.send({ t: 'rt', key, time: t, n: settings.name, k: settings.kart });
+}
+function rtSync() { if (!(conn && conn.send && conn.connected())) return; const list = Object.entries(RKB).filter(([k, v]) => /^rally(-[a-z]+)?:[0-2]$/.test(k) && v > 0); if (list.length) conn.send({ t: 'rtall', list, n: settings.name, k: settings.kart }); conn.send({ t: 'rtget', map: rtMap }); if (RALLY && rtMap !== settings.map) conn.send({ t: 'rtget', map: settings.map }); }
+function onRTop(m) {
+  if (!RALLY_MAPS[m.map] || !Array.isArray(m.st)) return;
+  RTOP[m.map] = m.st.slice(0, 3).map(l => (Array.isArray(l) ? l : []).filter(e => e && /^P-[a-z0-9]{10,24}$/.test(e.pid) && +e.t > 0).map(e => ({ pid: e.pid, n: String(e.n || 'Racer').slice(0, 14), t: +e.t, k: KARTS[e.k] ? e.k : 'classic' })));
+  if (menuTab === 'lb' && lbBoard === 'rally') renderLB();
+}
+const rkRecordFor = st => { const l = (RTOP[settings.map] || [])[st]; return l && l[0]; };
+function renderRallyLB() {
+  $('lbTitle').textContent = 'RALLY KART · BEST STAGE TIMES'; $('lbCol').textContent = 'Time'; $('lbCol2').textContent = 'Kart';
+  const maps = Object.keys(RALLY_MAPS).filter(id => mapOpen(id) || RTOP[id] || Object.keys(RKB).some(k => k.startsWith(id + ':')));
+  $('lbRally').hidden = false;
+  $('lbRally').innerHTML = maps.map(id => `<button class="${id === rtMap ? 'sel' : ''}" data-m="${id}">${esc(RALLY_MAPS[id].name)}</button>`).join('');
+  const tb = $('lbBody'); tb.textContent = '';
+  RALLY_MAPS[rtMap].stages.forEach(([name], i) => {
+    const hd = document.createElement('tr'), th = document.createElement('td'); th.colSpan = 4; th.className = 'stg'; th.textContent = `STAGE ${i + 1} · ${name.toUpperCase()}`; hd.appendChild(th); tb.appendChild(hd);
+    const rows = ((RTOP[rtMap] || [])[i] || []).filter(e => e.pid !== PID), own = RKB[rtMap + ':' + i];
+    if (own > 0) rows.push({ pid: PID, n: settings.name, t: own, k: settings.kart });
+    rows.sort((a, b) => a.t - b.t);
+    rows.slice(0, 10).forEach((r, k) => {
+      const tr = document.createElement('tr'); tr.className = (r.pid === PID ? 'me ' : '') + (k < 3 ? 'g' + (k + 1) : '');
+      tr.innerHTML = `<td class="rk">${k + 1}</td><td>${esc(r.n)}${r.pid === PID ? '<span class="you">YOU</span>' : ''}</td><td class="n">${rkFmt(r.t)}</td><td class="n">${esc(KARTS[r.k] ? KARTS[r.k].name : '')}</td>`;
+      tr.addEventListener('click', () => openProfile(r.pid, r.n)); tb.appendChild(tr);
+    });
+    if (!rows.length) { const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 4; td.className = 'dim'; td.textContent = 'No times yet. Finish this stage to set one.'; tr.appendChild(td); tb.appendChild(tr); }
+  });
+  $('lbNote').textContent = netKind !== 'ws' ? 'The global board needs the website version. Showing your own bests.' : RTOP[rtMap] ? 'Fastest time on each stage · live' : 'Connecting…';
+}
+$('lbRally').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (!b) return; rtMap = b.dataset.m; if (conn && conn.send && conn.connected()) conn.send({ t: 'rtget', map: rtMap }); renderLB(); });
 const validLB = e => e && typeof e.pid === 'string' && /^P-[a-z0-9]{10,24}$/.test(e.pid) && Number.isFinite(+e.w) && +e.w > 0;
 for (const B of Object.values(LBD)) { B.list = store.get(B.cache, []); if (!Array.isArray(B.list)) B.list = []; B.live = false; }
 let lbBoard = 'waves';
@@ -9398,6 +9446,9 @@ function onLBTop(list, board = 'waves') {
 }
 document.querySelectorAll('#lbTabs button').forEach(b => b.addEventListener('click', () => { lbBoard = b.dataset.b; renderLB(); }));
 function renderLB() {
+  document.querySelectorAll('#lbTabs button').forEach(b => b.classList.toggle('sel', b.dataset.b === lbBoard));
+  if (lbBoard === 'rally') { renderRallyLB(); return; }
+  $('lbRally').hidden = true; $('lbCol2').textContent = 'Score';
   const B = LBD[lbBoard], own = ownLB(lbBoard), rows = B.list.filter(e => e.pid !== PID);
   document.querySelectorAll('#lbTabs button').forEach(b => b.classList.toggle('sel', b.dataset.b === lbBoard));
   $('lbTitle').textContent = B.title; $('lbCol').textContent = B.col;
@@ -11396,18 +11447,88 @@ function kartMats(id) {
     : S(K.b, { roughness: 0.35, metalness: K.neon ? 0.5 : 0.05 });
   return (C[id] = { body, roof: S(K.r, { roughness: 0.6 }), seat: S(K.s, { roughness: 0.8 }), stripe: K.stripes ? S(K.stripes) : null, glow: K.glow ? new THREE.MeshBasicMaterial({ color: new THREE.Color(...K.glow) }) : null });
 }
+// kart skins with their own bodies (the wheels, seat and steering wheel stay, so first person still works)
+const KMODEL = (() => {
+  const S = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.45, ...o });
+  const add = (p, geo, m, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.scale.set(sx, sy, sz); o.castShadow = true; p.add(o); return o; };
+  const sph = (r, a = 18, b = 12) => gq('kmS' + r + a, () => new THREE.SphereGeometry(r, a, b)), cone = (r, h, n = 10) => gq('kmC' + r + h + n, () => new THREE.ConeGeometry(r, h, n)), cyl = (r1, r2, h, n = 14) => gq('kmY' + r1 + r2 + h + n, () => new THREE.CylinderGeometry(r1, r2, h, n));
+  const caps = (r, l) => gq('kmP' + r + l, () => new THREE.CapsuleGeometry(r, l, 6, 14)), bx = (w, h, d) => gq('kmB' + w + h + d, () => new THREE.BoxGeometry(w, h, d));
+  const mats = {}, mt = (k, c, o) => mats[k] || (mats[k] = S(c, o));
+  return {
+    shark: (p, km) => {
+      const belly = mt('sbelly', 0xf4f6fa), blk = mt('sblk', 0x111111, { roughness: 0.2 }), tooth = mt('stooth', 0xffffff, { roughness: 0.2 });
+      add(p, sph(1, 22, 14), km.body, 0, 0.78, 0.1, 0, 0, 0, 0.78, 0.5, 1.7);
+      add(p, sph(1, 22, 14), belly, 0, 0.62, 0, 0, 0, 0, 0.72, 0.32, 1.55);
+      add(p, cone(0.5, 1.2, 4), km.body, 0, 1.55, 0.85, -0.35, 0, 0, 1, 1, 0.22);
+      add(p, cone(0.5, 1.1, 4), km.body, 0, 1.15, 1.95, 0.75, 0, 0, 0.22, 1, 1);
+      add(p, cone(0.32, 0.6, 4), km.body, 0, 0.62, 2.0, 2.3, 0, 0, 0.22, 1, 1);
+      for (const sx of [-1, 1]) { add(p, cone(0.32, 0.8, 4), km.body, sx * 0.85, 0.55, -0.4, 0, 0, sx * 1.9, 1, 1, 0.25); add(p, sph(0.07), blk, sx * 0.5, 0.92, -1.25); }
+      add(p, bx(0.8, 0.14, 0.28), mt('smouth', 0x5a1020), 0, 0.56, -1.55, -0.3);
+      for (let k = 0; k < 7; k++) { const a = (k / 6 - 0.5) * 1.6; add(p, cone(0.04, 0.12, 4), tooth, Math.sin(a) * 0.36, 0.64, -1.56 - Math.cos(a) * 0.05, Math.PI); }
+    },
+    hotdog: (p, km) => {
+      const dog = mt('hdog', 0xb8402a, { roughness: 0.4 }), must = mt('hmust', 0xffd21f, { emissive: 0x3a2a00 }), ketch = mt('hket', 0xd62828, { roughness: 0.3 });
+      for (const sx of [-1, 1]) add(p, caps(0.34, 2.1), km.body, sx * 0.5, 0.78, 0.05, Math.PI / 2);
+      add(p, caps(0.3, 2.6), dog, 0, 0.66, 0, Math.PI / 2);
+      for (let k = 0; k < 6; k++) add(p, bx(0.42, 0.05, 0.1), k % 2 ? ketch : must, 0, 0.98, -1.4 + k * 0.17, 0, (k % 2 ? 0.6 : -0.6));
+    },
+    duck: (p, km) => {
+      const beak = mt('dbeak', 0xff8a1f), blk = mt('dblk', 0x111111, { roughness: 0.2 });
+      add(p, sph(1, 22, 14), km.body, 0, 0.8, 0.15, 0, 0, 0, 0.85, 0.55, 1.35);
+      add(p, sph(0.42), km.body, 0.38, 1.55, -0.95);
+      add(p, cone(0.16, 0.42, 10), beak, 0.38, 1.47, -1.42, -Math.PI / 2, 0, 0, 1.3, 1, 0.6);
+      for (const sx of [-1, 1]) add(p, sph(0.06), blk, 0.38 + sx * 0.2, 1.68, -1.25);
+      add(p, cone(0.35, 0.6, 10), km.body, 0, 1.2, 1.35, -0.9);
+      for (const sx of [-1, 1]) add(p, sph(1, 14, 10), km.body, sx * 0.82, 0.9, 0.4, 0, 0, sx * 0.4, 0.15, 0.35, 0.6);
+    },
+    rocket: (p, km) => {
+      const red = km.roof, fire = new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.3, 0.25) }), win = mt('rwin', 0x5fc8ff, { emissive: 0x1a4a6a });
+      add(p, cyl(0.58, 0.58, 2.5, 18), km.body, 0, 0.78, 0.1, Math.PI / 2);
+      add(p, cone(0.58, 1.0, 18), red, 0, 0.78, -1.65, -Math.PI / 2);
+      add(p, cyl(0.6, 0.6, 0.18, 18), red, 0, 0.78, 0.9, Math.PI / 2);
+      for (const [x, y, rz] of [[-0.75, 0.78, Math.PI / 2], [0.75, 0.78, Math.PI / 2], [0, 1.5, 0]]) add(p, bx(0.04, 0.7, 0.6), red, x, y, 1.15, 0, 0, rz);
+      add(p, cone(0.45, 0.9, 14), fire, 0, 0.78, 1.85, -Math.PI / 2);
+      for (const sx of [-1, 1]) add(p, cyl(0.12, 0.12, 0.04, 14), win, sx * 0.59, 0.85, -0.6, 0, 0, Math.PI / 2);
+    },
+    dragon: (p, km) => {
+      const belly = mt('gbelly', 0xd8c86a), dark = mt('gdark', 0x1f5a2a, { side: THREE.DoubleSide }), horn = mt('ghorn', 0xf4ecd6), eye = new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.6, 0.2) });
+      add(p, sph(1, 22, 14), km.body, 0, 0.8, 0.15, 0, 0, 0, 0.8, 0.5, 1.5);
+      add(p, sph(1, 22, 14), belly, 0, 0.62, 0.1, 0, 0, 0, 0.7, 0.3, 1.4);
+      add(p, cyl(0.17, 0.24, 0.9, 10), km.body, 0.38, 1.18, -1.15, -0.6);
+      add(p, sph(1, 16, 12), km.body, 0.38, 1.6, -1.5, 0, 0, 0, 0.3, 0.27, 0.48);
+      for (const sx of [-1, 1]) { add(p, cone(0.06, 0.35, 6), horn, 0.38 + sx * 0.14, 1.88, -1.35, -0.5); add(p, sph(0.05), eye, 0.38 + sx * 0.18, 1.66, -1.72);
+        add(p, bx(1.7, 0.04, 1.0), dark, sx * 1.35, 1.35, 0.35, 0, 0, sx * 0.45); add(p, cyl(0.04, 0.04, 1.8, 6), km.body, sx * 1.35, 1.38, -0.12, 0, 0, Math.PI / 2 + sx * 0.45); }
+      for (let k = 0; k < 4; k++) { add(p, sph(0.26 - k * 0.05), km.body, 0, 0.8 - k * 0.05, 1.55 + k * 0.38); add(p, cone(0.08, 0.25, 4), horn, 0, 1.0 - k * 0.04, 1.55 + k * 0.38); }
+      for (let k = 0; k < 3; k++) add(p, cone(0.1, 0.3, 4), horn, 0, 1.32, 0.75 + k * 0.28);
+    },
+    tub: (p, km) => {
+      const gold = mt('tgold', 0xffc84a, { metalness: 0.9, roughness: 0.25 }), water = mt('twater', 0x7fd0ff, { transparent: true, opacity: 0.75, roughness: 0.05 }), foam = mt('tfoam', 0xffffff, { roughness: 0.6 }), duck = mt('tduck', 0xffd23a);
+      add(p, bx(1.36, 0.08, 2.3), km.body, 0, 0.45, 0);
+      for (const sz of [-1, 1]) add(p, bx(1.36, 0.75, 0.1), km.body, 0, 0.8, sz * 1.12);
+      for (const sx of [-1, 1]) add(p, bx(0.1, 0.75, 2.3), km.body, sx * 0.64, 0.8, 0);
+      add(p, bx(1.2, 0.04, 2.1), water, 0, 1.02, 0);
+      for (let k = 0; k < 9; k++) add(p, sph(0.09 + (k % 3) * 0.04), foam, Math.sin(k * 2.3) * 0.45, 1.06, Math.cos(k * 1.7) * 0.85);
+      for (const [x, z] of [[-0.6, -1.05], [0.6, -1.05], [-0.6, 1.05], [0.6, 1.05]]) add(p, sph(0.12), gold, x, 0.42, z);
+      add(p, cyl(0.04, 0.04, 0.3, 8), gold, 0.3, 1.3, -1.1); add(p, cyl(0.03, 0.03, 0.22, 8), gold, 0.3, 1.42, -1.0, Math.PI / 2);
+      add(p, sph(0.1), duck, -0.2, 1.1, -0.6); add(p, sph(0.06), duck, -0.2, 1.2, -0.68);
+    },
+  };
+})();
 function buildCart(skin = 'classic') {
   const M = vmats(), K = KARTS[skin] || KARTS.classic, km = kartMats(skin), g = new THREE.Group(), top = new THREE.Group(), wheels = [];
   const lift = K.big ? 0.42 : 0, wr = K.big ? 0.56 : 0.28; top.position.y = lift; g.add(top);
   const box = (w, h, d, m, x, y, z) => { const o = new THREE.Mesh(gq('vB' + w + h + d, () => new THREE.BoxGeometry(w, h, d)), m); o.position.set(x, y, z); o.castShadow = true; top.add(o); return o; };
-  box(1.3, 0.22, 2.4, km.body, 0, 0.42, 0);
-  box(1.26, 0.5, 0.55, km.body, 0, 0.72, -0.95);
-  box(1.2, 0.36, 0.6, km.body, 0, 0.71, 0.15);
+  if (K.model) { box(1.2, 0.15, 2.2, M.black, 0, 0.38, 0); box(1.0, 0.3, 0.6, M.black, 0, 0.71, 0.15); KMODEL[K.model](top, km, M); }
+  else {
+    box(1.3, 0.22, 2.4, km.body, 0, 0.42, 0);
+    box(1.26, 0.5, 0.55, km.body, 0, 0.72, -0.95);
+    box(1.2, 0.36, 0.6, km.body, 0, 0.71, 0.15);
+    box(1.26, 0.3, 0.6, M.black, 0, 0.68, 0.95);
+    for (const sx of [-1, 1]) for (const z of [-0.62, 0.55]) { const post = new THREE.Mesh(gq('vPost', () => new THREE.CylinderGeometry(0.035, 0.035, 1.4, 8)), K.neon ? km.glow : M.chrome); post.position.set(sx * 0.58, 1.45, z); top.add(post); }
+    box(1.42, 0.08, 1.9, km.roof, 0, 2.17, -0.04);
+  }
   box(1.2, 0.12, 0.58, km.seat, 0, 0.94, 0.15);
   box(1.2, 0.5, 0.1, km.seat, 0, 1.22, 0.45);
-  box(1.26, 0.3, 0.6, M.black, 0, 0.68, 0.95);
-  for (const sx of [-1, 1]) for (const z of [-0.62, 0.55]) { const post = new THREE.Mesh(gq('vPost', () => new THREE.CylinderGeometry(0.035, 0.035, 1.4, 8)), K.neon ? km.glow : M.chrome); post.position.set(sx * 0.58, 1.45, z); top.add(post); }
-  box(1.42, 0.08, 1.9, km.roof, 0, 2.17, -0.04);
   if (km.stripe) for (const sx of [-1, 1]) { box(0.16, 0.02, 0.56, km.stripe, sx * 0.17, 0.98, -0.95); box(0.16, 0.02, 1.9, km.stripe, sx * 0.17, 2.22, -0.04); box(0.16, 0.02, 2.42, km.stripe, sx * 0.17, 0.54, 0); }
   if (K.neon) {
     for (const sx of [-1, 1]) box(0.03, 0.05, 2.3, km.glow, sx * 0.665, 0.42, 0);
@@ -11421,8 +11542,10 @@ function buildCart(skin = 'classic') {
   const sw = new THREE.Mesh(gq('vSw', () => new THREE.TorusGeometry(0.17, 0.025, 8, 20)), M.black); wheel.add(sw);
   const spokeW = new THREE.Mesh(gq('vSwSpoke', () => new THREE.BoxGeometry(0.32, 0.03, 0.02)), M.black); sw.add(spokeW);
   const col = new THREE.Mesh(gq('vCol', () => new THREE.CylinderGeometry(0.025, 0.025, 0.45, 8)), M.black); col.rotation.x = Math.PI / 2; col.position.z = -0.22; wheel.add(col);
-  for (const sx of [-1, 1]) { const l = new THREE.Mesh(gq('vHl', () => new THREE.SphereGeometry(0.07, 10, 8)), M.light); l.position.set(sx * 0.42, 0.78, -1.23); top.add(l); }
-  const bag = new THREE.Mesh(gq('vBag', () => new THREE.CylinderGeometry(0.16, 0.16, 0.9, 12)), M.bag); bag.position.set(0.3, 1.25, 1.05); bag.rotation.x = 0.25; top.add(bag);
+  if (!K.model) {
+    for (const sx of [-1, 1]) { const l = new THREE.Mesh(gq('vHl', () => new THREE.SphereGeometry(0.07, 10, 8)), M.light); l.position.set(sx * 0.42, 0.78, -1.23); top.add(l); }
+    const bag = new THREE.Mesh(gq('vBag', () => new THREE.CylinderGeometry(0.16, 0.16, 0.9, 12)), M.bag); bag.position.set(0.3, 1.25, 1.05); bag.rotation.x = 0.25; top.add(bag);
+  }
   const ws = wr / 0.28, wx = K.big ? 0.8 : 0.62, wz = K.big ? 0.9 : 0.8;
   for (const sx of [-1, 1]) for (const z of [-wz, wz]) {
     const w = new THREE.Group(); w.position.set(sx * wx, wr, z); w.scale.set(K.big ? 1.6 : 1, ws, ws); w.rotation.order = 'YXZ'; g.add(w); wheels.push(w);
@@ -11540,6 +11663,7 @@ function leaveVehicle() {
 // with where it's pointing. With the handbrake on they barely grip, so the back steps out and you slide.
 function vehDrive(v, thr, steer, hb, top, dt) {
   const T = v.T, b = v.body, grounded = b.onGround || time - b.lastGround < 0.1;
+  if (!Number.isFinite(v.speed + (v.lat || 0) + v.yaw)) { v.speed = 0; v.lat = 0; v.yaw = Number.isFinite(v.yaw) ? v.yaw : 0; }
   let vf = v.speed, vl = v.lat || 0;
   if (grounded) {
     if (thr > 0 && !hb) vf = vf > top ? damp(vf, top, 1.6, dt) : Math.min(top, vf + T.acc * dt * (vf < 0 ? 2.5 : 1));
@@ -11815,7 +11939,7 @@ function rkBump(v) {
 }
 function rkPhase() {
   const S = (RALLY_MAPS[settings.map].stages[GS.kst] || [''])[0], me = state === 'playing' || state === 'paused';
-  if (GS.kph === 1 && RK.ph !== 1) { announce(`STAGE ${GS.kst + 1} OF 3`, S, '#ffbf6b'); sfx.wave(); }
+  if (GS.kph === 1 && RK.ph !== 1) { const rec = rkRecordFor(GS.kst); announce(`STAGE ${GS.kst + 1} OF 3`, rec ? `${S} · record ${rkFmt(rec.t)} by ${rec.n}` : S, '#ffbf6b'); sfx.wave(); }
   else if (GS.kph === 1 && GS.ktm !== RK.tm && GS.ktm > 0 && GS.ktm <= 3) { announce(String(GS.ktm), S, '#ffffff'); tone(520, 520, 0.14, 0.12, 'square'); }
   if (GS.kph === 2 && RK.ph !== 2) { RK.goT = time; announce('GO!', S, '#74ffb5'); tone(1040, 1040, 0.35, 0.14, 'square'); }
   if (GS.kph === 3 && RK.ph !== 3 && me) {
@@ -11843,7 +11967,7 @@ function rallyTick(dt) {
   if (v && me) {
     const b = v.body, [i, lat] = rkNearest(T, b.pos, RK.idx);
     RK.idx = i; RK.lat = lat; RK.prog = Math.max(0, Math.round((i - T.si) * T.step));
-    if (GS.kph === 2 && RK.fin < 0 && i >= T.fi) { RK.fin = +(time - RK.goT).toFixed(2); announce('FINISHED!', rkFmt(RK.fin), '#74ffb5'); sfx.win(); }
+    if (GS.kph === 2 && RK.fin < 0 && i >= T.fi) { RK.fin = +(time - RK.goT).toFixed(2); const rec = rkRecordFor(GS.kst), pb = RKB[rkKey()]; announce('FINISHED!', `${rkFmt(RK.fin)}${rec && RK.fin < rec.t ? ' · NEW STAGE RECORD!' : pb > 0 && RK.fin < pb ? ' · personal best' : ''}`, '#74ffb5'); sfx.win(); rkRecord(RK.fin); }
     RK.off = lat > T.W / 2 + 1.2;
     RK.offT = lat > T.W / 2 + 6 ? RK.offT + dt : 0;
     const t = T.tan[i], ahead = -Math.sin(v.yaw) * t.x - Math.cos(v.yaw) * t.z;
@@ -12725,7 +12849,8 @@ function rafLoop(now) { requestAnimationFrame(rafLoop); if (!document.hidden) sa
 // background tabs get no animation frames; keep the match (and host duties) ticking anyway
 setInterval(() => { if (document.hidden) safeFrame(performance.now()); }, 50);
 function frame(now) {
-  const dt = Math.min(document.hidden ? 0.25 : 0.05, (now - last) / 1000); last = now; time += dt;
+  // the screen-refresh clock and the hidden-tab timer can disagree by a little, so never step backwards
+  const dt = clamp((now - last) / 1000, 0, document.hidden ? 0.25 : 0.05); last = Math.max(last, now); time += dt;
 
   for (const c of crystals) { c.rotation.y += dt * 0.6; c.position.y = c.userData.y + Math.sin(time * 1.3 + c.userData.ph) * 0.35; }
   for (const m of islands) m.position.y = m.userData.y + Math.sin(time * 0.3 + m.userData.ph) * 1.5;
