@@ -2109,7 +2109,8 @@ function finalizeWorld() {
   });
   scene.add(tiles);
   const under = new THREE.Mesh(new THREE.CircleGeometry(ARENA_R + 0.5, 72), glow(...TH.under));
-  under.rotation.x = -Math.PI / 2; under.position.y = -0.14; scene.add(under);
+  // rally terrain dips below sea level, so there the glowing base sits well under the lowest valley
+  under.rotation.x = -Math.PI / 2; under.position.y = RALLY ? -25 : -0.14; scene.add(under);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(ARENA_R + 0.4, 0.22, 8, 160), glow(...TH.rim));
   rim.rotation.x = Math.PI / 2; rim.position.y = -0.1; scene.add(rim);
   const cone = new THREE.ConeGeometry(ARENA_R + 1.2, 48, 30, 6); cone.rotateX(Math.PI);
@@ -2816,12 +2817,14 @@ function buildRally() {
   }
   stages.forEach(T => {
     const { S, tan, nor, W, step, N, si: si0, fi, sty } = T, st = KSTY[sty], wall = KWALL[sty] || KWALL.meadow;
-    const Y = (x, z) => groundY(x, z) + 0.08;
+    const Y = (x, z) => groundY(x, z) + 0.2;
     // the road, in lengthwise lanes (so the rainbow and kente roads are striped), with narrow edge strips
     const lanes = st.road.length;
     for (let i = 0; i < N - 1; i++) {
       const at = (k, off) => { const x = S[k].x + nor[k].x * off, z = S[k].z + nor[k].z * off; return new V3(x, Y(x, z), z); };
-      for (let l = 0; l < lanes; l++) { const o0 = -W / 2 + W * l / lanes, o1 = -W / 2 + W * (l + 1) / lanes; quad(at(i, o0), at(i + 1, o0), at(i + 1, o1), at(i, o1), new THREE.Color(st.road[l]).offsetHSL(0, 0, i % 9 === 0 ? 0.025 : 0)); }
+      // narrow strips (at least 6 across) so the road bends with the hills instead of the ground poking through it
+      const strips = lanes * Math.ceil(6 / lanes);
+      for (let l = 0; l < strips; l++) { const o0 = -W / 2 + W * l / strips, o1 = -W / 2 + W * (l + 1) / strips; quad(at(i, o0), at(i + 1, o0), at(i + 1, o1), at(i, o1), new THREE.Color(st.road[Math.floor(l * lanes / strips)]).offsetHSL(0, 0, i % 9 === 0 ? 0.025 : 0)); }
       const cc = new THREE.Color(st.curb[Math.floor(i / 2) % 2]);
       for (const sd of [-1, 1]) { const a = W / 2 * sd, b = (W / 2 + 0.45) * sd; quad(at(i, a), at(i + 1, a), at(i + 1, b), at(i, b), cc); }
     }
@@ -2876,7 +2879,7 @@ function buildRally() {
     }
     RKS.push({ ...T, pads, boxes });
   });
-  const roadMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -8 });
+  const roadMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -16 });
   for (const m of mergeChunks(roads, roadMat)) { m.receiveShadow = true; scene.add(m); }
   for (const m of mergeChunks(props, vcMat)) { m.castShadow = m.receiveShadow = true; scene.add(m); worldMeshes.push(m); }
   finalizeWorld();
